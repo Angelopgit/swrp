@@ -1,0 +1,77 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The bridge console's ship systems menu (E on a bridge command console): the alert level from DEFCON 5 to 1 with an optional
+	reason, and the ship's public address. The buttons send requests; the host checks rank (2nd Lieutenant+) or staff.
+*@
+
+<root class="@(SwrpUiState.ShipConsoleOpen ? "open" : "")">
+	@if ( SwrpUiState.ShipConsoleOpen && SwrpShip.Current is { } ship )
+	{
+		<div class="ship">
+			<div class="shead">
+				<label class="stitle">SHIP SYSTEMS</label>
+				<label class="ssub">@($"DEFCON {ship.AlertLevel} · {ship.Alert.Name.ToUpperInvariant()}{( ship.LockdownActive ? " · LOCKDOWN" : "" )}")</label>
+				<div class="grow"></div>
+				<div class="close" onclick=@(() => SwrpUiState.ShipConsoleOpen = false)>✕</div>
+			</div>
+
+			<label class="section">ALERT LEVEL</label>
+			<div class="levels">
+				@for ( var lv = 5; lv >= 1; lv-- )
+				{
+					var level = lv;
+					var info = SwrpShip.Levels[level];
+					<div class="level @(ship.AlertLevel == level ? "on" : "")" style="border-top-color: @info.Hex" onclick=@(() => ship.RequestAlert( level, Reason ?? "" ))>
+						<label class="lnum" style="color: @info.Hex">@level</label>
+						<label class="lname">@info.Name.ToUpperInvariant()</label>
+					</div>
+				}
+			</div>
+			<TextEntry class="field" Value:bind="@Reason" MaxLength=@(80) Placeholder="Reason (optional), e.g. Separatist fleet in system"></TextEntry>
+			<label class="note">@( ship.LockdownEnabled ? "DEFCON 1 locks every door to 2nd Lieutenant and up." : "Lockdown at DEFCON 1 is turned off on this server." )</label>
+
+			<label class="section">SHIP ANNOUNCEMENT</label>
+			<TextEntry class="field" Value:bind="@Text" MaxLength=@(160) Placeholder="All hands, prepare for hyperspace jump..."></TextEntry>
+			<div class="row">
+				<div class="grow"></div>
+				<div class="btn" onclick=@Send>ANNOUNCE</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	string Reason;
+	string Text;
+
+	void Send()
+	{
+		if ( string.IsNullOrWhiteSpace( Text ) || SwrpShip.Current is not { } ship ) return;
+		ship.RequestAnnounce( Text );
+		Text = "";
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( !SwrpUiState.ShipConsoleOpen ) return;
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			SwrpUiState.ShipConsoleOpen = false;
+			return;
+		}
+
+		// walk away (or get knocked away) and it closes
+		var me = SwrpPlayer.Local;
+		if ( me is null || !Scene.GetAllComponents<SwrpShipConsole>().Any( c => c.WorldPosition.Distance( me.WorldPosition ) < 240f ) )
+			SwrpUiState.ShipConsoleOpen = false;
+	}
+
+	protected override int BuildHash() => HashCode.Combine( SwrpUiState.ShipConsoleOpen, SwrpShip.Current?.AlertLevel, SwrpShip.Current?.LockdownActive, SwrpShip.Current?.LockdownEnabled );
+}

@@ -1,0 +1,284 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	Roleplay HUD: the active order, your squad (members, CT numbers, health) with optional markers over squadmates, the
+	radio indicator, and briefings on nearby holo-tables. Everything is refreshed from cached lists a few times a second;
+	the per-frame work only moves markers.
+*@
+
+<root>
+	@if ( Me is { } me )
+	{
+		var rp = SwrpRoleplay.Current;
+		var order = rp?.State.Order;
+
+		@if ( SwrpStaffTools.SinceBanner < 10f && !string.IsNullOrEmpty( SwrpStaffTools.Banner ) )
+		{
+			<div class="banner"><label class="btag">ANNOUNCEMENT</label><label class="btext2">@SwrpStaffTools.Banner</label></div>
+		}
+
+		@if ( SwrpShip.SinceAnnouncement < 12f && !string.IsNullOrEmpty( SwrpShip.Announcement ) )
+		{
+			<div class="banner ship"><label class="btag">@($"SHIP ANNOUNCEMENT · {SwrpShip.AnnouncementBy}")</label><label class="btext2">@SwrpShip.Announcement</label></div>
+		}
+
+		@if ( _course is { } course )
+		{
+			<div class="course">
+				<label class="ctag">@($"{course.CourseName.ToUpperInvariant()} · {course.RunnerName}")</label>
+				<div class="crow">
+					<label class="cbig">@( course.CountingDown ? $"READY {MathF.Ceiling( course.SecondsLeft ):0}" : $"{MathF.Ceiling( course.SecondsLeft ):0}s" )</label>
+					<label class="cstat">@($"SCORE {course.Score}")</label>
+					<label class="cstat">@($"HITS {course.Hits}/{course.Spawned}")</label>
+				</div>
+			</div>
+		}
+
+		@if ( SwrpShip.Current is { AlertLevel: < 5 } ship )
+		{
+			<div class="alert level@(ship.AlertLevel)" style="border-color: @ship.Alert.Hex">
+				<label class="atag" style="color: @ship.Alert.Hex">@($"DEFCON {ship.AlertLevel}")</label>
+				<label class="aname">@ship.Alert.Name.ToUpperInvariant()</label>
+				@if ( ship.LockdownActive )
+				{
+					<label class="alock">LOCKDOWN</label>
+				}
+			</div>
+		}
+
+		@if ( me.Noclip || me.GodMode || me.Invisible )
+		{
+			<div class="powers">@( string.Join( " · ", new[] { me.Noclip ? "NOCLIP" : null, me.GodMode ? "GOD" : null, me.Invisible ? "INVISIBLE" : null }.Where( x => x is not null ) ) )</div>
+		}
+
+		@if ( order is not null )
+		{
+			<div class="order @order.Priority">
+				<div class="head">
+					<label class="tag">@($"ORDERS · {order.Priority.ToUpperInvariant()}")</label>
+					<label class="title">@order.Title</label>
+				</div>
+				@if ( !string.IsNullOrWhiteSpace( order.Objective ) )
+				{
+					<label class="objective">@order.Objective</label>
+				}
+				@if ( !string.IsNullOrWhiteSpace( order.Rally ) )
+				{
+					<label class="rally">@( order.HasRallyPoint ? $"RALLY: {order.Rally.ToUpperInvariant()} · {RallyMeters} M" : $"RALLY: {order.Rally.ToUpperInvariant()}" )</label>
+				}
+			</div>
+		}
+
+		@if ( _squad is { } squad && SwrpPlayer.Local?.InVehicle != true )
+		{
+			<div class="squad" style="border-left-color: @squad.ColorHex">
+				<label class="name" style="color: @squad.ColorHex">@($"{squad.Name.ToUpperInvariant()}  ·  {squad.Members.Count}/{SwrpRoleplay.MaxSquadSize}")</label>
+				@if ( _platoonName is not null )
+				{
+					<label class="platoon">@_platoonName</label>
+				}
+				@for ( var i = 0; i < _count; i++ )
+				{
+					var p = _members[i];
+					var hp = _health[i];
+					<div class="member @(p == me ? "me" : "") @(_down[i] ? "down" : "")">
+						<label class="lead">@(squad.Leader == p.OwnerSteamId ? "★" : "")</label>
+						<div class="who">
+							<label class="nm">@($"{p.Rank.Abbreviation} {p.CharacterName}")</label>
+							<label class="ct">@(p.Faction.Numbered ? p.Faction.DesignationFor( p.Designation ) : p.Faction.ShortName)</label>
+						</div>
+						<div class="hp"><div class="fill" style="width: @(hp)%; background-color: @(hp > 50 ? "#7dffa1" : hp > 25 ? "#ffb547" : "#ff4a3d")"></div></div>
+					</div>
+				}
+			</div>
+		}
+
+		@for ( var i = 0; i < _count; i++ )
+		{
+			@if ( _markerOn[i] )
+			{
+				<div class="marker" style="left: @(_mx[i])px; top: @(_my[i])px;">
+					<div class="diamond" style="border-color: @(_squad?.ColorHex ?? "#5fb4ff")"></div>
+					<label class="mname">@_members[i].CharacterName</label>
+				</div>
+			}
+		}
+
+		@if ( _briefing is { } table )
+		{
+			<div class="briefing" style="left: @(_bx)px; top: @(_by)px;">
+				<label class="btag">@($"HOLO-BRIEFING · {table.TableName.ToUpperInvariant()}")</label>
+				<label class="btitle">@table.Title</label>
+				@if ( !string.IsNullOrWhiteSpace( table.Text ) )
+				{
+					<label class="btext">@table.Text</label>
+				}
+				<label class="bauthor">@table.Author</label>
+			</div>
+		}
+	}
+</root>
+
+@code
+{
+	[ConVar( "swrp_squad_markers", Help = "Show coloured markers over your squadmates (1 = on)", Saved = true )]
+	public static bool Markers { get; set; } = true;
+
+	const int Max = SwrpRoleplay.MaxSquadSize;
+
+	SwrpPlayer Me => SwrpPlayer.Local;
+
+	SquadInfo _squad;
+	string _platoonName;
+	readonly SwrpPlayer[] _members = new SwrpPlayer[Max];
+	readonly int[] _health = new int[Max];
+	readonly bool[] _down = new bool[Max];
+	readonly bool[] _markerOn = new bool[Max];
+	readonly int[] _mx = new int[Max];
+	readonly int[] _my = new int[Max];
+	int _count;
+	int _rallyMeters;
+	int RallyMeters => _rallyMeters;
+
+	SwrpBriefingTable _briefing;
+	int _bx, _by;
+
+	// a training run you are on or watching
+	SwrpTrainingCourse _course;
+
+	RealTimeSince _sinceRefresh = 10;
+	int _seenVersion = -1;
+
+	protected override void OnUpdate()
+	{
+		var me = Me;
+		var rp = SwrpRoleplay.Current;
+		if ( me is null || rp is null ) { _count = 0; _squad = null; _briefing = null; return; }
+
+		var state = rp.State;      // parses only when the host published a change
+		if ( rp.Version != _seenVersion || _sinceRefresh > 0.5f )
+		{
+			_seenVersion = rp.Version;
+			_sinceRefresh = 0;
+			Refresh( me, rp );
+		}
+
+		var cam = Scene.Camera;
+		var scale = Panel?.ScaleFromScreen ?? 1f;
+
+		// Squad health and markers.
+		for ( var i = 0; i < _count; i++ )
+		{
+			var p = _members[i];
+			_markerOn[i] = false;
+			if ( !p.IsValid() ) continue;
+
+			var v = p.GetComponent<SwrpVitals>();
+			_health[i] = v is null ? 0 : (int)Math.Clamp( v.Health, 0f, 100f );
+			_down[i] = v is { IsDead: true } or { IsDowned: true };
+
+			if ( !Markers || p == me || !cam.IsValid() ) continue;
+			var head = p.WorldPosition + Vector3.Up * 84f;
+			var to = head - cam.WorldPosition;
+			if ( to.Length > 6000f || Vector3.Dot( to.Normal, cam.WorldRotation.Forward ) < 0.2f ) continue;
+			var s = cam.PointToScreenPixels( head );
+			_mx[i] = (int)( s.x * scale );
+			_my[i] = (int)( s.y * scale );
+			_markerOn[i] = true;
+		}
+
+		_course = null;
+		foreach ( var c in _courses )
+			if ( c.IsValid() && c.Running && ( c.RunnerSteamId == me.OwnerSteamId || c.Room.Contains( me.WorldPosition ) ) ) { _course = c; break; }
+
+		var order = state.Order;
+		_rallyMeters = order is { HasRallyPoint: true } ? (int)( order.RallyPoint.Distance( me.WorldPosition ) * 0.0254f ) : 0;
+
+		// A briefing on the nearest holo-table in view.
+		_briefing = null;
+		if ( cam.IsValid() )
+		{
+			for ( var ti = 0; ti < _tables.Count; ti++ )
+			{
+				var t = _tables[ti];
+				if ( !t.IsValid() ) continue;
+				if ( !t.HasBriefing ) continue;
+				var to = t.HoloPoint - cam.WorldPosition;
+				if ( to.Length > SwrpBriefingTable.ReadRange || Vector3.Dot( to.Normal, cam.WorldRotation.Forward ) < 0.35f ) continue;
+				var s = cam.PointToScreenPixels( t.HoloPoint );
+				_bx = (int)( s.x * scale );
+				_by = (int)( s.y * scale );
+				_briefing = t;
+				break;
+			}
+		}
+	}
+
+	readonly List<SwrpBriefingTable> _tables = new();
+	readonly List<SwrpTrainingCourse> _courses = new();
+
+	void Refresh( SwrpPlayer me, SwrpRoleplay rp )
+	{
+		_tables.Clear();
+		foreach ( var t in Scene.GetAllComponents<SwrpBriefingTable>() ) _tables.Add( t );
+		_courses.Clear();
+		foreach ( var c in Scene.GetAllComponents<SwrpTrainingCourse>() ) _courses.Add( c );
+
+		_squad = rp.SquadOf( me.OwnerSteamId );
+		_platoonName = null;
+		_count = 0;
+		if ( _squad is null ) return;
+
+		if ( rp.PlatoonFor( _squad ) is { } pl ) _platoonName = $"{pl.Name.ToUpperInvariant()} · {pl.CommanderName}";
+
+		foreach ( var p in SwrpPlayers.Valid )
+		{
+			if ( _count >= Max ) break;
+			if ( p.CharacterId is null || !_squad.Members.Contains( p.OwnerSteamId ) ) continue;
+			_members[_count++] = p;
+		}
+	}
+
+	protected override int BuildHash()
+	{
+		var h = new HashCode();
+		h.Add( Me?.CharacterId );
+		h.Add( SwrpPlayer.Local?.InVehicle );
+		h.Add( _seenVersion );
+		h.Add( _count );
+		for ( var i = 0; i < _count; i++ )
+		{
+			h.Add( _health[i] );
+			h.Add( _down[i] );
+			h.Add( _markerOn[i] );
+			h.Add( _mx[i] / 3 );
+			h.Add( _my[i] / 3 );
+		}
+		h.Add( _rallyMeters );
+		h.Add( SwrpChat.SinceRadio < 1.5f );
+		h.Add( Me?.RadioChannel );
+		h.Add( _briefing?.Title );
+		h.Add( SwrpStaffTools.SinceBanner < 10f );
+		h.Add( SwrpShip.SinceAnnouncement < 12f );
+		h.Add( _course );
+		h.Add( _course?.Score );
+		h.Add( _course?.Hits );
+		h.Add( _course?.Spawned );
+		h.Add( (int)MathF.Ceiling( _course?.SecondsLeft ?? 0 ) );
+		h.Add( _course?.CountingDown );
+		h.Add( SwrpShip.Announcement );
+		h.Add( SwrpShip.Current?.AlertLevel );
+		h.Add( SwrpShip.Current?.LockdownActive );
+		h.Add( Me?.Noclip );
+		h.Add( Me?.GodMode );
+		h.Add( Me?.Invisible );
+		h.Add( _briefing?.Text );
+		h.Add( _bx / 3 );
+		h.Add( _by / 3 );
+		return h.ToHashCode();
+	}
+}

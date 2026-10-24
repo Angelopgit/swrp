@@ -1,0 +1,129 @@
+@import "../Feel/_feel.scss";
+
+// The armour customiser (ArmorCustomizer.razor): a holo side panel on the right, so the hangar's trooper stays in view.
+
+ArmorCustomizer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: flex-end;
+	align-items: center;
+	font-family: $feel-font-title;
+	color: $feel-text;
+	pointer-events: none;
+}
+
+.panel {
+	width: 560px;
+	max-height: 90%;
+	margin-right: 36px;
+	flex-direction: column;
+	padding: $feel-space-4 $feel-space-6;
+	background-color: $feel-panel-deep;
+	border: 1px solid $feel-holo-dim;
+	border-top: 3px solid $feel-holo;
+	border-radius: $feel-radius-panel;
+	pointer-events: all;
+	overflow: hidden;
+	@include feel-panel-in;
+}
+
+.head {
+	flex-direction: row;
+	align-items: flex-start;
+	margin-bottom: $feel-space-3;
+
+	.titles { flex-direction: column; }
+	.kicker { font-size: $feel-size-xs; letter-spacing: 4px; color: $feel-holo; }
+	.name { font-size: $feel-size-xl; letter-spacing: 3px; color: white; margin-top: 2px; }
+	.sub { font-family: $feel-font-body; font-size: 12px; color: $feel-muted; }
+	.grow { flex-grow: 1; }
+
+	.x {
+		width: 30px;
+		height: 30px;
+		justify-content: center;
+		align-items: center;
+		color: $feel-muted;
+		cursor: pointer;
+		@include feel-button;
+	}
+}
+
+.row.helmet {
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 12px;
+	margin-bottom: $feel-space-3;
+	border: 1px solid $feel-holo-dim;
+	border-radius: $feel-radius;
+	cursor: pointer;
+	@include feel-button;
+
+	.r-name { font-size: $feel-size-s; letter-spacing: 3px; }
+	.r-val { font-size: $feel-size-s; color: $feel-muted; }
+
+	&.on { border-color: $feel-holo; background-color: rgba( 111, 211, 255, 0.14 ); .r-val { color: white; } }
+}
+
+.slots {
+	flex-direction: column;
+	overflow-y: scroll;
+	flex-grow: 1;
+}
+
+.slot {
+	flex-direction: column;
+	margin-bottom: $feel-space-3;
+
+	.s-name { font-size: $feel-size-xs; letter-spacing: 4px; color: $feel-holo; margin-bottom: 4px; }
+}
+
+.choices {
+	flex-direction: column;
+	gap: 4px;
+}
+
+.choice {
+	flex-direction: column;
+	padding: 6px 10px;
+	border-left: 3px solid rgba( 111, 211, 255, 0.2 );
+	background-color: rgba( 111, 211, 255, 0.04 );
+	cursor: pointer;
+	@include feel-button;
+
+	.c-name { font-size: $feel-size-s; letter-spacing: 2px; }
+	.c-sub { font-family: $feel-font-body; font-size: 11px; color: $feel-muted; margin-top: 1px; }
+
+	&.on { border-left-color: $feel-holo; background-color: rgba( 111, 211, 255, 0.16 ); .c-name { color: white; } }
+	&.locked { opacity: 0.45; cursor: default; .c-sub { color: $feel-amber; } &:hover { background-color: rgba( 111, 211, 255, 0.04 ); } }
+}
+
+.note, .empty {
+	font-family: $feel-font-body;
+	font-size: 11px;
+	color: $feel-muted;
+	margin: $feel-space-2 0;
+}
+
+.buttons {
+	flex-direction: row;
+	justify-content: flex-end;
+	gap: $feel-space-2;
+
+	.btn {
+		padding: 8px 16px;
+		font-size: $feel-size-s;
+		letter-spacing: 3px;
+		border: 1px solid $feel-holo-dim;
+		border-radius: $feel-radius;
+		cursor: pointer;
+		@include feel-button;
+
+		&.go { border-color: $feel-green; color: $feel-green; }
+		&.ghost { color: $feel-muted; }
+	}
+}

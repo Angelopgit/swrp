@@ -1,0 +1,310 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$force: #a9b8ff;
+$amber: #ffb547;
+$red: #ff4a3d;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+JediHud {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	font-family: Poppins;
+	color: $text;
+}
+
+.jedi {
+	position: absolute;
+	right: 40px;
+	bottom: 158px;
+	width: 300px;
+	flex-direction: column;
+	padding: 10px 14px 6px 0;
+	border-right: 2px solid $holo-dim;
+	border-top: 1px solid $holo-dim;
+	opacity: 0.75;
+	transition: opacity 0.3s ease;
+
+	&.lit {
+		opacity: 1;
+	}
+
+	.row {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.head {
+		justify-content: space-between;
+		margin-bottom: 8px;
+
+		.form {
+			font-size: 11px;
+			letter-spacing: 4px;
+			color: $holo;
+		}
+
+		.lvl {
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 2px;
+			color: $muted;
+		}
+	}
+}
+
+.meter {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 6px;
+
+	.key {
+		width: 40px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 2px;
+		color: $muted;
+	}
+
+	.track {
+		flex-grow: 1;
+		height: 6px;
+		background-color: rgba( 255, 255, 255, 0.1 );
+
+		.fill {
+			height: 100%;
+			transition: width 0.12s linear;
+		}
+	}
+
+	.num {
+		width: 44px;
+		text-align: right;
+		font-size: 15px;
+		font-weight: 700;
+		text-shadow: 0 1px 4px black;
+	}
+
+	&.focus {
+		.fill { background-color: $text; box-shadow: 0 0 6px rgba( 230, 242, 251, 0.4 ); }
+		&.low {
+			.fill { background-color: $amber; }
+			.num { color: $amber; }
+		}
+	}
+
+	&.force {
+		.fill { background-color: $force; box-shadow: 0 0 8px rgba( 169, 184, 255, 0.5 ); }
+		.num { color: $force; }
+	}
+}
+
+.power {
+	margin-top: 2px;
+
+	.glyph {
+		font-size: 20px;
+		width: 30px;
+		color: $force;
+		text-shadow: 0 0 8px rgba( 169, 184, 255, 0.7 );
+
+		&.wait {
+			color: $muted;
+			text-shadow: none;
+		}
+	}
+
+	.pname {
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 2px;
+	}
+
+	.cd {
+		margin-left: 8px;
+		font-size: 11px;
+		color: $amber;
+	}
+
+	.hint {
+		flex-grow: 1;
+		text-align: right;
+		font-size: 8px;
+		letter-spacing: 1px;
+		color: $muted;
+	}
+}
+
+.xp {
+	height: 2px;
+	margin-top: 8px;
+	background-color: rgba( 255, 255, 255, 0.08 );
+
+	.fill {
+		height: 100%;
+		background-color: $holo;
+	}
+}
+
+.points {
+	margin-top: 6px;
+	font-size: 9px;
+	letter-spacing: 2px;
+	color: $amber;
+}
+
+// ----- the blade lock, top centre -----
+
+.lock {
+	position: absolute;
+	left: 50%;
+	top: 62%;
+	width: 420px;
+	margin-left: -210px;
+	flex-direction: column;
+	align-items: center;
+
+	.t {
+		font-size: 16px;
+		font-weight: 800;
+		letter-spacing: 6px;
+		color: $text;
+		text-shadow: 0 0 12px $holo;
+	}
+
+	.bar {
+		width: 100%;
+		height: 8px;
+		margin: 8px 0;
+		background-color: rgba( 255, 74, 61, 0.55 );
+		border: 1px solid $holo-dim;
+
+		.mine {
+			height: 100%;
+			background-color: $holo;
+			box-shadow: 0 0 10px $holo;
+			transition: width 0.08s linear;
+		}
+	}
+
+	.s {
+		font-size: 9px;
+		letter-spacing: 2px;
+		color: $muted;
+	}
+
+	&.broken .t {
+		color: $amber;
+		text-shadow: 0 0 12px $amber;
+	}
+}
+
+// ----- the Force wheel, centre -----
+
+.wheel {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 420px;
+	height: 420px;
+	margin-left: -210px;
+	margin-top: -210px;
+
+	.hub {
+		position: absolute;
+		left: 140px;
+		top: 140px;
+		width: 140px;
+		height: 140px;
+		border-radius: 70px;
+		border: 2px solid rgba( 169, 184, 255, 0.4 );
+		background-color: rgba( 6, 10, 24, 0.7 );
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+
+		.t {
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 4px;
+			color: $force;
+		}
+
+		.s {
+			font-size: 8px;
+			letter-spacing: 1px;
+			color: $muted;
+			margin-top: 4px;
+		}
+	}
+
+	.opt {
+		position: absolute;
+		width: 110px;
+		height: 110px;
+		border-radius: 55px;
+		border: 1px solid rgba( 169, 184, 255, 0.3 );
+		background-color: rgba( 6, 10, 24, 0.6 );
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.08s ease;
+
+		.g {
+			font-size: 28px;
+			color: $force;
+		}
+
+		.n {
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: 2px;
+		}
+
+		.c {
+			font-size: 8px;
+			color: $muted;
+		}
+
+		&.sel {
+			border: 1px solid $force;
+		}
+
+		&.hover {
+			background-color: rgba( 60, 80, 160, 0.75 );
+			border: 2px solid $text;
+			transform: scale( 1.1 );
+		}
+	}
+}
+
+// ----- a word for a moment: PERFECT PARRY / PARRIED -----
+
+.flash {
+	position: absolute;
+	left: 50%;
+	top: 57%;
+	width: 400px;
+	margin-left: -200px;
+	justify-content: center;
+
+	label {
+		font-size: 15px;
+		font-weight: 800;
+		letter-spacing: 6px;
+	}
+
+	&.good label {
+		color: #ffffff;
+		text-shadow: 0 0 14px $holo;
+	}
+
+	&.bad label {
+		color: $amber;
+		text-shadow: 0 0 10px rgba( 255, 181, 71, 0.6 );
+	}
+}

@@ -1,0 +1,1011 @@
+// Star Wars "Grand Army" terminal: deep space, holo cyan lines, amber call to action.
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$holo-faint: rgba( 111, 211, 255, 0.12 );
+$amber: #ffb547;
+$red: #ff4a3d;
+$text: #d9e9f5;
+$muted: rgba( 217, 233, 245, 0.55 );
+$panel: rgba( 6, 14, 26, 0.9 );
+
+CharacterMenu {
+	.look-row {
+		flex-direction: row;
+		align-items: center;
+		margin-top: 6px;
+		gap: 8px;
+
+		.key { width: 110px; font-size: 12px; letter-spacing: 1px; color: rgba( 200, 220, 240, 0.7 ); }
+		.value { flex-grow: 1; text-align: center; font-size: 14px; color: #e8f2ff; }
+		.arrow {
+			width: 28px;
+			height: 28px;
+			justify-content: center;
+			align-items: center;
+			font-size: 20px;
+			color: #9fd0ff;
+			background-color: rgba( 120, 180, 255, 0.12 );
+			border-radius: 4px;
+			cursor: pointer;
+			pointer-events: all;
+			&:hover { background-color: rgba( 120, 180, 255, 0.3 ); }
+		}
+	}
+
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	font-family: Poppins;
+	color: $text;
+	z-index: 100;
+
+	&.hidden {
+		display: none;
+		pointer-events: none;
+	}
+
+	&.visible {
+		pointer-events: all;
+	}
+}
+
+// ----- Backdrop -----
+
+// Over the hangar backdrop: no starfield, and a soft dark frame round the edges so the spotlit trooper stands out.
+.vignette {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient( ellipse at 50% 58%, rgba( 2, 6, 14, 0 ) 22%, rgba( 2, 6, 14, 0.45 ) 62%, rgba( 2, 6, 14, 0.88 ) 100% );
+}
+
+CharacterMenu.hangar .space {
+	display: none;
+}
+
+// the hologram's beam and scanline belong to the turntable, not to a trooper standing in the hangar
+CharacterMenu.hangar .beam,
+CharacterMenu.hangar .scan {
+	display: none;
+}
+
+.space {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient( circle at 50% 40%, #0b1a33 0%, #050a16 55%, #020409 100% );
+	overflow: hidden;
+}
+
+.nebula {
+	position: absolute;
+	left: -10%;
+	top: -20%;
+	width: 70%;
+	height: 80%;
+	background: radial-gradient( circle, rgba( 60, 110, 200, 0.18 ) 0%, rgba( 20, 40, 90, 0 ) 70% );
+}
+
+.planet {
+	position: absolute;
+	right: -260px;
+	bottom: -420px;
+	width: 900px;
+	height: 900px;
+	border-radius: 450px;
+	background: radial-gradient( circle at 35% 30%, #2b5c8a 0%, #12263f 45%, #050b16 70% );
+	box-shadow: 0 0 120px rgba( 111, 211, 255, 0.25 );
+	opacity: 0.85;
+}
+
+.star {
+	position: absolute;
+	border-radius: 2px;
+	background-color: white;
+	opacity: 0.7;
+
+	&.twinkle {
+		animation-name: twinkle;
+		animation-duration: 3.5s;
+		animation-iteration-count: infinite;
+		animation-timing-function: ease-in-out;
+	}
+}
+
+@keyframes twinkle {
+	0% { opacity: 0.15; }
+	50% { opacity: 1; }
+	100% { opacity: 0.15; }
+}
+
+// ----- Frame -----
+
+.frame {
+	position: absolute;
+	left: 48px;
+	top: 36px;
+	right: 48px;
+	bottom: 36px;
+	flex-direction: column;
+	transition: all 0.35s ease-out;
+
+	&:intro {
+		opacity: 0;
+		transform: translateY( 12px );
+	}
+}
+
+.topbar {
+	flex-direction: row;
+	align-items: center;
+	height: 72px;
+	flex-shrink: 0;
+
+	.emblem {
+		width: 56px;
+		height: 56px;
+		margin-right: 18px;
+		justify-content: center;
+		align-items: center;
+
+		.ring {
+			position: absolute;
+			width: 56px;
+			height: 56px;
+			border-radius: 28px;
+			border: 3px solid $holo;
+			box-shadow: 0 0 14px $holo-dim;
+		}
+
+		.core {
+			width: 20px;
+			height: 20px;
+			border-radius: 10px;
+			background-color: $holo;
+			box-shadow: 0 0 18px $holo;
+		}
+	}
+
+	.titles {
+		flex-direction: column;
+		flex-grow: 1;
+	}
+
+	.title {
+		font-size: 30px;
+		font-weight: 700;
+		letter-spacing: 9px;
+		color: white;
+		text-shadow: 0 0 18px rgba( 111, 211, 255, 0.45 );
+	}
+
+	.subtitle {
+		font-size: 13px;
+		letter-spacing: 4px;
+		color: $holo;
+		opacity: 0.8;
+	}
+
+	.channel {
+		flex-direction: column;
+		align-items: flex-end;
+		margin-right: 18px;
+
+		.code {
+			font-size: 11px;
+			letter-spacing: 3px;
+			color: $muted;
+		}
+
+		.mode {
+			font-size: 16px;
+			font-weight: 600;
+			letter-spacing: 5px;
+			color: $amber;
+		}
+	}
+
+	.close {
+		width: 40px;
+		height: 40px;
+		justify-content: center;
+		align-items: center;
+		font-size: 20px;
+		color: $muted;
+		border: 1px solid $holo-dim;
+		cursor: pointer;
+
+		&:hover {
+			color: white;
+			border-color: $holo;
+			background-color: $holo-faint;
+		}
+	}
+}
+
+.rule {
+	height: 1px;
+	margin: 14px 0 22px 0;
+	background-color: $holo-dim;
+	flex-shrink: 0;
+
+	.glow {
+		width: 240px;
+		height: 3px;
+		margin-top: -1px;
+		background-color: $holo;
+		box-shadow: 0 0 12px $holo;
+	}
+}
+
+.loading {
+	flex-grow: 1;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	font-size: 15px;
+	letter-spacing: 4px;
+	color: $holo;
+
+	.spinner {
+		width: 48px;
+		height: 48px;
+		border-radius: 24px;
+		border: 3px solid $holo-faint;
+		border-top-color: $holo;
+		margin-bottom: 20px;
+		animation-name: spin;
+		animation-duration: 1s;
+		animation-iteration-count: infinite;
+		animation-timing-function: linear;
+	}
+}
+
+@keyframes spin {
+	0% { transform: rotate( 0deg ); }
+	100% { transform: rotate( 360deg ); }
+}
+
+// ----- Three columns -----
+
+.main {
+	flex-direction: row;
+	flex-grow: 1;
+	min-height: 0;
+}
+
+.side {
+	width: 430px;
+	flex-shrink: 0;
+	flex-direction: column;
+	padding: 22px 24px;
+	background-color: $panel;
+	border: 1px solid $holo-faint;
+	border-top: 2px solid $holo-dim;
+}
+
+.scroll {
+	flex-direction: column;
+	flex-grow: 1;
+	overflow: scroll;
+}
+
+.section {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 4px;
+	color: $holo;
+	margin: 4px 0 12px 0;
+}
+
+.card {
+	flex-direction: row;
+	align-items: center;
+	padding: 14px 14px 14px 0;
+	margin-bottom: 10px;
+	background-color: rgba( 255, 255, 255, 0.03 );
+	border: 1px solid rgba( 255, 255, 255, 0.06 );
+	cursor: pointer;
+	transition: all 0.12s ease;
+	flex-shrink: 0;
+
+	.stripe {
+		width: 4px;
+		height: 46px;
+		margin-right: 14px;
+	}
+
+	.info {
+		flex-direction: column;
+		flex-grow: 1;
+		flex-shrink: 1;
+	}
+
+	.name {
+		font-size: 16px;
+		font-weight: 600;
+		letter-spacing: 1px;
+		color: white;
+	}
+
+	.desc {
+		font-size: 12px;
+		color: $muted;
+	}
+
+	.badge, .lock {
+		font-size: 11px;
+		letter-spacing: 3px;
+		color: $holo;
+		margin-left: 10px;
+	}
+
+	.lock {
+		color: $amber;
+	}
+
+	.plus {
+		width: 46px;
+		font-size: 28px;
+		color: $holo;
+		text-align: center;
+		margin-right: 4px;
+	}
+
+	&:hover {
+		background-color: $holo-faint;
+		border-color: $holo-dim;
+	}
+
+	&.selected {
+		background-color: rgba( 111, 211, 255, 0.16 );
+		border-color: $holo;
+		box-shadow: 0 0 16px rgba( 111, 211, 255, 0.2 );
+	}
+
+	&.vacant {
+		border: 1px dashed $holo-dim;
+		background-color: transparent;
+		opacity: 0.75;
+
+		&:hover {
+			opacity: 1;
+			background-color: $holo-faint;
+		}
+	}
+
+	&.locked {
+		opacity: 0.4;
+		cursor: default;
+
+		&:hover {
+			background-color: rgba( 255, 255, 255, 0.03 );
+			border-color: rgba( 255, 255, 255, 0.06 );
+		}
+	}
+}
+
+// ----- Hologram stage -----
+
+.stage {
+	flex-grow: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 0 24px;
+	min-width: 0;
+}
+
+.holo {
+	position: relative;
+	width: 520px;
+	flex-grow: 1;
+	max-height: 680px;
+	justify-content: center;
+	align-items: flex-end;
+
+	.beam {
+		position: absolute;
+		left: 130px;
+		right: 130px;
+		top: 12%;
+		bottom: 30px;
+		background: linear-gradient( to top, rgba( 111, 211, 255, 0.16 ), rgba( 111, 211, 255, 0 ) );
+	}
+
+	.preview {
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 20px;
+	}
+
+	.base {
+		width: 360px;
+		height: 46px;
+		border-radius: 150px;
+		justify-content: center;
+		align-items: center;
+		padding: 0 22px;
+		border: 2px solid $holo;
+		background-color: rgba( 111, 211, 255, 0.12 );
+		box-shadow: 0 0 40px rgba( 111, 211, 255, 0.45 );
+	}
+
+	.scan {
+		position: absolute;
+		left: 110px;
+		right: 110px;
+		height: 2px;
+		background-color: rgba( 111, 211, 255, 0.45 );
+		box-shadow: 0 0 10px $holo;
+		animation-name: scan;
+		animation-duration: 4s;
+		animation-iteration-count: infinite;
+		animation-timing-function: linear;
+	}
+}
+
+@keyframes scan {
+	0% { top: 40px; opacity: 0; }
+	10% { opacity: 1; }
+	90% { opacity: 1; }
+	100% { top: 560px; opacity: 0; }
+}
+
+// the selected trooper's name, inside the holo pad
+.callsign {
+	font-size: 16px;
+	font-weight: 700;
+	letter-spacing: 2px;
+	color: white;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-shadow: 0 0 12px rgba( 111, 211, 255, 0.6 );
+
+	&.dim {
+		color: $muted;
+		font-size: 12px;
+	}
+}
+
+.class-tabs {
+	flex-direction: row;
+	margin-top: 18px;
+
+	.tab {
+		padding: 10px 26px;
+		margin: 0 6px;
+		font-size: 14px;
+		font-weight: 600;
+		letter-spacing: 4px;
+		color: $muted;
+		border: 1px solid $holo-dim;
+		background-color: rgba( 6, 14, 26, 0.7 );
+		cursor: pointer;
+
+		&:hover {
+			color: white;
+			background-color: $holo-faint;
+		}
+
+		&.selected {
+			color: #04101e;
+			background-color: $holo;
+			border-color: $holo;
+			box-shadow: 0 0 18px rgba( 111, 211, 255, 0.5 );
+		}
+
+		// needs a qualification (SwrpCareer): still selectable, so the preview shows, but the host refuses it
+		&.locked {
+			opacity: 0.55;
+			border-style: dashed;
+		}
+	}
+}
+
+// ----- Dossier / form -----
+
+.row {
+	flex-direction: row;
+	flex-shrink: 0;
+	justify-content: space-between;
+	padding: 7px 0;
+	border-bottom: 1px solid rgba( 255, 255, 255, 0.05 );
+
+	.key {
+		font-size: 11px;
+		letter-spacing: 3px;
+		color: $muted;
+	}
+
+	.value {
+		font-size: 15px;
+		font-weight: 600;
+		color: white;
+
+		&.credits {
+			color: $amber;
+		}
+	}
+}
+
+.side .section {
+	margin-top: 14px;
+}
+
+.desc {
+	font-size: 13px;
+	color: $muted;
+	margin-bottom: 8px;
+}
+
+.perk {
+	font-size: 13px;
+	color: #9fe3a4;
+	margin-bottom: 3px;
+}
+
+.stat {
+	flex-direction: row;
+	align-items: center;
+	margin: 4px 0;
+
+	.key {
+		width: 90px;
+		font-size: 11px;
+		letter-spacing: 3px;
+		color: $muted;
+	}
+
+	.bar {
+		flex-grow: 1;
+		height: 6px;
+		background-color: rgba( 255, 255, 255, 0.08 );
+
+		.fill {
+			height: 100%;
+			background-color: $amber;
+
+			&.armor {
+				background-color: $holo;
+			}
+		}
+	}
+}
+
+.name-entry {
+	font-size: 20px;
+	padding: 10px 12px;
+	background-color: rgba( 0, 0, 0, 0.45 );
+	border: 1px solid $holo-dim;
+	color: white;
+
+	&:focus {
+		border-color: $holo;
+	}
+}
+
+.hint {
+	font-size: 11px;
+	color: $muted;
+	margin-top: 6px;
+}
+
+.kit {
+	flex-direction: row;
+	flex-wrap: wrap;
+
+	.chip {
+		font-size: 11px;
+		padding: 3px 8px;
+		margin: 0 6px 6px 0;
+		border: 1px solid rgba( 255, 255, 255, 0.1 );
+		background-color: rgba( 255, 255, 255, 0.04 );
+	}
+}
+
+.deployed {
+	font-size: 14px;
+	letter-spacing: 4px;
+	color: $holo;
+	text-align: center;
+	padding: 14px;
+	border: 1px solid $holo-dim;
+}
+
+.grow {
+	flex-grow: 1;
+}
+
+.buttons {
+	flex-direction: row;
+	justify-content: flex-end;
+	margin-top: 14px;
+}
+
+.button {
+	padding: 12px 24px;
+	margin-left: 10px;
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 4px;
+	cursor: pointer;
+	border: 1px solid rgba( 255, 255, 255, 0.15 );
+	transition: all 0.1s ease;
+
+	&:hover {
+		background-color: rgba( 255, 255, 255, 0.08 );
+	}
+
+	&.primary {
+		color: #1a1003;
+		background-color: $amber;
+		border-color: $amber;
+
+		&:hover {
+			background-color: #ffc978;
+			box-shadow: 0 0 20px rgba( 255, 181, 71, 0.55 );
+		}
+	}
+
+	&.deploy {
+		flex-grow: 1;
+		text-align: center;
+		justify-content: center;
+		font-size: 18px;
+		letter-spacing: 8px;
+	}
+
+	&.ghost {
+		color: $text;
+		background-color: transparent;
+	}
+
+	&.danger {
+		color: $red;
+		border-color: rgba( 255, 74, 61, 0.5 );
+		background-color: transparent;
+
+		&:hover, &.confirm {
+			color: white;
+			background-color: $red;
+		}
+
+		// hold to discharge: a red bar fills behind the label while the button is held
+		&.hold {
+			position: relative;
+			overflow: hidden;
+			background-color: transparent;
+
+			&:hover { background-color: rgba( 255, 74, 61, 0.12 ); color: $red; }
+			&.holding { color: white; }
+		}
+
+		.hold-fill {
+			position: absolute;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			background-color: $red;
+		}
+
+		.hold-label { position: relative; }
+	}
+}
+
+// ----- the selected trooper's service record, under the roster -----
+
+.record {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 10px;
+	gap: 16px;
+
+	.insignia {
+		width: 76px;
+		height: 76px;
+		border-radius: 38px;
+		border: 3px solid $holo;
+		justify-content: center;
+		align-items: center;
+		background-color: rgba( 255, 255, 255, 0.04 );
+		flex-shrink: 0;
+	}
+
+	.ins-short { font-family: Orbitron; font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+	.rec-text { flex-direction: column; flex-grow: 1; }
+	.rec-unit { font-family: Orbitron; font-size: 14px; letter-spacing: 2px; }
+	.rec-rank { font-size: 15px; color: white; margin-top: 2px; }
+
+	.ladder {
+		flex-direction: row;
+		gap: 3px;
+		margin-top: 8px;
+	}
+
+	.rung {
+		flex-grow: 1;
+		height: 5px;
+		background-color: rgba( 255, 255, 255, 0.1 );
+	}
+}
+
+.rec-stats {
+	flex-direction: row;
+	margin-top: 14px;
+	gap: 8px;
+
+	.rec-stat {
+		flex-direction: column;
+		flex-grow: 1;
+		padding: 8px 10px;
+		background-color: rgba( 111, 211, 255, 0.06 );
+		border: 1px solid $holo-faint;
+	}
+
+	.k { font-family: Orbitron; font-size: 9px; letter-spacing: 2px; color: $muted; }
+	.v { font-size: 14px; color: white; margin-top: 2px; }
+}
+
+.pill-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 5px;
+	margin-right: 10px;
+	flex-shrink: 0;
+}
+
+.toast-row {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -6px;
+	justify-content: center;
+}
+
+.toast {
+	padding: 10px 22px;
+	font-size: 14px;
+	letter-spacing: 1px;
+	background-color: rgba( 6, 14, 26, 0.92 );
+	border: 1px solid $holo;
+	color: white;
+
+	&.error {
+		border-color: $red;
+		color: #ffd6d3;
+	}
+}
+
+// ----- Orbitron for headings, labels, numbers and buttons; descriptions stay in Poppins for readability -----
+// Orbitron runs wide, so tracking is pulled in compared with the Poppins values above.
+
+.topbar .title {
+	font-family: Orbitron;
+	font-size: 28px;
+	font-weight: 700;
+	letter-spacing: 6px;
+}
+
+.topbar .subtitle, .channel .code, .channel .mode, .section, .row .key, .stat .key,
+.callsign, .class-tabs .tab, .button, .deployed, .loading, .card .badge, .card .lock, .card .plus {
+	font-family: Orbitron;
+}
+
+.topbar .subtitle {
+	letter-spacing: 3px;
+}
+
+.channel .mode {
+	letter-spacing: 4px;
+}
+
+.section {
+	letter-spacing: 3px;
+}
+
+.card .name {
+	font-family: Orbitron;
+	font-size: 15px;
+	letter-spacing: 1px;
+}
+
+.callsign {
+	letter-spacing: 3px;
+}
+
+.class-tabs .tab {
+	letter-spacing: 3px;
+}
+
+.button {
+	letter-spacing: 3px;
+
+	&.deploy {
+		letter-spacing: 6px;
+	}
+}
+
+.row .value.credits {
+	font-family: Orbitron;
+}
+
+// ---- Sounds (Kenney CC0 events in Assets/sounds/ui/charmenu_*; see SoundSource/kenney_ui_sounds.py) ----
+.card, .button, .tab, .close, .slot, .faction, .arrow {
+	&:hover {
+		sound-in: "sounds/ui/charmenu_hover.sound";
+	}
+
+	&:active {
+		sound-in: "sounds/ui/charmenu_click.sound";
+	}
+}
+
+.button.primary:active {
+	sound-in: "sounds/ui/charmenu_confirm.sound";
+}
+
+.button.danger:active {
+	sound-in: "sounds/ui/charmenu_deny.sound";
+}
+
+// character screen music: mute toggle and a 10-step volume bar, top right
+.music {
+	flex-direction: row;
+	align-items: flex-end;
+	margin-right: 26px;
+	padding-bottom: 4px;
+
+	.mute {
+		font-size: 14px;
+		color: $holo;
+		margin-right: 8px;
+		cursor: pointer;
+		&.off { color: $muted; font-size: 11px; letter-spacing: 2px; }
+		&:hover { color: white; }
+	}
+
+	.bar {
+		width: 5px;
+		margin-right: 3px;
+		background-color: rgba( 111, 211, 255, 0.18 );
+		cursor: pointer;
+		&.lit { background-color: $holo; box-shadow: 0 0 6px $holo-dim; }
+		&:hover { background-color: white; }
+	}
+}
+
+// ----- the hangar shot (2026-10-21, board "Trooper Select Shot"): one column on the dark left, the trooper is the picture -----
+// Hierarchy: the trooper, then his name and battalion/rank/class, then roster and Deploy; the dossier opens on demand.
+
+CharacterMenu.cine {
+	// a dark wash under the column only; the right of the frame is left to the lit trooper
+	.vignette {
+		background: linear-gradient( to right, rgba( 2, 5, 10, 0.88 ) 0%, rgba( 2, 5, 10, 0.6 ) 28%, rgba( 2, 5, 10, 0 ) 52% );
+	}
+
+	.emblem, .subtitle, .channel .code, .rule {
+		display: none;
+	}
+
+	.topbar {
+		height: 40px;
+		margin-bottom: 26px;
+
+		.title { font-size: 13px; letter-spacing: 6px; color: $muted; }
+		.channel .mode { font-size: 12px; color: $holo; }
+	}
+
+	// (no delayed slide-in: Angelo twice saw no menu on the character screen, 2026-10-21)
+	.frame:intro {
+		transform: translateX( -40px );
+	}
+
+	// Deploy: the menu falls away while the camera pushes in
+	&.leaving .frame {
+		opacity: 0;
+		transition: opacity 0.2s ease-in;
+	}
+}
+
+.shot {
+	flex-direction: row;
+	flex-grow: 1;
+	min-height: 0;
+}
+
+.shot-col {
+	width: 440px;
+	flex-shrink: 0;
+	flex-direction: column;
+	padding-bottom: 8px;
+
+	.card.pick {
+		padding: 10px 12px 10px 0;
+		margin-bottom: 6px;
+		background-color: rgba( 255, 255, 255, 0.02 );
+		border: 1px solid rgba( 255, 255, 255, 0.04 );
+
+		.name { font-size: 13px; }
+		.plus { font-size: 18px; }
+
+		&.selected {
+			background-color: $holo-faint;
+			border-color: $holo-dim;
+		}
+	}
+}
+
+.ident {
+	flex-direction: column;
+	margin-bottom: 22px;
+
+	.ident-name {
+		font-family: Orbitron;
+		font-size: 46px;
+		font-weight: 700;
+		letter-spacing: 3px;
+		color: white;
+		text-shadow: 0 2px 18px rgba( 0, 0, 0, 0.7 );
+	}
+
+	.ident-line {
+		font-family: Orbitron;
+		font-size: 13px;
+		letter-spacing: 3px;
+		margin-top: 8px;
+	}
+}
+
+.actions {
+	flex-direction: row;
+	align-items: center;
+
+	.button {
+		margin-left: 0;
+		margin-right: 18px;
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.button.deploy {
+		padding: 16px 46px;
+		font-size: 17px;
+	}
+}
+
+.button.quiet {
+	padding: 12px 2px;
+	font-size: 11px;
+	color: $muted;
+	background-color: transparent;
+	border-color: transparent;
+
+	&:hover { color: white; background-color: transparent; }
+	&.on { color: $holo; }
+}
+
+.record-panel {
+	width: 400px;
+	margin-left: 30px;
+	align-self: flex-end;
+	max-height: 100%;
+}
+
+// the dossier scrolls when there's more than fits (a Jedi's saber designer), the buttons stay put below it
+.scroll.dossier {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-height: 0;
+
+	> * { flex-shrink: 0; }
+}

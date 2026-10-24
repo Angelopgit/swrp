@@ -1,0 +1,275 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The "[E]" prompt for doors, door panels, turbolift panels and the hangar console. It traces from the camera every frame, pins itself to the
+	spot under the crosshair (projected onto the screen so it stays readable at any distance) and sends the press to the host.
+	Sits on the UI object next to the HUD; one prompt for the whole map, one trace per frame.
+*@
+
+<root>
+	@if ( Visible )
+	{
+		<div class="card @Tone" style="left: @(X)px; top: @(Y)px;">
+			<div class="key">E</div>
+			<div class="text">
+				<label class="title">@Title</label>
+				<label class="sub">@Sub</label>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	public const float Reach = 150f;
+
+	[ConVar( "swrp_interact_debug", Help = "Log what the E prompt is looking at once a second" )]
+	public static bool Debug { get; set; }
+
+	RealTimeSince _debugTimer;
+
+	bool Visible;
+	bool _holdingRevive;
+	string Title;
+	string Sub;
+	string Tone;
+	int X;
+	int Y;
+
+	protected override void OnUpdate()
+	{
+		var me = SwrpPlayer.Local;
+		var cam = Scene.Camera;
+		SwrpDoor door = null;
+		SwrpHangarConsole console = null;
+		SwrpLiftPanel liftPanel = null;
+		SwrpShieldButton shieldButton = null;
+		SwrpWorldItem worldItem = null;
+		SwrpShipConsole shipConsole = null;
+		SwrpHoloMap holoMap = null;
+		SwrpTrainingCourse course = null;
+		SwrpBactaStation station = null;
+		SwrpVitals patient = null;
+		ISwrpUsable usable = null;
+		SceneTraceResult tr = default;
+		var myVitals = me?.GetComponent<SwrpVitals>();
+		var tool = myVitals?.MedicTool;
+		var medkit = tool == ItemRegistry.Medkit;
+
+		// Holding E on a downed trooper revives them; letting go (or looking away) stops.
+		if ( _holdingRevive && !Input.Down( "use" ) )
+		{
+			_holdingRevive = false;
+			myVitals?.RequestCancelRevive();
+		}
+
+		// Shift+E+R is the weapon safety (SwrpBlaster), not a use
+		var safetyCombo = Input.Down( "Run" ) && Input.Down( "Reload" );
+		if ( me.IsValid() && cam.IsValid() && !safetyCombo && !SwrpUiState.AnyOpen && !SwrpBuild.UsesE && !me.Frozen && !me.InVehicle && myVitals is not { IsDowned: true } and not { IsDead: true } )
+		{
+			var from = cam.WorldPosition;
+			var dir = cam.WorldRotation.Forward;
+			tr = Scene.Trace.Ray( from, from + dir * ( Reach + 60f ) ).IgnoreGameObjectHierarchy( me.GameObject ).Run();
+			if ( tr.Hit && tr.GameObject is { } hit && tr.EndPosition.Distance( me.WorldPosition + Vector3.Up * 64f ) < Reach )
+			{
+				console = hit.Components.GetInAncestorsOrSelf<SwrpHangarConsole>();
+				liftPanel = hit.Components.GetInAncestorsOrSelf<SwrpLiftPanel>();
+				shieldButton = hit.Components.GetInAncestorsOrSelf<SwrpShieldButton>();
+				worldItem = hit.Components.GetInAncestorsOrSelf<SwrpWorldItem>();
+				shipConsole = hit.Components.GetInAncestorsOrSelf<SwrpShipConsole>();
+				holoMap = hit.Components.GetInAncestorsOrSelf<SwrpHoloMap>();
+				course = hit.Components.GetInAncestorsOrSelf<SwrpTrainingCourse>();
+				station = hit.Components.GetInAncestorsOrSelf<SwrpBactaStation>();
+				// only the object hit and its parents, never the scene root (searching from there finds every usable in the map)
+				for ( var g = hit; g is not null && g is not Sandbox.Scene && usable is null; g = g.Parent )
+					usable = g.Components.GetAll<Component>( FindMode.EverythingInSelf ).OfType<ISwrpUsable>().FirstOrDefault();
+				patient = hit.Components.GetInAncestorsOrSelf<SwrpVitals>() is { } v && v != myVitals && ( v.IsWounded || medkit && v.NeedsCare ) ? v : null;
+				door = hit.Components.GetInAncestorsOrSelf<SwrpDoorPanel>()?.Door ?? hit.Components.GetInAncestorsOrSelf<SwrpDoor>();
+			}
+		}
+
+		if ( Debug && _debugTimer > 1f )
+		{
+			_debugTimer = 0;
+			Log.Info( $"[SWRP] interact: hit={tr.Hit} obj={tr.GameObject?.Name} door={door?.DoorId} console={console.IsValid()}" );
+		}
+
+		// A downed trooper is hard to hit with a trace while lying down; fall back to the nearest one at your feet.
+		if ( patient is null && myVitals is not null && me.IsValid() && !myVitals.IsDowned && !myVitals.IsDead && cam.IsValid() )
+		{
+			foreach ( var v in Scene.GetAllComponents<SwrpVitals>() )
+			{
+				if ( v == myVitals || !v.IsWounded ) continue;
+				var to = v.WorldPosition - me.WorldPosition;
+				if ( to.Length > 90f || Vector3.Dot( to.WithZ( 0 ).Normal, cam.WorldRotation.Forward.WithZ( 0 ).Normal ) < 0.5f ) continue;
+				patient = v;
+				tr = new SceneTraceResult { EndPosition = v.WorldPosition + Vector3.Up * 20f, Normal = Vector3.Up, Hit = true };
+				break;
+			}
+		}
+
+		Visible = door.IsValid() || console.IsValid() || shieldButton.IsValid() || worldItem.IsValid() || liftPanel?.Lift is not null || shipConsole.IsValid() || holoMap.IsValid() || course.IsValid() || station.IsValid() || patient.IsValid() || myVitals is { RevivingProgress: > 0 } || usable is not null;
+		// The brig's shield control ring: no collider of its own, so it's "near it and facing it".
+		if ( !Visible && me.IsValid() && cam.IsValid() && !SwrpUiState.AnyOpen && !SwrpBuild.UsesE && SwrpBrigConsole.Facing( Scene, me, cam ) is { } brig )
+		{
+			Visible = true;
+			Title = "Brig shield control";
+			Sub = SwrpBrig.MayControlLocal( me ) ? "Every cell, entrance and fight-cage shield" : $"{FactionRegistry.CloneRanks[SwrpBrig.Rank].Name}+ or {FactionRegistry.Get( SwrpBrig.Guard )?.Name}";
+			Tone = SwrpBrig.MayControlLocal( me ) ? "info" : "denied";
+			var bp = cam.PointToScreenPixels( brig.WorldPosition + Vector3.Up * 60f );
+			var bs = Panel?.ScaleFromScreen ?? 1f;
+			X = (int)( bp.x * bs );
+			Y = (int)( bp.y * bs );
+			if ( Input.Pressed( "use" ) ) brig.RequestOpen();
+			return;
+		}
+
+		// Standing in a lift booth or teleport pad: E takes you (walking in already does, except in noclip).
+		if ( !Visible && me.IsValid() && cam.IsValid() && !SwrpUiState.AnyOpen && !SwrpBuild.UsesE && SwrpTeleporter.At( Scene, me.WorldPosition ) is { } pad )
+		{
+			Visible = true;
+			Title = $"Take the {pad.TeleporterName}";
+			Sub = me.Noclip ? "Noclip: press E to use the lift" : "Lift · press E if it doesn't take you";
+			Tone = "info";
+			var sp = cam.PointToScreenPixels( me.WorldPosition + Vector3.Up * 70f + cam.WorldRotation.Forward * 40f );
+			var sc2 = Panel?.ScaleFromScreen ?? 1f;
+			X = (int)( sp.x * sc2 );
+			Y = (int)( sp.y * sc2 );
+			if ( Input.Pressed( "use" ) ) pad.RequestUse();
+			return;
+		}
+		if ( !Visible ) return;
+
+		if ( patient.IsValid() || myVitals is { RevivingProgress: > 0 } )
+		{
+			if ( patient.IsValid() ) { var s0 = cam.PointToScreenPixels( tr.EndPosition + Vector3.Up * 10f ); var sc = Panel?.ScaleFromScreen ?? 1f; X = (int)( s0.x * sc ); Y = (int)( s0.y * sc ); }
+			var medic = me.Class.IsMedic;
+			var pct = (int)( ( myVitals?.RevivingProgress ?? 0 ) * 100 );
+			var treat = pct > 0 ? myVitals.RevivingTreat : patient is { IsWounded: false };
+			var who = patient?.GetComponent<SwrpPlayer>() is { } pp ? $"{pp.Rank.Abbreviation} {pp.CharacterName}" : "trooper";
+			Title = pct > 0 ? $"{( treat ? "Treating" : "Reviving" )} {myVitals.RevivingName}  {pct}%" : $"Hold to {( treat ? "treat" : "revive" )} {who}";
+			Sub = treat ? "Medkit: full health, stops bleeding"
+				: tool == ItemRegistry.Defibrillator ? "Defibrillator: back at full health, wounds closed"
+				: medic ? "Medic: fast revive, closes wounds (the defibrillator restores full health)" : "Not a medic: slow, they keep bleeding";
+			Tone = medic ? "ok" : "ok restricted";
+			if ( Input.Pressed( "use" ) && patient.IsValid() )
+			{
+				_holdingRevive = true;
+				myVitals?.RequestRevive( patient );
+			}
+			return;
+		}
+
+		if ( station.IsValid() )
+		{
+			Title = $"Use {station.StationName}";
+			Sub = "Bacta treatment · stops bleeding";
+			Tone = "ok";
+			var s1 = cam.PointToScreenPixels( tr.EndPosition + tr.Normal * 4f + Vector3.Up * 10f );
+			var sc1 = Panel?.ScaleFromScreen ?? 1f;
+			X = (int)( s1.x * sc1 );
+			Y = (int)( s1.y * sc1 );
+			if ( Input.Pressed( "use" ) ) station.RequestUse();
+			return;
+		}
+
+		// Pin to a point just off the surface, a little above the crosshair, in UI units.
+		var anchor = tr.EndPosition + tr.Normal * 4f + Vector3.Up * 10f;
+		var screen = cam.PointToScreenPixels( anchor );
+		var scale = Panel?.ScaleFromScreen ?? 1f;
+		X = (int)( screen.x * scale );
+		Y = (int)( screen.y * scale );
+
+		if ( usable is not null )
+		{
+			(Title, Sub, Tone) = usable.Prompt( me );
+			if ( Input.Pressed( "use" ) ) usable.Use( me );
+			return;
+		}
+
+		if ( course.IsValid() )
+		{
+			var mine = course.RunnerSteamId == me.OwnerSteamId;
+			Title = !course.Running ? "Start a training run" : mine ? "Stop your run" : $"{course.RunnerName} is on the course";
+			Sub = $"{course.CourseName} · {SwrpTrainingCourse.RunSeconds:0} s · /training for the board";
+			Tone = !course.Running || mine ? "ok" : "denied";
+			if ( Input.Pressed( "use" ) ) course.RequestStart();
+			return;
+		}
+
+		if ( holoMap.IsValid() )
+		{
+			Title = "Holo-map";
+			Sub = "Where every squad is";
+			Tone = "info";
+			if ( Input.Pressed( "use" ) ) holoMap.RequestSummary();
+			return;
+		}
+
+		if ( shipConsole.IsValid() && SwrpShip.Current is { } ship )
+		{
+			var officer = me.RankIndex >= SwrpShip.OfficerRank;
+			Title = officer ? "Ship systems" : $"DEFCON {ship.AlertLevel} · {ship.Alert.Name}";
+			Sub = officer ? $"{shipConsole.ConsoleName} · DEFCON {ship.AlertLevel}" : "Officers (2nd Lieutenant+) only";
+			Tone = officer ? "info" : "denied";
+			if ( Input.Pressed( "use" ) )
+			{
+				if ( officer ) SwrpUiState.ShipConsoleOpen = true;
+				else SwrpChat.Submit( "/alert" );      // tells them the level; staff without the rank use /alert and /pa
+			}
+			return;
+		}
+
+		if ( worldItem.IsValid() )
+		{
+			Title = $"Pick up {( worldItem.Count > 1 ? $"{worldItem.Count}x " : "" )}{worldItem.Definition?.Name ?? "item"}";
+			Sub = worldItem.Definition?.Weapon is not null ? "Weapon · G drops the one in your hands" : "Item";
+			Tone = "ok";
+			if ( Input.Pressed( "use" ) ) worldItem.RequestPickup();
+			return;
+		}
+
+		if ( shieldButton.IsValid() )
+		{
+			var on = shieldButton.AnyShieldUp;
+			Title = $"{( on ? "Lower" : "Raise" )} {shieldButton.Label}";
+			Sub = SwrpBrig.MayControlLocal( me ) ? "Brig tower" : $"{FactionRegistry.CloneRanks[SwrpBrig.Rank].Name}+ or {FactionRegistry.Get( SwrpBrig.Guard )?.Name}";
+			Tone = SwrpBrig.MayControlLocal( me ) ? "info" : "denied";
+			if ( Input.Pressed( "use" ) ) shieldButton.RequestToggle();
+			return;
+		}
+
+		if ( liftPanel?.Lift is { } lift )
+		{
+			var deck = lift.DeckAt( me.WorldPosition );
+			Title = lift.Moving ? "Turbolift in motion" : "Choose a deck";
+			Sub = deck >= 0 ? $"{lift.LiftName} · {lift.Decks[deck].Name}" : lift.LiftName;
+			Tone = lift.Moving ? "ok restricted" : "info";
+			if ( Input.Pressed( "use" ) && !lift.Moving ) SwrpUiState.LiftMenu = lift;
+			return;
+		}
+
+		if ( console.IsValid() )
+		{
+			Title = console.BayOpen ? "Close hangar bay doors" : "Open hangar bay doors";
+			Sub = "Hangar control console";
+			Tone = "info";
+			if ( Input.Pressed( "use" ) ) console.RequestUse();
+			return;
+		}
+
+		Title = $"{( door.IsOpen ? "Close" : "Open" )} {door.DisplayName}";
+		var allowed = !door.Locked && !door.ConsoleOnly && !door.StaffOnly && ( me.RankIndex >= door.EffectiveRank || !string.IsNullOrEmpty( door.OrFaction ) && door.OrFaction == me.FactionId )
+			&& ( string.IsNullOrEmpty( door.RequiredFaction ) || door.RequiredFaction == me.FactionId );
+		Sub = door.Locked ? "Locked" : door.AccessLabel;
+		Tone = door.Locked ? "locked" : allowed ? ( door.EffectiveRank > 0 ? "ok restricted" : "ok" ) : "denied";
+
+		if ( Input.Pressed( "use" ) && !door.ConsoleOnly ) door.RequestUse();
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Visible, Title, Sub, Tone, X / 2, Y / 2 );
+}

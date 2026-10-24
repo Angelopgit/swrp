@@ -1,0 +1,56 @@
+{
+  "Id": "djemso",
+  "Title": "Shien / Djem So",
+  "Numeral": "V",
+  "FormId": 4,
+  "AnimationSet": "saber_djemso",
+  "RequiredLevel": 6,
+  "Requires": "soresu",
+  "Description": "The way of the krayt dragon. Power: heavy blows that drive through guards, ripostes that punish, bolts sent back at the shooter.",
+  "Tempo": 0.88,
+  "Damage": 1.25,
+  "FocusCost": 10.0,
+  "BlockCost": 0.85,
+  "ParryWindow": 0.15,
+  "DeflectSkill": 0.75,
+  "Riposte": 1.6,
+  "BlockMove": 0.7,
+  "LockStrength": 1.35,
+  "GuardPitch": 72.0,
+  "GuardYaw": 15.0,
+  "Crouch": 0.2,
+  "StanceWidth": 13.0,
+  "StanceDepth": 13.0,
+  "StanceTurn": 25.0,
+  "StanceShift": 0.0,
+  "StanceBend": 5.0,
+  "CutTilt": 0.75,
+  "WristLead": 0.85,
+  "BodyDrive": 1.3,
+  "BlockOut": 14.0,
+  "BlockLean": -28.0,
+  "BlockHeight": 5.0,
+  "GuardHand": "11,-3,6",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 0.95,
+      "Damage": 1.1,
+      "Arc": 150.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.0,
+      "Damage": 1.15,
+      "Arc": 150.0
+    },
+    {
+      "Direction": "Overhead",
+      "Speed": 0.9,
+      "Damage": 1.45,
+      "Arc": 160.0
+    }
+  ],
+  "Version": 6,
+  "OneHanded": false
+}

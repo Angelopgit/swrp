@@ -1,0 +1,627 @@
+// The Q menu in Facepunch's Sandbox look (Theme.scss with its default light palette, SpawnMenuHost, SpawnMenu, SpawnMenuPage,
+// SpawnMenuIcon, UIGroupedList, UISettingsPane; MIT, see Code/Build/LICENSE-facepunch-sandbox.txt). Their hover/select sounds are
+// swapped for SWRP's own UI sounds.
+
+$body-font: "Inter";
+$ui-settings-font: 12px;
+$ui-section-gap: 20px;
+
+$ui-blue: #3e83eb;
+$ui-blue-soft: rgba( 62, 131, 235, 0.14 );
+$ui-danger: #d04040;
+$ui-text: #555555;
+$ui-text-muted: #777777;
+$ui-text-placeholder: #a8a8a8;
+$ui-text-on-gray: rgba( 255, 255, 255, 0.55 );
+$ui-heading-on-gray: rgba( 255, 255, 255, 0.85 );
+$ui-block-top: rgba( 140, 140, 140, 0.66 );
+$ui-block-bottom: rgba( 130, 130, 130, 0.66 );
+$ui-block-border: rgba( 255, 255, 255, 0.28 );
+$ui-section-top: rgba( 255, 255, 255, 0.90 );
+$ui-section-bottom: rgba( 245, 245, 245, 0.80 );
+$ui-section-border: rgba( 0, 0, 0, 0.51 );
+$ui-input-bg: rgba( 255, 255, 255, 0.96 );
+$ui-input-border: rgba( 0, 0, 0, 0.51 );
+$ui-button-top: rgba( 248, 248, 248, 0.9 );
+$ui-button-bottom: rgba( 230, 230, 230, 0.9 );
+$ui-button-border: rgba( 0, 0, 0, 0.33 );
+$ui-row-alt: rgba( 0, 0, 0, 0.05 );
+$ui-separator: rgba( 0, 0, 0, 0.12 );
+$ui-scroll-track: #d0d0d0;
+$ui-tab-bg: #676767;
+$ui-tab-bg-hover: #707070;
+$ui-tab-bg-active: #878787;
+$ui-tab-border: #464646;
+$ui-tile-bg: rgba( 0, 0, 0, 0.16 );
+$ui-tile-title-bg: white;
+$ui-tile-title-text: black;
+$ui-tile-outline: white;
+
+$snd-hover: "sounds/ui/ui_hover.sound";
+$snd-select: "sounds/ui/ui_click.sound";
+
+@mixin ui-block
+{
+	padding: 8px;
+	border: 1px solid $ui-block-border;
+	background-image: linear-gradient( to bottom, $ui-block-top, $ui-block-bottom );
+	border-radius: 2px;
+}
+
+@mixin ui-section
+{
+	color: $ui-text;
+	border: 1px solid $ui-section-border;
+	background-image: linear-gradient( to bottom, $ui-section-top, $ui-section-bottom );
+	border-radius: 2px;
+}
+
+@mixin ui-scroll
+{
+	scrollbar-width: 9px;
+	scrollbar-color: $ui-blue $ui-scroll-track;
+}
+
+@mixin ui-text-entry
+{
+	height: 24px;
+	min-width: 0px;
+	padding: 0 6px;
+	align-items: center;
+	background-color: $ui-input-bg;
+	border: 1px solid $ui-input-border;
+	border-radius: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	color: $ui-text;
+	flex-direction: row;
+	cursor: text;
+	&:focus { border-color: $ui-blue; }
+	.placeholder { opacity: 1; color: $ui-text-placeholder; }
+}
+
+@mixin ui-button
+{
+	height: 24px;
+	padding: 0 10px;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 500;
+	color: $ui-text;
+	background-image: linear-gradient( to bottom, $ui-button-top 0%, $ui-button-top 46%, $ui-button-bottom 54%, $ui-button-bottom 100% );
+	border: 1px solid $ui-button-border;
+	border-radius: 2px;
+	cursor: pointer;
+	&:hover { filter: brightness( 1.10 ); sound-in: $snd-hover; }
+	&:active { transform: translateY( 1px ); sound-in: $snd-select; }
+}
+
+@mixin ui-selected
+{
+	color: white;
+	background-color: $ui-blue;
+}
+
+@mixin ui-selectable
+{
+	cursor: pointer;
+	border-radius: 2px;
+	&:hover { background-color: $ui-blue-soft; sound-in: $snd-hover; }
+	&:active { sound-in: $snd-select; }
+	&.active { @include ui-selected; }
+}
+
+@mixin ui-title-bar
+{
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	height: 23px;
+	padding: 0 10px;
+	background-color: $ui-blue;
+	color: white;
+	font-size: 12px;
+	font-weight: 800;
+	border-radius: 2px 2px 0px 0px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+@mixin ui-heading-text
+{
+	font-size: $ui-settings-font;
+	font-weight: 800;
+	text-transform: uppercase;
+	color: $ui-text-muted;
+}
+
+@mixin ui-tab
+{
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	height: 24px;
+	padding: 0 10px;
+	flex-shrink: 0;
+	border-radius: 2px 2px 0px 0px;
+	font-size: 13px;
+	font-weight: 600;
+	color: $ui-text-on-gray;
+	background-color: $ui-tab-bg;
+	border-top: 1px solid $ui-tab-border;
+	border-right: 1px solid $ui-tab-border;
+	cursor: pointer;
+	white-space: nowrap;
+	&:first-child { border-left: 1px solid $ui-tab-border; }
+	&:hover { color: white; background-color: $ui-tab-bg-hover; sound-in: $snd-hover; }
+	&:active { sound-in: $snd-select; }
+	&.active
+	{
+		height: 25px;
+		padding-top: 1px;
+		color: white;
+		background-color: $ui-tab-bg-active;
+		border: 1px solid $ui-block-border;
+		border-bottom: 0px;
+		pointer-events: none;
+	}
+}
+
+@mixin ui-sidebar
+{
+	@include ui-section;
+	@include ui-scroll;
+	flex-direction: column;
+	flex-shrink: 0;
+	min-height: 0px;
+	overflow: hidden;
+}
+
+// ----- the host (SpawnMenuHost) -----
+
+BuildMenu
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	color: white;
+	font-family: $body-font;
+	font-size: 12px;
+	font-weight: 500;
+	z-index: 54;
+	pointer-events: none;
+
+	&.open { pointer-events: all; }
+}
+
+.menu-wrapper
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.1s ease-out;
+}
+
+BuildMenu.open .menu-wrapper { opacity: 1; pointer-events: all; }
+
+.menu-slide
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	transform: translateY( -180px );
+	transition: transform 0.1s ease-out;
+}
+
+BuildMenu.open .menu-slide { transform: translateY( 0px ); }
+
+// ----- the two blocks (SpawnMenu) -----
+
+.container
+{
+	flex-direction: row;
+	width: 100%;
+	max-width: 1920px;
+	height: 100%;
+	padding: 54px 2vw 83px 2vw;
+	gap: 10px;
+}
+
+.spawnmenuleft, .spawnmenuright
+{
+	flex-direction: column;
+	min-width: 0px;
+}
+
+.spawnmenuleft { flex-grow: 1; }
+.spawnmenuright { width: 583px; flex-shrink: 0; flex-grow: 0; }
+
+.tabs
+{
+	flex-direction: row;
+	align-items: flex-end;
+	flex-shrink: 0;
+	height: 25px;
+	margin-left: 9px;
+	align-self: flex-start;
+	z-index: 10;
+
+	> * { @include ui-tab; }
+}
+
+.spawnmenuleft > .body, .spawnmenuright > .body
+{
+	@include ui-block;
+	position: relative;
+	flex-grow: 1;
+	min-height: 0px;
+}
+
+// ----- a spawn page: category sidebar and icon grid (SpawnMenuPage, SpawnMenuIcon) -----
+
+.page
+{
+	flex-direction: row;
+	width: 100%;
+	height: 100%;
+}
+
+.page > .left
+{
+	flex-direction: column;
+	width: 254px;
+	height: 100%;
+	flex-shrink: 0;
+	margin-right: 19px;
+	gap: 8px;
+}
+
+.filter
+{
+	@include ui-text-entry;
+	width: 100%;
+	flex-shrink: 0;
+}
+
+.list
+{
+	@include ui-sidebar;
+	flex-grow: 1;
+	flex-shrink: 1;
+	padding: 1px;
+	overflow-y: scroll;
+}
+
+.group
+{
+	flex-direction: column;
+	flex-shrink: 0;
+	margin-bottom: 18px;
+	&:last-child { margin-bottom: 0px; }
+}
+
+.group-header { @include ui-title-bar; }
+
+.group-items
+{
+	flex-direction: column;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.item
+{
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	height: 19px;
+	padding: 0 9px;
+	color: $ui-text;
+	font-size: 12px;
+	font-weight: 500;
+	white-space: nowrap;
+	&.alt { background-color: $ui-row-alt; }
+	@include ui-selectable;
+}
+
+.grid-body
+{
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0px;
+	height: 100%;
+}
+
+.toolbar
+{
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 6px;
+	margin-bottom: 8px;
+
+	.search { width: 420px; }
+	.button { @include ui-button; }
+	.note { color: $ui-heading-on-gray; }
+}
+
+.grid
+{
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	flex-grow: 1;
+	min-height: 0px;
+	gap: 4px;
+	padding-right: 16px;
+	overflow-y: scroll;
+	@include ui-scroll;
+}
+
+.empty
+{
+	width: 100%;
+	padding: 40px;
+	justify-content: center;
+	font-size: 16px;
+	font-weight: 600;
+	color: $ui-heading-on-gray;
+}
+
+.icon
+{
+	width: 123px;
+	height: 123px;
+	flex-shrink: 0;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	padding: 6px;
+	background-color: $ui-tile-bg;
+	cursor: pointer;
+
+	.thumb
+	{
+		width: 100%;
+		height: 100%;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: contain;
+	}
+
+	.glyph
+	{
+		flex-grow: 1;
+		align-items: center;
+		justify-content: center;
+		font-size: 42px;
+	}
+
+	// the white strip with the name: always on for icons without a picture, on hover for the rest
+	.title
+	{
+		position: absolute;
+		left: 1px;
+		right: 1px;
+		bottom: 1px;
+		height: 28px;
+		padding: 0 6px;
+		justify-content: center;
+		align-items: center;
+		background-color: $ui-tile-title-bg;
+		color: $ui-tile-title-text;
+		font-size: 11px;
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.sub
+	{
+		position: absolute;
+		left: 4px;
+		right: 4px;
+		top: 4px;
+		font-size: 10px;
+		font-weight: 600;
+		color: white;
+		text-shadow: 0px 1px 2px rgba( 0, 0, 0, 0.7 );
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	&::before
+	{
+		content: "";
+		position: absolute;
+		left: 0px;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		border: 1px solid $ui-tile-outline;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	&:hover
+	{
+		sound-in: $snd-hover;
+		&::before { opacity: 1; }
+		.title { opacity: 1; }
+	}
+
+	&:active { sound-in: $snd-select; }
+
+	&.selected::before { opacity: 1; border: 2px solid $ui-blue; }
+	&.selected .title { opacity: 1; }
+}
+
+.icon.noimg .title { opacity: 1; }
+
+// ----- right block: grouped list + settings pane (ToolsTab, UtilityTab, UIGroupedList, UISettingsPane) -----
+
+.spawnmenuright > .tabs { margin-left: 7px; }
+
+.spawnmenuright .tab
+{
+	flex-direction: row;
+	gap: 8px;
+	width: 100%;
+	height: 100%;
+}
+
+.grouped
+{
+	flex-direction: column;
+	width: 185px;
+	height: 100%;
+	flex-shrink: 0;
+	gap: 8px;
+}
+
+.pane
+{
+	@include ui-section;
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0px;
+	height: 100%;
+	padding: 1px;
+}
+
+.pane .title-bar { @include ui-title-bar; overflow: hidden; }
+
+.settings-body
+{
+	@include ui-scroll;
+	flex-direction: column;
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-height: 0px;
+	padding: 12px 10px 8px 10px;
+	overflow-y: scroll;
+	color: $ui-text;
+
+	> * { flex-shrink: 0; }
+
+	.note { padding: 4px 4px 10px 4px; color: $ui-text; opacity: 0.75; }
+
+	.section-header
+	{
+		flex-shrink: 0;
+		margin: 4px 0px 6px 0px;
+		padding-bottom: 3px;
+		border-bottom: 1px solid $ui-separator;
+		@include ui-heading-text;
+		&:not(:first-child) { margin-top: $ui-section-gap; }
+	}
+
+	.button
+	{
+		@include ui-button;
+		&.wide { width: 100%; margin-bottom: 6px; }
+		&.danger { color: $ui-danger; }
+	}
+
+	.list-entry
+	{
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		min-height: 32px;
+		padding: 4px 8px;
+		margin-bottom: 2px;
+		background-color: $ui-row-alt;
+		&:hover { background-color: $ui-blue-soft; }
+		&.clickable { cursor: pointer; &:hover { sound-in: $snd-hover; } &:active { sound-in: $snd-select; } }
+	}
+
+	.list-entry-icon { width: 24px; flex-shrink: 0; justify-content: center; font-size: 16px; }
+	.list-entry-info { flex-grow: 1; margin-left: 8px; overflow: hidden; }
+	.list-entry-name { font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+	// a tool's settings: a group label, then its options as buttons; the picked one is blue
+	.settings
+	{
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px;
+
+		.tsub
+		{
+			width: 100%;
+			margin: 10px 0px 2px 0px;
+			padding-bottom: 3px;
+			border-bottom: 1px solid $ui-separator;
+			@include ui-heading-text;
+		}
+
+		.cnt
+		{
+			@include ui-button;
+			&.on { @include ui-selected; border-color: #2c64b8; }
+		}
+
+		.swatch
+		{
+			width: 26px;
+			height: 26px;
+			border: 1px solid $ui-button-border;
+			border-radius: 2px;
+			cursor: pointer;
+			&:hover { sound-in: $snd-hover; }
+			&.on { border: 2px solid $ui-blue; }
+		}
+	}
+}
+
+// ----- in hand: the tool gun's crosshair and the hint line -----
+
+.crosshair
+{
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 6px;
+	height: 6px;
+	margin-left: -3px;
+	margin-top: -3px;
+	border-radius: 3px;
+	background-color: white;
+	border: 1px solid black;
+	&.bad { background-color: #e53; border: 1px solid #a32; }
+}
+
+.hint
+{
+	position: absolute;
+	bottom: 120px;
+	left: 0;
+	right: 0;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: 600;
+	color: rgba( 255, 255, 255, 0.85 );
+	text-shadow: 0 1px 3px black;
+
+	.notice { margin-top: 4px; color: $ui-blue; }
+}

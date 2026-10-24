@@ -1,0 +1,63 @@
+{
+  "Id": "makashi",
+  "Title": "Makashi",
+  "Numeral": "II",
+  "FormId": 1,
+  "AnimationSet": "saber_makashi",
+  "RequiredLevel": 3,
+  "Description": "The way of the ysalamiri. The duellist's form: one hand, precise thrusts and quick cuts, the widest parry window against other blades.",
+  "Tempo": 1.12,
+  "Damage": 0.92,
+  "FocusCost": 6.0,
+  "BlockCost": 0.9,
+  "ParryWindow": 0.22,
+  "DeflectSkill": 0.35,
+  "Riposte": 1.45,
+  "BlockMove": 0.85,
+  "LockStrength": 0.9,
+  "GuardPitch": 12.0,
+  "GuardYaw": 4.0,
+  "OneHanded": true,
+  "Crouch": 0.1,
+  "Reach": 1.12,
+  "StanceWidth": 8.5,
+  "StanceDepth": 16.0,
+  "StanceTurn": 50.0,
+  "StanceShift": 1.0,
+  "StanceBend": -4.0,
+  "CutTilt": 0.25,
+  "WristLead": 0.55,
+  "BodyDrive": 0.55,
+  "BlockOut": 16.0,
+  "BlockLean": -15.0,
+  "BlockHeight": 3.0,
+  "GuardHand": "16,-6,-2",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 1.1,
+      "Damage": 0.95,
+      "Arc": 110.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.15,
+      "Damage": 1.0,
+      "Arc": 110.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.15,
+      "Damage": 1.0,
+      "Arc": 120.0
+    },
+    {
+      "Direction": "Thrust",
+      "Speed": 1.05,
+      "Damage": 1.35,
+      "Arc": 0.0
+    }
+  ],
+  "Version": 6,
+  "Requires": ""
+}

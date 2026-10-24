@@ -1,0 +1,69 @@
+{
+  "Id": "ataru",
+  "Title": "Ataru",
+  "Numeral": "IV",
+  "FormId": 3,
+  "AnimationSet": "saber_ataru",
+  "RequiredLevel": 6,
+  "Requires": "shiicho",
+  "Description": "The way of the hawk-bat. Acrobatic and relentless: long chains of fast cuts ending in a spin, but a thin guard.",
+  "Tempo": 1.2,
+  "Damage": 0.95,
+  "FocusCost": 11.0,
+  "BlockCost": 1.25,
+  "ParryWindow": 0.14,
+  "DeflectSkill": 0.4,
+  "Riposte": 1.25,
+  "BlockMove": 0.8,
+  "LockStrength": 0.9,
+  "GuardPitch": 80.0,
+  "GuardYaw": -35.0,
+  "Crouch": 0.3,
+  "ForceCost": 0.9,
+  "StanceWidth": 12.0,
+  "StanceDepth": 12.0,
+  "StanceTurn": 30.0,
+  "StanceShift": 2.0,
+  "StanceBend": 9.0,
+  "CutTilt": 0.35,
+  "WristLead": 0.75,
+  "BodyDrive": 1.4,
+  "BlockOut": 13.0,
+  "BlockLean": -10.0,
+  "BlockHeight": 2.0,
+  "GuardHand": "9,-7,4",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 1.1,
+      "Damage": 0.9,
+      "Arc": 150.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.15,
+      "Damage": 0.95,
+      "Arc": 160.0
+    },
+    {
+      "Direction": "Rising",
+      "Speed": 1.15,
+      "Damage": 1.0,
+      "Arc": 150.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.2,
+      "Damage": 1.0,
+      "Arc": 160.0
+    },
+    {
+      "Direction": "Spin",
+      "Speed": 1.05,
+      "Damage": 1.3,
+      "Arc": 360.0
+    }
+  ],
+  "Version": 6,
+  "OneHanded": false
+}

@@ -1,0 +1,168 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+<root class="@(IsVisible ? "visible" : "hidden")">
+	@if ( !IsVisible ) return;
+
+	<div class="window">
+		<div class="header">
+			<label class="title">FIELD KIT</label>
+			<label class="owner">@Player.FullTitle</label>
+			<label class="used">@($"{Player.Inventory.Count} / {ItemRegistry.InventorySlots}")</label>
+			<div class="close" onclick=@(() => SwrpUiState.InventoryOpen = false)>✕</div>
+		</div>
+
+		@* the quick bar: what 1-5 take out (the wheel goes through all of it) *@
+		<div class="quickbar">
+			@for ( var i = 0; i < SwrpHands.QuickSlots; i++ )
+			{
+				var id = i < Bar.Count ? Bar[i] : null;
+				var def = ItemRegistry.Get( id );
+				<div class="quick @(id is null ? "empty" : "") @(id is not null && InHandId == id ? "in-hand" : "")" onclick=@(() => TakeOut( id ))>
+					<label class="num">@(i + 1)</label>
+					<label class="qname">@(def?.Name ?? "")</label>
+				</div>
+			}
+		</div>
+
+		<div class="grid">
+			@for ( var i = 0; i < ItemRegistry.InventorySlots; i++ )
+			{
+				var slot = i;
+				var stack = slot < Player.Inventory.Count ? Player.Inventory[slot] : null;
+				var def = stack?.Definition;
+				<div class="slot @(stack is null ? "empty" : "") @(def is null && stack is not null ? "unknown" : "") @(Selected == slot && stack is not null ? "selected" : "") @(stack is not null && InHandId == stack.ItemId ? "in-hand" : "")"
+					onclick=@(() => Selected = slot) ondoubleclick=@(() => Primary( slot )) onrightclick=@(() => Drop( slot, false ))>
+					@if ( stack is not null )
+					{
+						<i>@(def?.Icon ?? "help_outline")</i>
+						@if ( stack.Count > 1 )
+						{
+							<label class="count">@stack.Count</label>
+						}
+						var key = Hands?.KeyFor( stack.ItemId ) ?? 0;
+						@if ( key > 0 )
+						{
+							<label class="key">@key</label>
+						}
+					}
+				</div>
+			}
+		</div>
+
+		<div class="details">
+			@if ( SelectedStack is { } sel )
+			{
+				var item = sel.Definition;
+				<div class="info">
+					<label class="item-name">@(item?.Name ?? $"Unknown item ({sel.ItemId})")@(sel.Count > 1 ? $"  x{sel.Count}" : "")</label>
+					<label class="item-desc">@(item is null ? "No longer part of the game. Discard it to free the slot." : Line( item ))</label>
+				</div>
+				<div class="buttons">
+					@if ( item is not null )
+					{
+						<div class="button primary" onclick=@(() => Primary( Selected ))>@PrimaryLabel( item )</div>
+					}
+					<div class="button" onclick=@(() => Drop( Selected, false ))>@(item is null ? "Discard" : "Drop")</div>
+					@if ( sel.Count > 1 )
+					{
+						<div class="button" onclick=@(() => Drop( Selected, true ))>Drop all</div>
+					}
+				</div>
+			}
+			else
+			{
+				<label class="item-desc">Double-click to use or take out  ·  right-click to drop  ·  [1-5] quick slots  ·  wheel cycles  ·  [H] put away  ·  [G] drop what's in hand</label>
+			}
+		</div>
+	</div>
+</root>
+
+@code
+{
+	int Selected { get; set; } = -1;
+	bool _wasVisible;
+
+	SwrpPlayer Player => SwrpPlayer.Local;
+	SwrpBlaster Blaster => Player?.GetComponent<SwrpBlaster>();
+	SwrpHands Hands => Player?.GetComponent<SwrpHands>();
+	List<string> Bar => Hands?.QuickBar ?? new List<string>();
+	string InHandId => Hands?.InHand ?? ( Blaster is { Drawn: true } b ? b.WeaponId : null );
+	bool IsVisible => Player is not null && SwrpUiState.InventoryOpen && !SwrpUiState.CharacterMenuOpen;
+	ItemStack SelectedStack => Player is not null && Selected >= 0 && Selected < Player.Inventory.Count ? Player.Inventory[Selected] : null;
+
+	bool SaberLit => Player is not null && Swrp.Jedi.JediCombat.HoldsSaber( Player );
+
+	/// <summary> One line about the item: a blaster's numbers, else its description. </summary>
+	string Line( ItemDefinition item )
+	{
+		if ( BlasterRegistry.Get( item.Id ) is not { } g || item.Weapon is not { } w ) return item.Description;
+		var b = Blaster;
+		var mag = b is not null && b.WeaponId == item.Id ? $"{b.Clip}/{w.MagazineSize}" : $"{w.MagazineSize}";
+		var dmg = g.Pellets > 1 ? $"{g.Damage:0}x{g.Pellets}" : $"{g.Damage:0}";
+		return $"{dmg} dmg  ·  {g.FireRate:0} rpm  ·  mag {mag}  ·  {b?.ReserveCells ?? 0} cells  ·  {g.Mobility:0}% speed{( w.CanStun ? "  ·  stun [X]" : "" )}";
+	}
+
+	string PrimaryLabel( ItemDefinition item )
+	{
+		var held = InHandId == item.Id;
+		if ( item.Id == SwrpGrenade.ItemId ) return "Throw";
+		if ( item.Id == Swrp.Jedi.JediCombat.SaberItem ) return SaberLit ? "Put away" : "Ignite";
+		if ( item.Weapon is not null ) return held ? "Holster" : "Equip";
+		if ( item.Holdable ) return held ? "Put away" : "Hold";
+		return item.Consumable ? "Use" : "Inspect";
+	}
+
+	/// <summary> A quick-bar slot clicked: take it out (or put it away). </summary>
+	void TakeOut( string id )
+	{
+		if ( id is null ) return;
+		if ( Hands is { } h ) h.Toggle( id );
+		else Blaster?.Toggle( id );
+		SwrpUiState.InventoryOpen = false;
+	}
+
+	/// <summary> The selected item's main action: take out or put away what can be held, throw, use. </summary>
+	void Primary( int slot )
+	{
+		var stack = Player is not null && slot >= 0 && slot < Player.Inventory.Count ? Player.Inventory[slot] : null;
+		if ( stack?.Definition is not { } item ) return;
+		Selected = slot;
+
+		var holdable = item.Weapon is not null || item.Holdable || item.Id == Swrp.Jedi.JediCombat.SaberItem;
+		if ( holdable && ( Hands is not null || item.Weapon is not null ) )
+		{
+			TakeOut( item.Id );
+			return;
+		}
+
+		if ( item.Consumable ) SwrpAudio.Ui( SwrpAudio.UseItem );
+		if ( item.Id == SwrpGrenade.ItemId || item.Id == Swrp.Jedi.JediCombat.SaberItem ) SwrpUiState.InventoryOpen = false;
+		Player.UseItem( slot );
+	}
+
+	void Drop( int slot, bool all )
+	{
+		if ( Player is null || slot < 0 || slot >= Player.Inventory.Count ) return;
+		SwrpAudio.Ui( SwrpAudio.Deny );
+		if ( all ) Player.DropStack( slot );
+		else Player.DropItem( slot );
+	}
+
+	protected override void OnUpdate()
+	{
+		// opening the kit selects what's in your hands
+		if ( IsVisible && !_wasVisible && Player is { } p )
+		{
+			var inv = p.Inventory;
+			var held = InHandId;
+			Selected = held is null ? -1 : Enumerable.Range( 0, inv.Count ).FirstOrDefault( i => inv[i].ItemId == held, -1 );
+		}
+		_wasVisible = IsVisible;
+	}
+
+	protected override int BuildHash() => HashCode.Combine( IsVisible, Player?.InventoryJson, Selected, InHandId, Blaster?.Clip, SaberLit );
+}

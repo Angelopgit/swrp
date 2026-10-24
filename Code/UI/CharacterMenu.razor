@@ -1,0 +1,599 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+<root class="@(IsVisible ? "visible" : "hidden") @(Hangar ? "hangar" : "") @(Hangar && !Creating ? "cine" : "") @(SwrpMenuStage.Deploying ? "leaving" : "")">
+	@if ( !IsVisible ) return;
+
+	@if ( Hangar )
+	{
+		@* the hangar backdrop (SwrpMenuStage) shows through; a dark wash on the left carries the menu, the trooper stays clear *@
+		<div class="vignette"></div>
+	}
+	else
+	{
+		<div class="space">
+			<div class="nebula"></div>
+			<div class="planet"></div>
+			@foreach ( var star in Stars )
+			{
+				<div class="star @star.Kind" style="left: @(star.X)%; top: @(star.Y)%; width: @(star.Size)px; height: @(star.Size)px; animation-delay: @(star.Delay)s;"></div>
+			}
+		</div>
+	}
+
+	<div class="frame">
+		<div class="topbar">
+			<div class="emblem">
+				<div class="ring"></div>
+				<div class="core"></div>
+			</div>
+			<div class="titles">
+				<label class="title">GRAND ARMY OF THE REPUBLIC</label>
+				<label class="subtitle">@($"KAMINO PERSONNEL REGISTRY  //  {ShipTitle}")</label>
+			</div>
+			<div class="music">
+				<label class="mute @(MusicMuted ? "off" : "")" onclick=@ToggleMusic>@(MusicMuted ? "♪ OFF" : "♪")</label>
+				@for ( var i = 1; i <= 10; i++ )
+				{
+					var step = i;
+					<div class="bar @(!MusicMuted && SwrpMenuMusic.Volume >= step / 10f - 0.001f ? "lit" : "")" style="height: @(6 + step * 1.4f)px" onclick=@(() => SetMusic( step / 10f ))></div>
+				}
+			</div>
+			<div class="channel">
+				<label class="code">GAR-NET :: SECURE CHANNEL</label>
+				<label class="mode">@(Creating ? "ENLISTMENT" : "TROOPER SELECTION")</label>
+			</div>
+			@if ( SwrpPlayer.Local is not null )
+			{
+				<div class="close" onclick=@(() => SwrpUiState.CharacterMenuOpen = false)>✕</div>
+			}
+		</div>
+		<div class="rule"><div class="glow"></div></div>
+
+		@if ( State is null )
+		{
+			<div class="loading">
+				<div class="spinner"></div>
+				<label>ESTABLISHING UPLINK WITH FLEET RECORDS...</label>
+			</div>
+		}
+		else if ( Creating )
+		{
+			<div class="main">
+				<div class="side left">
+					<label class="section">GRAND ARMY OF THE REPUBLIC · SELECT BATTALION</label>
+					<div class="scroll">
+						@foreach ( var faction in FactionRegistry.All )
+						{
+							var allowed = State.AllowedFactions.Contains( faction.Id );
+							<div class="card unit @(allowed ? "" : "locked") @(SelectedFaction == faction.Id ? "selected" : "")"
+								 onclick=@(() => PickFaction( faction.Id, allowed ))>
+								<div class="stripe" style="background-color: @faction.ColorHex"></div>
+								<div class="info">
+									<label class="name">@faction.Name.ToUpperInvariant()</label>
+									<label class="desc">@(allowed ? faction.Description : "Whitelist required. Ask an officer or admin.")</label>
+								</div>
+								@if ( !allowed )
+								{
+									<label class="lock">LOCKED</label>
+								}
+							</div>
+						}
+					</div>
+				</div>
+
+				<div class="stage">
+					<div class="holo">
+						<div class="beam"></div>
+						@if ( !Hangar )
+						{
+							<ClassPreview class="preview" ClassId=@ClassRegistry.FixFor( SelectedFaction, SelectedClass ) Faction=@SelectedFaction Look=@(IsJedi ? NewLook.ToString() : null) />
+						}
+						<div class="base"></div>
+						<div class="scan"></div>
+					</div>
+				</div>
+
+				<div class="side right">
+					<label class="section">@(IsJedi ? "NAME" : "TROOPER NAME")</label>
+					<TextEntry class="name-entry" Value:bind=@NewName Placeholder=@(IsJedi ? "e.g. Kel Varo" : "e.g. Hardcase") MaxLength=@(24) />
+					<label class="hint">@(IsJedi ? "A padawan of the Jedi Order, assigned to the fleet." : "Your CT designation is assigned by Kamino when you enlist.")</label>
+
+					@if ( IsJedi )
+					{
+						<label class="section">PADAWAN</label>
+						@foreach ( var (label, options, get, set) in LookRows )
+						{
+							<div class="look-row">
+								<label class="key">@label</label>
+								<div class="arrow" onclick=@(() => set( ( get() - 1 + options.Length ) % options.Length ))>‹</div>
+								<label class="value">@options[Math.Clamp( get(), 0, options.Length - 1 )]</label>
+								<div class="arrow" onclick=@(() => set( ( get() + 1 ) % options.Length ))>›</div>
+							</div>
+						}
+						<Swrp.Jedi.SaberBuilder Look=@NewLook />
+					}
+					else if ( ClassRegistry.Get( SelectedClass ) is { } cls )
+					{
+						<label class="section">CLASS PROFILE · TROOPER</label>
+						<label class="desc">@cls.Description</label>
+						<label class="hint">Every trooper enlists as a Trooper. Heavy, Specialist and Medic are assigned in game by your battalion's officers and staff.</label>
+						<div class="stat">
+							<label class="key">SPEED</label>
+							<div class="bar"><div class="fill" style="width: @(Percent( cls.SpeedScale, 0.8f, 1.2f ))%"></div></div>
+						</div>
+						<div class="stat">
+							<label class="key">ARMOUR</label>
+							<div class="bar"><div class="fill armor" style="width: @(Percent( cls.MaxArmor, 0f, 100f ))%"></div></div>
+						</div>
+						@foreach ( var perk in cls.Perks )
+						{
+							<label class="perk">@($"› {perk}")</label>
+						}
+					}
+
+					@if ( FactionRegistry.Get( SelectedFaction ) is { } picked )
+					{
+						<label class="section">STARTING KIT</label>
+						<div class="kit">
+							@foreach ( var stack in picked.StartingLoadout.Concat( ClassRegistry.Get( SelectedClass )?.ExtraKit ?? new List<ItemStack>() ) )
+							{
+								<label class="chip">@($"{stack.Count}×  {stack.Definition?.Name ?? stack.ItemId}")</label>
+							}
+						</div>
+					}
+
+					<div class="grow"></div>
+					<div class="buttons">
+						<div class="button ghost" onclick=@(() => Creating = false)>BACK</div>
+						<div class="button primary" onclick=@CreateCharacter>ENLIST</div>
+					</div>
+				</div>
+			</div>
+		}
+		else if ( Hangar )
+		{
+			@* In the hangar the trooper is the picture (SwrpMenuStage frames him on the right third): one column on the dark
+			   left, read top to bottom as roster, who he is, deploy. The dossier opens on demand. Board: "Trooper Select Shot". *@
+			var selected = SelectedCharacter;
+			<div class="shot">
+				<div class="shot-col">
+					<label class="section">@($"TROOPER ROSTER   {State.Characters.Count:00} / {State.MaxCharacters:00}")</label>
+					@foreach ( var character in State.Characters )
+					{
+						var faction = FactionRegistry.Get( character.FactionId ) ?? FactionRegistry.Default;
+						<div class="card pick @(selected?.Id == character.Id ? "selected" : "")" onclick=@(() => SelectCharacter( character.Id ))>
+							<div class="stripe" style="background-color: @faction.ColorHex"></div>
+							<div class="info">
+								<label class="name">@character.Title</label>
+							</div>
+						</div>
+					}
+					@if ( State.Characters.Count < State.MaxCharacters )
+					{
+						<div class="card vacant pick" onclick=@StartCreate>
+							<label class="plus">+</label>
+							<div class="info"><label class="name">ENLIST A NEW TROOPER</label></div>
+						</div>
+					}
+
+					<div class="grow"></div>
+					@if ( selected is not null )
+					{
+						var unit = FactionRegistry.Get( selected.FactionId ) ?? FactionRegistry.Default;
+						var cls = ClassRegistry.Get( ClassRegistry.ForRank( selected.FactionId, selected.ClassId, selected.RankIndex ) ) ?? ClassRegistry.Default;
+						<div class="ident">
+							<label class="ident-name">@selected.Name.ToUpperInvariant()</label>
+							<label class="ident-line" style="color: @unit.ColorHex">@($"{BattalionName( unit ).ToUpperInvariant()}  ·  {selected.RankName.ToUpperInvariant()}  ·  {cls.Name.ToUpperInvariant()}")</label>
+						</div>
+						<div class="actions">
+							<div class="button primary deploy" onclick=@(() => SwrpMenuStage.Deploy( () => { CinematicCamera.MarkDeploy(); SwrpNet.SelectCharacter( selected.Id ); } ))>DEPLOY</div>
+							<div class="button quiet @(_record ? "on" : "")" onclick=@(() => _record = !_record)>SERVICE RECORD</div>
+							@if ( selected.FactionId != "jedi" )
+							{
+								<div class="button quiet" onclick=@(() => ArmorCustomizer.OpenFor( selected.Id ))>@($"ARMOUR · {SwrpArmorRegistry.Parse( selected.Armor ).Count}")</div>
+							}
+						</div>
+					}
+					else
+					{
+						<label class="desc">No troopers on record for this account. Enlist to begin your service in the Grand Army.</label>
+						<div class="actions">
+							<div class="button primary deploy" onclick=@StartCreate>ENLIST</div>
+						</div>
+					}
+				</div>
+
+				@if ( _record && selected is not null )
+				{
+					var unit = FactionRegistry.Get( selected.FactionId ) ?? FactionRegistry.Default;
+					var cls = ClassRegistry.Get( ClassRegistry.ForRank( selected.FactionId, selected.ClassId, selected.RankIndex ) ) ?? ClassRegistry.Default;
+					<div class="side record-panel">
+						<div class="scroll dossier">
+							<label class="section">SERVICE RECORD</label>
+							<div class="record">
+								<div class="insignia" style="border-color: @unit.ColorHex; box-shadow: 0 0 22px @unit.ColorHex">
+									<label class="ins-short" style="color: @unit.ColorHex">@(unit.ShortName ?? "GAR")</label>
+								</div>
+								<div class="rec-text">
+									<label class="rec-unit" style="color: @unit.ColorHex">@BattalionName( unit ).ToUpperInvariant()</label>
+									<label class="rec-rank">@selected.RankName</label>
+									<div class="ladder">
+										@for ( var r = 0; r < Math.Max( 1, selected.RankCount ); r++ )
+										{
+											<div class="rung @(r <= selected.RankIndex ? "on" : "")" style="@(r <= selected.RankIndex ? $"background-color: {unit.ColorHex}" : "")"></div>
+										}
+									</div>
+								</div>
+							</div>
+							<div class="rec-stats">
+								<div class="rec-stat"><label class="k">ENLISTED</label><label class="v">@(selected.CreatedAt.Year > 2000 ? selected.CreatedAt.ToLocalTime().ToString( "dd MMM yyyy" ) : "-")</label></div>
+								<div class="rec-stat"><label class="k">IN SERVICE</label><label class="v">@ServiceDays( selected )</label></div>
+								<div class="rec-stat"><label class="k">FIELD KIT</label><label class="v">@($"{selected.ItemCount} items")</label></div>
+							</div>
+							<div class="row"><label class="key">ARMOUR</label><label class="value">@cls.MaxArmor.ToString( "0" )</label></div>
+							<div class="row"><label class="key">CREDITS</label><label class="value credits">@($"{selected.Credits:N0}")</label></div>
+							<div class="row"><label class="key">LAST DEPLOYED</label><label class="value">@selected.LastPlayed.ToLocalTime().ToString( "dd MMM yyyy  HH:mm" )</label></div>
+							<label class="section">CLASS PROFILE</label>
+							<label class="desc">@cls.Description</label>
+							@foreach ( var perk in cls.Perks )
+							{
+								<label class="perk">@($"› {perk}")</label>
+							}
+							@if ( selected.FactionId == "jedi" )
+							{
+								<Swrp.Jedi.SaberEditor Character=@selected />
+							}
+						</div>
+						<div class="buttons">
+							<div class="button danger hold @(_holdId == selected.Id ? "holding" : "")" onmousedown=@(() => BeginHold( selected.Id )) onmouseup=@EndHold onmouseout=@EndHold>
+								<div class="hold-fill" style="width: @(HoldPercent)%"></div>
+								<label class="hold-label">@(_holdId == selected.Id ? "HOLD TO DISCHARGE" : "DISCHARGE")</label>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		}
+		else
+		{
+			var selected = SelectedCharacter;
+			<div class="main">
+				<div class="side left">
+					<label class="section">@($"TROOPER ROSTER   {State.Characters.Count:00} / {State.MaxCharacters:00}")</label>
+					@foreach ( var character in State.Characters )
+					{
+						var faction = FactionRegistry.Get( character.FactionId ) ?? FactionRegistry.Default;
+						var playing = SwrpPlayer.Local?.CharacterId == character.Id;
+						<div class="card roster @(selected?.Id == character.Id ? "selected" : "")" onclick=@(() => SelectCharacter( character.Id ))>
+							<div class="stripe" style="background-color: @faction.ColorHex"></div>
+							<div class="info">
+								<label class="name">@character.Title</label>
+								<label class="desc">@($"{faction.ShortName ?? faction.Name}  ·  {ClassRegistry.Get( ClassRegistry.ForRank( character.FactionId, character.ClassId, character.RankIndex ) )?.Name ?? "Trooper"}  ·  {character.RankName}")</label>
+							</div>
+							@if ( playing )
+							{
+								<label class="badge">ACTIVE</label>
+							}
+						</div>
+					}
+					@for ( var i = State.Characters.Count; i < State.MaxCharacters; i++ )
+					{
+						<div class="card vacant" onclick=@StartCreate>
+							<label class="plus">+</label>
+							<div class="info">
+								<label class="name">VACANT SLOT</label>
+								<label class="desc">Enlist a new trooper</label>
+							</div>
+						</div>
+					}
+
+					@if ( selected is not null )
+					{
+						var unit = FactionRegistry.Get( selected.FactionId ) ?? FactionRegistry.Default;
+						<div class="grow"></div>
+						<label class="section">SERVICE RECORD</label>
+						<div class="record">
+							<div class="insignia" style="border-color: @unit.ColorHex; box-shadow: 0 0 22px @unit.ColorHex">
+								<label class="ins-short" style="color: @unit.ColorHex">@(unit.ShortName ?? "GAR")</label>
+							</div>
+							<div class="rec-text">
+								<label class="rec-unit" style="color: @unit.ColorHex">@BattalionName( unit ).ToUpperInvariant()</label>
+								<label class="rec-rank">@selected.RankName</label>
+								<div class="ladder">
+									@for ( var r = 0; r < Math.Max( 1, selected.RankCount ); r++ )
+									{
+										<div class="rung @(r <= selected.RankIndex ? "on" : "")" style="@(r <= selected.RankIndex ? $"background-color: {unit.ColorHex}" : "")"></div>
+									}
+								</div>
+							</div>
+						</div>
+						<div class="rec-stats">
+							<div class="rec-stat"><label class="k">ENLISTED</label><label class="v">@(selected.CreatedAt.Year > 2000 ? selected.CreatedAt.ToLocalTime().ToString( "dd MMM yyyy" ) : "-")</label></div>
+							<div class="rec-stat"><label class="k">IN SERVICE</label><label class="v">@ServiceDays( selected )</label></div>
+							<div class="rec-stat"><label class="k">FIELD KIT</label><label class="v">@($"{selected.ItemCount} items")</label></div>
+						</div>
+					}
+				</div>
+
+				<div class="stage">
+					<div class="holo">
+						<div class="beam"></div>
+						@if ( !Hangar )
+						{
+							<ClassPreview class="preview" ClassId=@(selected is null ? ClassRegistry.Trooper : ClassRegistry.ForRank( selected.FactionId, selected.ClassId, selected.RankIndex )) Faction=@(selected?.FactionId) Look=@(selected?.FactionId == ClassRegistry.Jedi ? selected.Appearance : null) />
+						}
+						<div class="base">
+							@if ( selected is not null )
+							{
+								var unit = FactionRegistry.Get( selected.FactionId ) ?? FactionRegistry.Default;
+								<div class="pill-dot" style="background-color: @unit.ColorHex; box-shadow: 0 0 10px @unit.ColorHex"></div>
+								<label class="callsign">@($"{BattalionName( unit ).ToUpperInvariant()}  ·  {selected.RankName.ToUpperInvariant()}")</label>
+							}
+							else
+							{
+								<label class="callsign dim">NO TROOPERS ON RECORD</label>
+							}
+						</div>
+						<div class="scan"></div>
+					</div>
+				</div>
+
+				<div class="side right">
+					@if ( selected is not null )
+					{
+						var faction = FactionRegistry.Get( selected.FactionId ) ?? FactionRegistry.Default;
+						var cls = ClassRegistry.Get( ClassRegistry.ForRank( selected.FactionId, selected.ClassId, selected.RankIndex ) ) ?? ClassRegistry.Default;
+						<div class="scroll dossier">
+							<label class="section">SERVICE DOSSIER</label>
+							<div class="row"><label class="key">NAME</label><label class="value">@selected.Name</label></div>
+							<div class="row"><label class="key">RANK</label><label class="value">@selected.RankName</label></div>
+							<div class="row"><label class="key">BATTALION</label><label class="value" style="color: @faction.ColorHex">@BattalionName( faction )</label></div>
+							<div class="row"><label class="key">CLASS</label><label class="value">@cls.Name</label></div>
+							<div class="row"><label class="key">ARMOUR</label><label class="value">@cls.MaxArmor.ToString( "0" )</label></div>
+							<div class="row"><label class="key">CREDITS</label><label class="value credits">@($"{selected.Credits:N0}")</label></div>
+							<div class="row"><label class="key">LAST DEPLOYED</label><label class="value">@selected.LastPlayed.ToLocalTime().ToString( "dd MMM yyyy  HH:mm" )</label></div>
+
+							<label class="section">CLASS PROFILE</label>
+							<label class="desc">@cls.Description</label>
+							@foreach ( var perk in cls.Perks )
+							{
+								<label class="perk">@($"› {perk}")</label>
+							}
+							@if ( selected.FactionId == "jedi" )
+							{
+								<Swrp.Jedi.SaberEditor Character=@selected />
+							}
+							else
+							{
+								@* the armour customiser (Characters/SwrpArmor.cs, UI/ArmorCustomizer.razor): pieces earned by rank, post and qualification *@
+								<div class="button ghost armor-open" onclick=@(() => ArmorCustomizer.OpenFor( selected.Id ))>@($"ARMOUR · {SwrpArmorRegistry.Parse( selected.Armor ).Count} PIECE{( SwrpArmorRegistry.Parse( selected.Armor ).Count == 1 ? "" : "S" )}{( selected.HelmetOff ? " · HELMET OFF" : "" )}")</div>
+							}
+						</div>
+
+						@if ( SwrpPlayer.Local?.CharacterId == selected.Id )
+						{
+							<label class="deployed">CURRENTLY DEPLOYED</label>
+						}
+						else
+						{
+							<div class="buttons">
+								<div class="button danger hold @(_holdId == selected.Id ? "holding" : "")" onmousedown=@(() => BeginHold( selected.Id )) onmouseup=@EndHold onmouseout=@EndHold>
+									<div class="hold-fill" style="width: @(HoldPercent)%"></div>
+									<label class="hold-label">@(_holdId == selected.Id ? "HOLD TO DISCHARGE" : "DISCHARGE")</label>
+								</div>
+								<div class="button primary deploy" onclick=@(() => { CinematicCamera.MarkDeploy(); SwrpNet.SelectCharacter( selected.Id ); })>DEPLOY</div>
+							</div>
+						}
+					}
+					else
+					{
+						<label class="section">NO RECORD</label>
+						<label class="desc">No troopers on record for this account. Enlist to begin your service in the Grand Army.</label>
+						<div class="grow"></div>
+						<div class="buttons">
+							<div class="button primary deploy" onclick=@StartCreate>ENLIST</div>
+						</div>
+					}
+				</div>
+			</div>
+		}
+
+		@if ( !string.IsNullOrEmpty( SwrpNet.LastMessage ) && SwrpNet.LastMessageTime < 8 )
+		{
+			<div class="toast-row">
+				<label class="toast @(SwrpNet.LastMessageIsError ? "error" : "")">@SwrpNet.LastMessage</label>
+			</div>
+		}
+	</div>
+</root>
+
+@code
+{
+	Appearance NewLook = new();
+
+	bool IsJedi => SelectedFaction == "jedi";
+
+	/// <summary> The padawan's options, one row each: name, the choices, and how to read and change the pick. </summary>
+	IEnumerable<(string, string[], Func<int>, Action<int>)> LookRows => new (string, string[], Func<int>, Action<int>)[]
+	{
+		// only what the BF2 Jedi model can show: its heads and its outfits (SwrpOutfit)
+		( "FACE", Appearance.Faces, () => NewLook.Face, v => NewLook.Face = v ),
+		( "ROBES", Appearance.Robes, () => NewLook.Robe, v => NewLook.Robe = v ),
+	};
+
+	bool Creating { get; set; }
+	bool _record;      // the hangar's service record panel, opened from the button under the name
+	// ----- music volume (swrp_menu_music, saved) -----
+
+	static float _volumeBeforeMute = 0.5f;
+	bool MusicMuted => SwrpMenuMusic.Volume <= 0.001f;
+
+	void SetMusic( float v )
+	{
+		ConsoleSystem.SetValue( "swrp_menu_music", MathF.Round( Math.Clamp( v, 0f, 1f ), 2 ) );
+		StateHasChanged();
+	}
+
+	void ToggleMusic()
+	{
+		if ( MusicMuted ) SetMusic( _volumeBeforeMute > 0.001f ? _volumeBeforeMute : 0.5f );
+		else
+		{
+			_volumeBeforeMute = SwrpMenuMusic.Volume;
+			SetMusic( 0f );
+		}
+	}
+
+	string NewName { get; set; } = "";
+	string SelectedFaction { get; set; } = FactionRegistry.CloneTrooper;
+	string SelectedClass { get; set; } = ClassRegistry.Trooper;
+	string SelectedCharacterId { get; set; }
+	string PendingDelete { get; set; }
+	RealTimeSince _lastRequest = 100;
+
+	CharacterMenuState State => SwrpNet.MenuState;
+	SwrpSceneSettings Settings => Scene.GetAllComponents<SwrpSceneSettings>().FirstOrDefault();
+
+	bool IsVisible => SwrpPlayer.Local is null && !SwrpAnimMannequin.CameraPlaced || SwrpUiState.CharacterMenuOpen;
+
+	/// <summary> Before deploying, the screen sits over a working hangar with your trooper in it (SwrpMenuStage). </summary>
+	bool Hangar => IsVisible && SwrpPlayer.Local is null;
+
+	/// <summary> The roster entry shown in the dossier: the one clicked, else the one being played, else the first. </summary>
+	CharacterSummary SelectedCharacter
+	{
+		get
+		{
+			var list = State?.Characters;
+			if ( list is null || list.Count == 0 ) return null;
+			return list.FirstOrDefault( x => x.Id == SelectedCharacterId )
+				?? list.FirstOrDefault( x => x.Id == SwrpPlayer.Local?.CharacterId )
+				?? list[0];
+		}
+	}
+
+	record struct Star( float X, float Y, int Size, float Delay, string Kind );
+
+	static readonly List<Star> Stars = MakeStars();
+
+	static List<Star> MakeStars()
+	{
+		var rng = new Random( 1977 );
+		var list = new List<Star>();
+		for ( var i = 0; i < 140; i++ )
+		{
+			var size = rng.NextDouble() < 0.12 ? 3 : rng.NextDouble() < 0.4 ? 2 : 1;
+			var kind = i % 5 == 0 ? "twinkle" : "";
+			list.Add( new Star( (float)rng.NextDouble() * 100f, (float)rng.NextDouble() * 100f, size, (float)rng.NextDouble() * 4f, kind ) );
+		}
+		return list;
+	}
+
+	static int Percent( float value, float min, float max ) => (int)Math.Clamp( (value - min) / (max - min) * 100f, 4f, 100f );
+
+	protected override void OnUpdate()
+	{
+		SwrpMenuMusic.Tick( IsVisible );
+		if ( _holdId is not null && _holdFor >= HoldSeconds ) Delete( _holdId );
+
+		// the trooper on show in the hangar: the one being enlisted, else the roster pick
+		SwrpMenuStage.Ensure( Scene );
+		SwrpMenuStage.Wanted = Hangar;
+		var shown = SelectedCharacter;
+		SwrpMenuStage.ClassId = Creating ? ClassRegistry.FixFor( SelectedFaction, SelectedClass ) : shown is null ? ClassRegistry.Trooper : ClassRegistry.ForRank( shown.FactionId, shown.ClassId, shown.RankIndex );      // a Jedi enlists as the Jedi class, whatever trooper class was picked before
+		SwrpMenuStage.FactionId = Creating ? SelectedFaction : shown?.FactionId ?? FactionRegistry.CloneTrooper;
+		SwrpMenuStage.Appearance = Creating ? NewLook.ToString() : Swrp.Jedi.SaberEditor.PreviewFor( shown );      // (a saber being rebuilt shows live)
+		// the armour on show: the customiser's unsaved picks while it's open on this character, else what's saved
+		var editing = ArmorCustomizer.Open && ArmorCustomizer.CharacterId == shown?.Id && !Creating;
+		SwrpMenuStage.Armor = Creating ? "" : editing ? ArmorCustomizer.Working : shown?.Armor;
+		SwrpMenuStage.HelmetOff = !Creating && ( editing ? ArmorCustomizer.WorkingHelmetOff : shown?.HelmetOff == true );
+
+		// Ask the host for our characters when we first need them, and retry while the reply hasn't arrived.
+		if ( IsVisible && State is null && _lastRequest > 3 )
+		{
+			_lastRequest = 0;
+			SwrpNet.RequestMenuState();
+		}
+	}
+
+	void SelectCharacter( string id )
+	{
+		SelectedCharacterId = id;
+		PendingDelete = null;
+	}
+
+	void StartCreate()
+	{
+		Creating = true;
+		NewName = "";
+		SelectedFaction = FactionRegistry.CloneTrooper;
+		SelectedClass = ClassRegistry.Trooper;
+		SwrpNet.RequestMenuState();
+	}
+
+	void PickFaction( string id, bool allowed )
+	{
+		if ( allowed ) SelectedFaction = id;
+	}
+
+	void CreateCharacter()
+	{
+		// enlisting deploys you as the new character (after the hangar's push-in when it's up)
+		var (name, faction, cls, look) = ( NewName, SelectedFaction, ClassRegistry.FixFor( SelectedFaction, SelectedClass ), NewLook.ToString() );
+		SwrpMenuStage.Deploy( () => { CinematicCamera.MarkDeploy(); SwrpNet.CreateCharacter( name, faction, cls, look ); } );
+		Creating = false;
+		SelectedCharacterId = null;
+	}
+
+	// ----- discharge: hold the button down (a click can't throw a trooper away by accident) -----
+
+	const float HoldSeconds = 1.6f;
+	string _holdId;
+	RealTimeSince _holdFor;
+
+	int HoldPercent => _holdId is null ? 0 : (int)Math.Clamp( _holdFor / HoldSeconds * 100f, 0f, 100f );
+
+	void BeginHold( string id )
+	{
+		_holdId = id;
+		_holdFor = 0;
+	}
+
+	void EndHold() => _holdId = null;
+
+	void Delete( string id )
+	{
+		_holdId = null;
+		PendingDelete = null;
+		SelectedCharacterId = null;
+		SwrpAudio.Ui( SwrpAudio.Deny );
+		SwrpNet.DeleteCharacter( id );
+	}
+
+	/// <summary> The battalion as shown: the general clone corps reads as unassigned, a battalion by its name. </summary>
+	static string BattalionName( FactionDefinition f ) => f.Id == FactionRegistry.CloneTrooper ? "Unassigned" : f.Name;
+
+	/// <summary> The ship's in-world name for the header (the map setting, without the map file's name in brackets). </summary>
+	string ShipTitle
+	{
+		get
+		{
+			var name = Settings?.MapName ?? "Venator-class Star Destroyer";
+			var cut = name.IndexOf( '(' );
+			return ( cut > 0 ? name[..cut] : name ).Trim().ToUpperInvariant();
+		}
+	}
+
+	static string ServiceDays( CharacterSummary c )
+	{
+		if ( c.CreatedAt.Year < 2000 ) return "-";
+		var days = (int)( DateTime.UtcNow - c.CreatedAt ).TotalDays;
+		return days < 1 ? "Today" : days == 1 ? "1 day" : $"{days} days";
+	}
+
+	protected override int BuildHash() => HashCode.Combine( IsVisible && !Hangar ? 1 : Hangar ? 2 : 0, SwrpNet.Version, Creating, SelectedFaction, SelectedClass, PendingDelete, SelectedCharacterId, HashCode.Combine( SwrpNet.LastMessageTime < 8, SwrpPlayer.Local?.CharacterId, SwrpMenuMusic.Volume, _holdId, HoldPercent / 4, _record, SwrpMenuStage.Deploying ) );
+}

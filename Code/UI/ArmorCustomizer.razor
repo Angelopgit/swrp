@@ -1,0 +1,145 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The armour customiser: one row per slot (kama, pauldron, chest gear, helmet gear, antenna, holster) with the pieces this
+	character has earned and the ones still locked (what unlocks them: rank, a battalion post, a qualification), plus helmet
+	off. Opened from the character screen's ARMOUR button or /armor; the trooper on show in the hangar wears the picks live
+	(SwrpMenuStage). SAVE sends them to the host, which checks every piece again (SwrpArmorRegistry.RequestSet). Made by
+	SwrpRefineSystem; a side panel that leaves the trooper in view.
+*@
+
+<root class="@(Open ? "open" : "")">
+	@if ( Open && Character is { } c )
+	{
+		<div class="panel">
+			<div class="head">
+				<div class="titles">
+					<label class="kicker">ARMOUR CUSTOMISER</label>
+					<label class="name">@c.Title.ToUpperInvariant()</label>
+					<label class="sub">@($"{FactionRegistry.Get( c.FactionId )?.Name ?? c.FactionId} · {c.RankName} · {ClassRegistry.Get( c.ClassId )?.Name ?? "Trooper"}")</label>
+				</div>
+				<div class="grow"></div>
+				<div class="x" onclick=@(() => Close())>✕</div>
+			</div>
+
+			@if ( c.FactionId == "jedi" || c.ClassId == ClassRegistry.Jedi )
+			{
+				<label class="empty">Jedi wear robes: the lightsaber builder is on the character screen.</label>
+			}
+			else
+			{
+				@if ( SwrpArmorRegistry.CanTakeHelmetOff( c.ClassId ) )
+				{
+					<div class="row helmet @(WorkingHelmetOff ? "on" : "")" onclick=@(() => WorkingHelmetOff = !WorkingHelmetOff)>
+						<label class="r-name">HELMET</label>
+						<label class="r-val">@(WorkingHelmetOff ? "OFF · face shown (/helmet in game)" : "ON (/helmet in game)")</label>
+					</div>
+				}
+
+				<div class="slots">
+					@foreach ( var slot in SwrpArmorRegistry.Slots )
+					{
+						var s = slot;
+						var options = SwrpArmorRegistry.All.Where( p => p.Slot == s ).ToList();
+						var current = Picked( s );
+						<div class="slot">
+							<label class="s-name">@SwrpArmorRegistry.SlotName( s )</label>
+							<div class="choices">
+								<div class="choice @(current is null ? "on" : "")" onclick=@(() => Pick( s, null ))><label class="c-name">NONE</label></div>
+								@foreach ( var part in options )
+								{
+									var p = part;
+									var lockedWhy = Why( c, p );
+									<div class="choice @(current == p ? "on" : "") @(lockedWhy is not null ? "locked" : "")" onclick=@(() => { if ( lockedWhy is null ) Pick( s, p ); })>
+										<label class="c-name">@p.Name.ToUpperInvariant()</label>
+										<label class="c-sub">@(lockedWhy ?? p.Description)</label>
+									</div>
+								}
+							</div>
+						</div>
+					}
+				</div>
+
+				<label class="note">Body markings follow your battalion's colours. Locked pieces show what earns them; the host checks every piece when you save and again on every deploy.</label>
+				<div class="buttons">
+					<div class="btn ghost" onclick=@(() => Close())>CANCEL</div>
+					<div class="btn go" onclick=@(() => Save())>SAVE ARMOUR</div>
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary> Open on this machine, for which character, and the unsaved picks (the hangar's trooper shows them). </summary>
+	public static bool Open { get; private set; }
+	public static string CharacterId { get; private set; }
+	public static string Working { get; private set; } = "";
+	public static bool WorkingHelmetOff { get; set; }
+
+	static CharacterSummary Character => SwrpNet.MenuState?.Characters.FirstOrDefault( x => x.Id == CharacterId );
+
+	/// <summary> Open for a character (null: the one you're playing). In game it brings up the character screen behind it. </summary>
+	public static void OpenFor( string characterId )
+	{
+		characterId ??= SwrpPlayers.Local?.CharacterId;
+		var c = SwrpNet.MenuState?.Characters.FirstOrDefault( x => x.Id == characterId );
+		if ( c is null )
+		{
+			SwrpChat.AddLocal( ChatKind.System, "Open the character screen (F4) and pick a trooper, then ARMOUR." );
+			return;
+		}
+		CharacterId = c.Id;
+		Working = c.Armor ?? "";
+		WorkingHelmetOff = c.HelmetOff;
+		Open = true;
+		SwrpUiState.CharacterMenuOpen = true;      // the customiser sits beside the hangar's trooper
+		SwrpAudio.Ui( SwrpAudio.Open );
+	}
+
+	static void Close()
+	{
+		Open = false;
+		SwrpAudio.Ui( SwrpAudio.Close );
+	}
+
+	static SwrpArmorRegistry.Part Picked( string slot ) => SwrpArmorRegistry.Parse( Working ).FirstOrDefault( p => p.Slot == slot );
+
+	static void Pick( string slot, SwrpArmorRegistry.Part part )
+	{
+		var parts = SwrpArmorRegistry.Parse( Working ).Where( p => p.Slot != slot ).ToList();
+		if ( part is not null ) parts.Add( part );
+		Working = SwrpArmorRegistry.Join( parts );
+		SwrpAudio.Ui( SwrpAudio.Click );
+	}
+
+	/// <summary> This machine's view of why a piece is locked (the host has the final word). </summary>
+	static string Why( CharacterSummary c, SwrpArmorRegistry.Part p )
+		=> SwrpArmorRegistry.Locked( p, c.FactionId, c.ClassId, c.RankIndex, q => SwrpCareer.LocalQuals.Contains( $"{c.FactionId}:{q}" ), false, SwrpCareer.LocalIsAdmin || SwrpNet.MenuState?.IsAdmin == true );
+
+	static void Save()
+	{
+		SwrpArmorRegistry.RequestSet( CharacterId, Working, WorkingHelmetOff );
+		SwrpAudio.Ui( SwrpAudio.Confirm );
+		Open = false;
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( !Open ) return;
+		// closes with the character screen, and with Esc
+		if ( !SwrpUiState.CharacterMenuOpen && SwrpPlayers.Local is not null ) Open = false;
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			Close();
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Open, CharacterId, Working, WorkingHelmetOff, SwrpNet.MenuState?.Characters.Count, SwrpCareer.LocalQuals.Count );
+}

@@ -1,0 +1,151 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	Where you are and where you're going: the deck chip (top centre), the directions marker (/dir, the guide, the ship tour),
+	and a Game Master's event objective and countdown (top centre, under the order). Made at runtime by SwrpRefineSystem;
+	hidden with the rest of the HUD (F8).
+*@
+
+<root class="@(Hidden ? "hidden" : "")">
+	@if ( !Hidden )
+	{
+		<div class="deck">
+			<label class="deck-k">LOCATION</label>
+			<label class="deck-v">@Deck.ToUpperInvariant()</label>
+		</div>
+
+		@if ( SwrpEvents.HudObjective is not null || SwrpEvents.HudTimerOn )
+		{
+			<div class="event">
+				<label class="ev-k">EVENT OBJECTIVE</label>
+				@if ( SwrpEvents.HudObjective is { } obj ) { <label class="ev-v">@obj</label> }
+				@if ( SwrpEvents.HudTimerOn )
+				{
+					<label class="ev-t @(SwrpEvents.HudTimerLeft < 60f ? "low" : "")">@($"{SwrpEvents.HudTimerLabel.ToUpperInvariant()}  {Clock( SwrpEvents.HudTimerLeft )}")</label>
+				}
+			</div>
+		}
+
+		@if ( SwrpLocTag.Showing )
+		{
+			<div class="loctag">
+				<label class="lt-k">LOCATION TAG · COPIED</label>
+				<label class="lt-v">@SwrpLocTag.Last</label>
+			</div>
+		}
+
+		@if ( RallyOn )
+		{
+			<div class="marker rally" style="left: @(Rx)px; top: @(Ry)px;">
+				<div class="pip" style="border-color: @RallyColor"></div>
+				<label class="m-name" style="color: @RallyColor">SQUAD RALLY</label>
+				<label class="m-dist">@($"{RallyMeters} m")</label>
+			</div>
+		}
+
+		@if ( MarkerOn )
+		{
+			<div class="marker @(Edge ? "edge" : "")" style="left: @(Mx)px; top: @(My)px;">
+				<div class="pip"></div>
+				<label class="m-name">@SwrpGuide.MarkerLabel</label>
+				<label class="m-dist">@($"{Meters} m")</label>
+			</div>
+		}
+	}
+</root>
+
+@code
+{
+	bool Hidden => SwrpPlayers.Local is null || SwrpUiState.AnyOpen || !VisorOverlay.HudOn || SwrpPlayers.Local.InVehicle;
+
+	string Deck = "";
+	bool RallyOn;
+	int Rx, Ry, RallyMeters;
+	string RallyColor = "#6fd3ff";
+	bool MarkerOn, Edge;
+	int Mx, My, Meters;
+	RealTimeSince _sinceDeck = 10;
+
+	protected override void OnUpdate()
+	{
+		var me = SwrpPlayers.Local;
+		if ( me is null ) { MarkerOn = false; return; }
+
+		if ( _sinceDeck > 0.5f )
+		{
+			_sinceDeck = 0;
+			Deck = SwrpShip.DeckName( me.WorldPosition );
+		}
+
+		MarkerOn = false;
+		RallyOn = false;
+		var cam = Scene.Camera;
+		if ( !cam.IsValid() || Panel is null ) return;
+
+		// the squad leader's rally point (SquadMenu / /squad rally)
+		if ( SwrpRoleplay.Current?.SquadOf( me.OwnerSteamId ) is { HasRally: true } squad && me.WorldPosition.Distance( squad.Rally ) > 120f )
+		{
+			var (rx, ry, _) = Project( cam, squad.Rally );
+			Rx = rx;
+			Ry = ry;
+			RallyMeters = (int)( me.WorldPosition.Distance( squad.Rally ) * 0.0254f );
+			RallyColor = squad.ColorHex;
+			RallyOn = true;
+		}
+
+		if ( SwrpGuide.MarkerAt is not { } at ) return;
+		var target = at + Vector3.Up * 48f;
+		var scale = Panel.ScaleFromScreen;
+		var w = Screen.Width * scale;
+		var h = Screen.Height * scale;
+		var toward = ( target - cam.WorldPosition ).Normal;
+		var behind = Vector3.Dot( toward, cam.WorldRotation.Forward ) < 0.05f;
+		var sp = cam.PointToScreenPixels( target );
+		float x = sp.x * scale, y = sp.y * scale;
+		if ( behind )
+		{
+			// off behind you: pin it to the bottom edge on the side to turn to
+			var right = Vector3.Dot( toward, cam.WorldRotation.Right ) > 0f;
+			x = right ? w - 90f : 90f;
+			y = h - 140f;
+		}
+		Edge = behind || x < 60f || x > w - 60f || y < 60f || y > h - 60f;
+		Mx = (int)Math.Clamp( x, 60f, w - 60f );
+		My = (int)Math.Clamp( y, 60f, h - 60f );
+		Meters = (int)( me.WorldPosition.Distance( at ) * 0.0254f );
+		MarkerOn = true;
+	}
+
+	/// <summary> A world point on this panel, pinned to the edges (and to the bottom when it's behind you). </summary>
+	(int X, int Y, bool Edge) Project( CameraComponent cam, Vector3 at )
+	{
+		var target = at + Vector3.Up * 48f;
+		var scale = Panel.ScaleFromScreen;
+		var w = Screen.Width * scale;
+		var h = Screen.Height * scale;
+		var toward = ( target - cam.WorldPosition ).Normal;
+		var behind = Vector3.Dot( toward, cam.WorldRotation.Forward ) < 0.05f;
+		var sp = cam.PointToScreenPixels( target );
+		float x = sp.x * scale, y = sp.y * scale;
+		if ( behind )
+		{
+			x = Vector3.Dot( toward, cam.WorldRotation.Right ) > 0f ? w - 90f : 90f;
+			y = h - 140f;
+		}
+		var edge = behind || x < 60f || x > w - 60f || y < 60f || y > h - 60f;
+		return ( (int)Math.Clamp( x, 60f, w - 60f ), (int)Math.Clamp( y, 60f, h - 60f ), edge );
+	}
+
+	static string Clock( float s )
+	{
+		var t = TimeSpan.FromSeconds( Math.Ceiling( s ) );
+		return t.TotalHours >= 1 ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}" : $"{t.Minutes}:{t.Seconds:00}";
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Hidden, Deck, MarkerOn, Mx / 2, My / 2, Meters, HashCode.Combine( SwrpGuide.MarkerLabel, SwrpLocTag.Showing, SwrpLocTag.Last ),
+		HashCode.Combine( SwrpEvents.HudObjective, SwrpEvents.HudTimerLabel, (int)SwrpEvents.HudTimerLeft, Edge, RallyOn, Rx / 2, Ry / 2, RallyMeters ) );
+}

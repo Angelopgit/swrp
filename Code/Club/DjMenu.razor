@@ -1,0 +1,311 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The cantina DJ decks (E on the DJ booth): two decks, the crossfader with timed mixes, the queue and auto-mix, the track
+	library (the original built-in tracks, audio files in Assets/sounds/music/club, or a pasted URL), and the club lights.
+	Every button is a request; the host checks you're at the booth (or staff) and everyone in the cantina hears the result.
+*@
+
+<root class="@( SwrpClub.MenuOpen ? "open" : "" )">
+	@if ( SwrpClub.MenuOpen && SwrpClub.Current is { } club )
+	{
+		<div class="dj">
+			<div class="dhead">
+				<label class="dtitle">CANTINA DECKS</label>
+				<label class="dsub">@( string.IsNullOrEmpty( club.DjName ) ? "NO DJ YET" : $"DJ {club.DjName.ToUpperInvariant()}" )@( club.Locked ? " · LOCKED" : "" )</label>
+				<div class="grow"></div>
+				<div class="close" onclick=@(() => SwrpClub.MenuOpen = false)>✕</div>
+			</div>
+
+			<div class="decks">
+				@for ( var d = 0; d < 2; d++ )
+				{
+					var deck = d;
+					<div class="deck @( club.LiveDeck == deck && club.Loaded( deck ) ? "live" : "" )">
+						<div class="drow">
+							<label class="dname">@( deck == 0 ? "DECK A" : "DECK B" )</label>
+							<label class="kind">@SwrpClub.Kind( club.Source( deck ) )</label>
+						</div>
+						<label class="track">@( club.Loaded( deck ) ? club.Title( deck ) : "Empty" )</label>
+						<div class="progress"><div class="fill" style="width: @Pct( club, deck )"></div></div>
+						<div class="drow">
+							<label class="time">@Clock( club, deck )</label>
+							<div class="grow"></div>
+							<label class="state">@DeckState( club, deck )</label>
+						</div>
+						<div class="buttons">
+							@if ( club.PausedAt( deck ) >= 0f )
+							{
+								<div class="btn" onclick=@(() => club.RequestDeck( deck, "play" ))>▶ PLAY</div>
+							}
+							else
+							{
+								<div class="btn" onclick=@(() => club.RequestDeck( deck, "pause" ))>❚❚ PAUSE</div>
+							}
+							<div class="btn" onclick=@(() => club.RequestDeck( deck, "back" ))>-10s</div>
+							<div class="btn" onclick=@(() => club.RequestDeck( deck, "forward" ))>+10s</div>
+							<div class="btn" onclick=@(() => club.RequestDeck( deck, "restart" ))>⟲</div>
+							<div class="btn" onclick=@(() => club.RequestDeck( deck, "eject" ))>⏏</div>
+						</div>
+					</div>
+
+					@if ( deck == 0 )
+					{
+						<div class="mixer">
+							<label class="section">CROSSFADER</label>
+							<div class="fader">
+								@for ( var s = 0; s <= 8; s++ )
+								{
+									var step = s / 8f;
+									<div class="notch @( MathF.Abs( club.CrossfaderNow - step ) < 0.0626f ? "on" : "" )" onclick=@(() => club.RequestCrossfader( step ))></div>
+								}
+							</div>
+							<div class="drow"><label class="ab">A</label><div class="grow"></div><label class="ab">B</label></div>
+							<div class="buttons">
+								<div class="btn" onclick=@(() => club.RequestMix( 0, club.MixSeconds ))>◀ MIX</div>
+								<div class="btn" onclick=@(() => club.RequestMix( 1, club.MixSeconds ))>MIX ▶</div>
+							</div>
+							<div class="buttons">
+								<div class="btn" onclick=@(() => club.RequestMix( 0, 0 ))>◀ CUT</div>
+								<div class="btn" onclick=@(() => club.RequestMix( 1, 0 ))>CUT ▶</div>
+							</div>
+							<label class="section">MIX TIME</label>
+							<div class="buttons">
+								@foreach ( var secs in new[] { 4f, 8f, 16f } )
+								{
+									var v = secs;
+									<div class="btn small @( MathF.Abs( club.MixSeconds - v ) < 0.1f ? "on" : "" )" onclick=@(() => club.RequestSetting( "mix", v ))>@( $"{v:0}s" )</div>
+								}
+							</div>
+							<div class="btn toggle @( club.AutoMix ? "on" : "" )" onclick=@(() => club.RequestFx( "automix", !club.AutoMix ))>AUTO-MIX QUEUE</div>
+							<label class="section">PA LEVEL</label>
+							<div class="buttons">
+								<div class="btn small" onclick=@(() => club.RequestSetting( "master", club.Master - 0.1f ))>−</div>
+								<label class="level">@( $"{club.Master * 100f:0}%" )</label>
+								<div class="btn small" onclick=@(() => club.RequestSetting( "master", club.Master + 0.1f ))>+</div>
+							</div>
+						</div>
+					}
+				}
+			</div>
+
+			<div class="lower">
+				<div class="library">
+					<div class="tabs">
+						<div class="tab @( Tab == 0 ? "on" : "" )" onclick=@(() => Tab = 0)>BUILT-IN</div>
+						<div class="tab @( Tab == 1 ? "on" : "" )" onclick=@(() => Tab = 1)>LOCAL FILES</div>
+						<div class="tab @( Tab == 2 ? "on" : "" )" onclick=@(() => Tab = 2)>URL / RADIO</div>
+					</div>
+
+					@if ( Tab == 0 )
+					{
+						<div class="list">
+							@foreach ( var b in SwrpClub.BuiltIn )
+							{
+								var src = "builtin:" + b.Id;
+								<div class="item">
+									<label class="iname">@b.Title</label>
+									@{ var bt = b.Title; }
+									<div class="ibuttons">
+										<div class="btn tiny" onclick=@(() => club.RequestLoad( 0, src, bt, true ))>A</div>
+										<div class="btn tiny" onclick=@(() => club.RequestLoad( 1, src, bt, true ))>B</div>
+										<div class="btn tiny" onclick=@(() => club.RequestQueue( "add", src, bt, 0 ))>+Q</div>
+									</div>
+								</div>
+							}
+						</div>
+						<label class="note">Original tracks made for this game.</label>
+					}
+					else if ( Tab == 1 )
+					{
+						<div class="list">
+							@if ( LocalFiles.Count == 0 )
+							{
+								<label class="note">No files yet. Put music you own in Assets/sounds/music/club (mp3, ogg, wav). Every listener needs the same file.</label>
+							}
+							@foreach ( var f in LocalFiles )
+							{
+								var src = "file:" + f;
+								var title = System.IO.Path.GetFileNameWithoutExtension( f );
+								<div class="item">
+									<label class="iname">@title</label>
+									<div class="ibuttons">
+										<div class="btn tiny" onclick=@(() => club.RequestLoad( 0, src, title, true ))>A</div>
+										<div class="btn tiny" onclick=@(() => club.RequestLoad( 1, src, title, true ))>B</div>
+										<div class="btn tiny" onclick=@(() => club.RequestQueue( "add", src, title, 0 ))>+Q</div>
+									</div>
+								</div>
+							}
+						</div>
+					}
+					else
+					{
+						<TextEntry class="field" Value:bind="@Url" MaxLength=@(400) Placeholder="https://.../track.mp3 or an internet radio stream"></TextEntry>
+						<TextEntry class="field" Value:bind="@TrackTitle" MaxLength=@(80) Placeholder="Title (optional)"></TextEntry>
+						<div class="buttons">
+							<div class="btn" onclick=@(() => FromUrl( club, "deck0" ))>LOAD A</div>
+							<div class="btn" onclick=@(() => FromUrl( club, "deck1" ))>LOAD B</div>
+							<div class="btn" onclick=@(() => FromUrl( club, "queue" ))>+ QUEUE</div>
+						</div>
+						<label class="note @( Error is not null || LooksLikeYouTube && !SwrpClub.YouTubeAllowed ? "error" : Notice is not null ? "ok" : "" )">@( Error ?? Notice ?? ( LooksLikeYouTube && !SwrpClub.YouTubeAllowed ? SwrpClub.YouTubeBlockedMessage : "Direct audio links (.mp3 .ogg .opus .wav) and internet radio streams play on the PA and can be mixed. Only play music you have the rights to." ) )</label>
+					}
+				</div>
+
+				<div class="queue">
+					<div class="drow">
+						<label class="section">@( $"QUEUE ({club.Queue.Count})" )</label>
+						<div class="grow"></div>
+						<div class="btn small" onclick=@(() => club.RequestQueue( "clear", null, null, 0 ))>CLEAR</div>
+					</div>
+					<div class="list">
+						@{ var q = club.Queue; }
+						@for ( var i = 0; i < q.Count; i++ )
+						{
+							var index = i;
+							<div class="item">
+								<label class="iname">@( $"{index + 1}. {q[index].Title}" )</label>
+								<div class="btn tiny" onclick=@(() => club.RequestQueue( "deck0", null, null, index ))>A</div>
+								<div class="btn tiny" onclick=@(() => club.RequestQueue( "deck1", null, null, index ))>B</div>
+								<div class="btn tiny" onclick=@(() => club.RequestQueue( "up", null, null, index ))>↑</div>
+								<div class="btn tiny" onclick=@(() => club.RequestQueue( "remove", null, null, index ))>✕</div>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+
+			<label class="section">CLUB FX</label>
+			<div class="fx">
+				<div class="btn toggle @( club.Lights ? "on" : "" )" onclick=@(() => club.RequestFx( "lights", !club.Lights ))>LIGHTS</div>
+				<div class="btn toggle @( club.Lasers ? "on" : "" )" onclick=@(() => club.RequestFx( "lasers", !club.Lasers ))>LASERS</div>
+				<div class="btn toggle @( club.Strobe ? "on" : "" )" onclick=@(() => club.RequestFx( "strobe", !club.Strobe ))>STROBE</div>
+				<div class="btn toggle @( club.Haze ? "on" : "" )" onclick=@(() => club.RequestFx( "haze", !club.Haze ))>HAZE</div>
+				<div class="btn toggle @( club.ShowScreen ? "on" : "" )" onclick=@(() => club.RequestFx( "screen", !club.ShowScreen ))>SCREEN</div>
+				<div class="grow"></div>
+				@for ( var p = 0; p < ClubPalettes.Count; p++ )
+				{
+					var pal = p;
+					<div class="swatch @( club.Palette == pal ? "on" : "" )" style="background: linear-gradient( to right, @(ClubPalettes.Pick( pal, 0 ).Hex), @(ClubPalettes.Pick( pal, 1 ).Hex) )" onclick=@(() => club.RequestSetting( "palette", pal ))>
+						<label>@(ClubPalettes.All[pal].Name.ToUpperInvariant())</label>
+					</div>
+				}
+				<div class="btn toggle staff @( club.Locked ? "on" : "" )" onclick=@(() => club.RequestFx( "lock", !club.Locked ))>@( club.Locked ? "UNLOCK" : "LOCK" )</div>
+			</div>
+			<label class="note">Only troopers inside the cantina hear and see this. Your own level: swrp_club_volume · strobe off for you: swrp_club_strobe 0</label>
+		</div>
+	}
+</root>
+
+@code
+{
+	int Tab;
+	string Url;
+	string TrackTitle;
+	string Error;
+	string Notice;
+	bool LooksLikeYouTube => Url is { } u && ( u.Contains( "youtu.be" ) || u.Contains( "youtube.com" ) );
+	List<string> LocalFiles = new();
+	RealTimeSince _scanned = 100f;
+	int _frame;
+
+	void FromUrl( SwrpClub club, string where )
+	{
+		if ( !SwrpClub.ParseInput( Url, out var source, out var error ) )
+		{
+			Error = error;
+			SwrpAudio.Ui( SwrpAudio.Deny );
+			return;
+		}
+		Error = null;
+		Notice = source.StartsWith( "youtube:" )
+			? ( where == "queue" ? "YouTube video queued: it will play on the booth screen." : $"YouTube video loading on deck {( where == "deck0" ? "A" : "B" )}: watch the booth screen (only inside the cantina)." )
+			: null;
+		if ( where == "queue" ) club.RequestQueue( "add", source, TrackTitle, 0 );
+		else club.RequestLoad( where == "deck0" ? 0 : 1, source, TrackTitle, true );
+		SwrpAudio.Ui( SwrpAudio.Confirm );
+		Url = "";
+		TrackTitle = "";
+	}
+
+	static string Pct( SwrpClub club, int deck )
+	{
+		var dur = club.Duration( deck );
+		var f = dur > 0f ? Math.Clamp( club.Position( deck ) % ( SwrpClub.IsLoop( club.Source( deck ) ) ? dur : float.MaxValue ) / dur, 0f, 1f ) : 0f;
+		return ( f * 100f ).ToString( "0.0", System.Globalization.CultureInfo.InvariantCulture ) + "%";
+	}
+
+	static string Clock( SwrpClub club, int deck )
+	{
+		if ( !club.Loaded( deck ) ) return "--:--";
+		var dur = club.Duration( deck );
+		var pos = club.Position( deck );
+		if ( dur > 0f && SwrpClub.IsLoop( club.Source( deck ) ) ) pos %= dur;
+		return dur > 0f ? $"{Mmss( pos )} / {Mmss( dur )}" : $"{Mmss( pos )} · LIVE";
+	}
+
+	static string Mmss( float s ) => $"{(int)( s / 60 )}:{(int)( s % 60 ):00}";
+
+	static string DeckState( SwrpClub club, int deck )
+	{
+		if ( !club.Loaded( deck ) ) return "";
+		if ( club.DeckFailed( deck ) ) return "CAN'T PLAY HERE";
+		if ( club.Source( deck ).StartsWith( "youtube:" ) ) return "ON SCREEN";
+		if ( club.PausedAt( deck ) >= 0f ) return "PAUSED";
+		if ( club.DeckBuffering( deck ) ) return "BUFFERING";
+		return $"{club.Gain( deck ) * 100f:0}%";
+	}
+
+	protected override void OnUpdate()
+	{
+		_frame++;
+		if ( !SwrpClub.MenuOpen ) return;
+
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			SwrpClub.MenuOpen = false;
+			return;
+		}
+
+		// walk away and it closes
+		var me = SwrpPlayer.Local;
+		var club = SwrpClub.Current;
+		if ( me is null || !club.IsValid() || me.WorldPosition.Distance( club.WorldPosition ) > SwrpClub.BoothReach + 40f )
+		{
+			SwrpClub.MenuOpen = false;
+			return;
+		}
+
+		if ( _scanned > 5f )
+		{
+			_scanned = 0;
+			LocalFiles = Scan();
+		}
+	}
+
+	static List<string> Scan()
+	{
+		var list = new List<string>();
+		try
+		{
+			if ( !FileSystem.Mounted.DirectoryExists( SwrpClub.BuiltInFolder ) ) return list;
+			var builtIn = SwrpClub.BuiltIn.Select( b => b.Id + ".wav" ).ToHashSet();
+			foreach ( var ext in new[] { "*.mp3", "*.ogg", "*.wav", "*.opus", "*.webm" } )
+				foreach ( var f in FileSystem.Mounted.FindFile( SwrpClub.BuiltInFolder, ext ) )
+					if ( !builtIn.Contains( f ) ) list.Add( $"{SwrpClub.BuiltInFolder}/{f}" );
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( $"[SWRP] club: scanning local files: {e.Message}" );
+		}
+		list.Sort();
+		return list;
+	}
+
+	// the clocks and the crossfader move, so redraw a few times a second while open
+	protected override int BuildHash() => SwrpClub.MenuOpen ? HashCode.Combine( _frame / 6, Tab, Error, LocalFiles.Count, SwrpClub.Current?.QueueJson ) : 0;
+}

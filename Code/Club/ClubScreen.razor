@@ -1,0 +1,113 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The screen behind the DJ booth (SwrpClub puts it on a WorldPanel, only on machines in or at the door of the cantina): the
+	track playing and the DJ, over a 32-band spectrum of what this machine hears. When the live deck holds a YouTube video it shows
+	YouTube's own embedded player instead (the video stays visible, as YouTube's terms require), and only while you're inside the
+	room: walking out removes the player, which stops its sound.
+*@
+
+<root class="clubscreen">
+	@if ( Club is { } club )
+	{
+		@if ( VideoUrl is { } url )
+		{
+			<WebPanel @ref="_web" class="video" Url=@url></WebPanel>
+		}
+		else
+		{
+			<div class="bars">
+				@for ( var i = 0; i < club.Bands.Length; i++ )
+				{
+					var idle = 0.06f + 0.3f * club.Pulse * ( 0.5f + 0.5f * MathF.Sin( i * 0.7f + _frame * 0.15f ) );
+					var h = Math.Clamp( MathF.Max( club.Bands[i] * Gain( i ), idle ), 0.04f, 1f );
+					<div class="bar" style="height: @( ( h * 100f ).ToString( "0.0", System.Globalization.CultureInfo.InvariantCulture ) )%; background-color: @Hex( club, i )"></div>
+				}
+			</div>
+			<div class="info">
+				<label class="title">@( club.Loaded( club.LiveDeck ) ? club.Title( club.LiveDeck ) : "CANTINA" )</label>
+				<label class="dj">@( string.IsNullOrEmpty( club.DjName ) ? "Decks open: E at the booth" : $"DJ {club.DjName}" )</label>
+			</div>
+		}
+	}
+</root>
+
+@code
+{
+	public SwrpClub Club { get; set; }
+
+	[ConVar( "swrp_club_youtube_mode", Help = "How the booth screen loads YouTube: watch (default), popup or embed" )]
+	public static string YouTubeMode { get; set; } = "watch";
+
+	string _videoId;
+	string _videoUrl;
+	int _frame;
+
+	/// <summary> YouTube's embed URL for the live deck's video, fixed when the video changes (so the player isn't reloaded). </summary>
+	string VideoUrl
+	{
+		get
+		{
+			var id = Club is { ListenerInside: true } c ? c.LiveVideo : null;
+			var key = id is null ? null : $"{YouTubeMode}:{id}";
+			if ( key != _videoId )
+			{
+				_videoId = key;
+				var at = id is null ? 0 : (int)Club.Position( Club.LiveDeck );
+				// The plain /embed/ page shows YouTube's error card when it isn't inside another site's page (no referrer), so
+				// the default is YouTube's own full-window player page, loaded as the top-level page.
+				_videoUrl = id is null ? null : YouTubeMode switch
+				{
+					"embed" => $"https://www.youtube.com/embed/{id}?autoplay=1&rel=0&playsinline=1&start={at}",
+					"watch" => $"https://www.youtube.com/watch?v={id}&t={at}s",
+					_ => $"https://www.youtube.com/watch_popup?v={id}&autoplay=1&t={at}s",
+				};
+			}
+			return _videoUrl;
+		}
+	}
+
+	static float Gain( int band ) => 2.5f + band * 0.35f;      // highs carry less energy; lift them so the bars read
+
+	static string Hex( SwrpClub club, int i )
+	{
+		var c = ClubPalettes.Pick( club.Palette, i / 8 );
+		return c.Hex;
+	}
+
+	WebPanel _web;
+	static ClubScreen _last;
+
+	protected override void OnUpdate()
+	{
+		_frame++;
+		_last = this;
+	}
+
+	/// <summary> Debug: what the booth screen's browser is showing. </summary>
+	[ConCmd( "swrp_club_screen_info", Help = "Print the booth screen browser's address and size" )]
+	public static void ScreenInfo()
+	{
+		var s = _last?._web?.Surface;
+		Log.Info( s is null ? "[SWRP] club screen: no browser (no video on the live deck, or you're outside the cantina)" : $"[SWRP] club screen: {s.Url} size {s.Size}" );
+	}
+
+	/// <summary> Debug: click the booth screen's browser at a point given as fractions of its size. </summary>
+	[ConCmd( "swrp_club_screen_click", Help = "Click the booth screen browser at x y (0..1 of its size)" )]
+	public static void ScreenClick( float x = 0.45f, float y = 0.5f )
+	{
+		var s = _last?._web?.Surface;
+		if ( s is null ) { ScreenInfo(); return; }
+		s.TellMouseMove( new Vector2( s.Size.x * x, s.Size.y * y ) );
+		s.TellMouseButton( MouseButtons.Left, true );
+		s.TellMouseButton( MouseButtons.Left, false );
+		Log.Info( $"[SWRP] club screen: clicked {x:0.00},{y:0.00} of {s.Size}" );
+	}
+
+	// redraw about 20 times a second while showing bars; the video only when it changes
+	protected override int BuildHash() => VideoUrl is not null ? HashCode.Combine( _videoUrl ) : HashCode.Combine( _frame / 2, Club?.Palette, Club?.DjName, Club?.LiveDeck );
+}

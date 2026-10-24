@@ -1,0 +1,114 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+<root class="@(SwrpPlayer.Local?.InVehicle == true ? "invehicle" : "")">
+	@if ( SwrpPlayer.Local is { } me )
+	{
+		<div class="status">
+			<label class="voice">@($"VOICE  {SwrpChat.VoiceNames[Math.Clamp( me.VoiceMode, 0, 2 )].ToUpper()}  [B]")</label>
+			@if ( me.RadioTx )
+			{
+				<label class="voice">RADIO  [Y]</label>
+			}
+			@if ( !me.CommsOn )
+			{
+				<label class="flag">COMMS OFF  [N]</label>
+			}
+			@if ( me.Gagged )
+			{
+				<label class="flag">GAGGED</label>
+			}
+			@if ( me.Frozen )
+			{
+				<label class="flag">FROZEN</label>
+			}
+			@if ( me.Jailed )
+			{
+				<label class="flag">JAILED</label>
+			}
+		</div>
+	}
+	<div class="lines">
+		@foreach ( var line in Visible )
+		{
+			<label class="line @line.Kind.ToString().ToLower()">@line.Text</label>
+		}
+	</div>
+
+	@if ( SwrpUiState.ChatOpen )
+	{
+		<div class="entry">
+			<label class="hint">@Mode</label>
+			<TextEntry @ref="Entry" Value:bind=@Draft MaxLength=@(220) Placeholder="Speak, or /help for commands" onsubmit=@Submit />
+		</div>
+	}
+</root>
+
+@code
+{
+	TextEntry Entry { get; set; }
+	string Draft { get; set; } = "";
+	bool _focused;
+
+	/// <summary> What the line being typed will be sent as. </summary>
+	string Mode
+	{
+		get
+		{
+			var cmd = Draft?.TrimStart().Split( ' ' )[0].ToLowerInvariant() ?? "";
+			return cmd switch
+			{
+				"/me" => "EMOTE",
+				"/do" => "DO",
+				"/w" or "/whisper" => "WHISPER",
+				"/y" or "/yell" => "YELL",
+				"/roll" => "ROLL",
+				"/r" or "/radio" => "RADIO",
+				"/broadcast" or "/bc" => "SHIPWIDE",
+				"/ooc" or "//" => "OOC",
+				"/looc" => "LOOC",
+				_ when cmd.StartsWith( "/" ) => "CMD",
+				_ => SwrpPlayer.Local?.VoiceMode switch { 0 => "WHISPER", 2 => "YELL", _ => "SAY" },
+			};
+		}
+	}
+
+	/// <summary> Lines still on screen: everything while chat is open, otherwise only recent ones. </summary>
+	IEnumerable<ChatLine> Visible => SwrpChat.Lines.Where( x => ( !ComlinkPanel.Open || x.Kind is not ( ChatKind.Radio or ChatKind.Dispatch ) ) && ( SwrpUiState.ChatOpen || x.Age < 12f ) ).TakeLast( 9 );     // (radio traffic shows in the comlink)
+
+	protected override void OnUpdate()
+	{
+		if ( !SwrpUiState.ChatOpen )
+		{
+			_focused = false;
+			return;
+		}
+
+		// The input only exists after the panel rebuilds with chat open, so grab focus as soon as it shows up.
+		if ( !_focused && Entry.IsValid() )
+		{
+			Entry.Focus();
+			_focused = true;
+		}
+	}
+
+	void Submit()
+	{
+		var text = Draft?.Trim();
+		Draft = "";
+		SwrpUiState.ChatOpen = false;
+
+		if ( !string.IsNullOrEmpty( text ) )
+			SwrpChat.Submit( text );
+	}
+
+	protected override int BuildHash()
+	{
+		var recent = SwrpChat.Lines.Count( x => x.Age < 12f );
+		var me = SwrpPlayer.Local;
+		return HashCode.Combine( SwrpChat.Version, SwrpUiState.ChatOpen, recent, Draft, me?.VoiceMode, me?.Gagged, me?.Frozen, HashCode.Combine( me?.Jailed, me?.RadioTx, me?.CommsOn, ComlinkPanel.Open, me?.InVehicle ) );
+	}
+}

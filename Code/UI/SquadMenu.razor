@@ -1,0 +1,436 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The squad menu (/squad or F3): a holo display of your squad. The header carries its colour, name and its own radio net
+	(frequency, who is talking, one click to tune in and put your voice on it); a live radar puts every squadmate around you
+	as you face; member cards slide in with health, status, deck and distance; the leader invites, promotes, kicks, renames,
+	recolours, sets the squad's rally point and disbands. Without a squad it shows invites waiting and lets you form one.
+	Every button types the same /squad or /channel command, so the host checks everything. Made by SwrpRefineSystem.
+*@
+
+<root class="@(Open ? "open" : "")">
+	@if ( Open && SwrpRoleplay.Current is { } rp && Me is { } me )
+	{
+		var state = rp.State;
+		var squad = rp.SquadOf( me.OwnerSteamId );
+		<div class="backdrop" onclick=@(() => Close())></div>
+		<div class="window" style="border-top-color: @(squad?.ColorHex ?? "#6fd3ff")">
+			<div class="scan"></div>
+			@if ( squad is null )
+			{
+				<div class="head">
+					<div class="emblem none"><div class="ring"></div><label class="glyph">+</label></div>
+					<div class="titles">
+						<label class="kicker">SQUAD COMMAND // NOT ASSIGNED</label>
+						<label class="name">NO SQUAD</label>
+						<label class="sub">Form a squad, or accept an invite. Squads get their own radio net.</label>
+					</div>
+					<div class="grow"></div>
+					<div class="x" onclick=@(() => Close())>✕</div>
+				</div>
+
+				<div class="body">
+					<div class="col">
+						<label class="section">FORM A SQUAD</label>
+						<div class="form">
+							<TextEntry class="field" Value:bind=@NewName MaxLength=@(24) Placeholder="Squad name (e.g. Torrent)"></TextEntry>
+							<div class="swatches">
+								@foreach ( var hex in Swatches )
+								{
+									var h = hex;
+									<div class="swatch @(Pick == h ? "on" : "")" style="background-color: @h" onclick=@(() => Pick = h)></div>
+								}
+							</div>
+							<div class="btn go" onclick=@(() => Create())>FORM SQUAD</div>
+						</div>
+
+						<label class="section">INVITES</label>
+						@{ var mine = state.Invites.Where( i => i.SteamId == me.OwnerSteamId ).ToList(); }
+						@if ( mine.Count == 0 ) { <label class="empty">No invites waiting.</label> }
+						@foreach ( var inv in mine )
+						{
+							var s = state.Squads.FirstOrDefault( x => x.Id == inv.SquadId );
+							if ( s is null ) continue;
+							<div class="invite" style="border-left-color: @s.ColorHex">
+								<div class="inv-text">
+									<label class="inv-name">@s.Name.ToUpperInvariant()</label>
+									<label class="inv-sub">@($"{inv.From} · {s.Members.Count}/{SwrpRoleplay.MaxSquadSize} troopers")</label>
+								</div>
+								<div class="btn go small" onclick=@(() => Run( "/squad accept" ))>ACCEPT</div>
+								<div class="btn small" onclick=@(() => Run( "/squad decline" ))>DECLINE</div>
+							</div>
+						}
+					</div>
+					<div class="col">
+						<label class="section">SQUADS ABOARD</label>
+						@if ( state.Squads.Count == 0 ) { <label class="empty">No squads formed yet.</label> }
+						@foreach ( var s in state.Squads )
+						{
+							<div class="other" style="border-left-color: @s.ColorHex">
+								<label class="o-name">@s.Name.ToUpperInvariant()</label>
+								<label class="o-sub">@($"{s.NameOf( s.Leader )} · {s.Members.Count}/{SwrpRoleplay.MaxSquadSize}")</label>
+								<div class="o-pips">
+									@for ( var i = 0; i < SwrpRoleplay.MaxSquadSize; i++ )
+									{
+										<div class="pip @(i < s.Members.Count ? "on" : "")" style="@(i < s.Members.Count ? $"background-color: {s.ColorHex}" : "")"></div>
+									}
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+			else
+			{
+				var lead = squad.Leader == me.OwnerSteamId;
+				var talking = Talkers( squad );
+				<div class="head">
+					<div class="emblem" style="border-color: @squad.ColorHex">
+						<div class="ring" style="border-color: @squad.ColorHex"></div>
+						<label class="glyph" style="color: @squad.ColorHex">@Initial( squad.Name )</label>
+					</div>
+					<div class="titles">
+						<label class="kicker">@($"SQUAD COMMAND // {( rp.PlatoonFor( squad ) is { } pl ? pl.Name.ToUpperInvariant() : "NO PLATOON" )}")</label>
+						<label class="name" style="color: @squad.ColorHex">@squad.Name.ToUpperInvariant()</label>
+						<label class="sub">@($"{squad.Members.Count}/{SwrpRoleplay.MaxSquadSize} TROOPERS · LEAD {squad.NameOf( squad.Leader ).ToUpperInvariant()}{( lead ? " (YOU)" : "" )}")</label>
+					</div>
+					<div class="grow"></div>
+
+					<div class="net @(me.RadioChannel == "squad" ? "tuned" : "") @(talking.Count > 0 ? "live" : "")" style="border-color: @squad.ColorHex">
+						<label class="net-k">SQUAD NET</label>
+						<label class="net-f">@SwrpComms.SquadFrequency( squad )</label>
+						<div class="eq">
+							@for ( var i = 0; i < 9; i++ )
+							{
+								<div class="bar" style="height: @(Bar( i, talking.Count > 0 ))px; background-color: @squad.ColorHex"></div>
+							}
+						</div>
+						<label class="net-who">@(talking.Count > 0 ? string.Join( ", ", talking.Select( t => t.CharacterName ) ).ToUpperInvariant() : "QUIET")</label>
+					</div>
+					<div class="x" onclick=@(() => Close())>✕</div>
+				</div>
+
+				<div class="body">
+					<div class="col radar-col">
+						<label class="section">SQUAD RADAR · @(RadarMeters) M</label>
+						<div class="radar" style="border-color: @squad.ColorHex">
+							<div class="ring r1"></div>
+							<div class="ring r2"></div>
+							<div class="cross h"></div>
+							<div class="cross v"></div>
+							<div class="sweep"></div>
+							<div class="me"></div>
+							@foreach ( var b in _blips )
+							{
+								<div class="blip @(b.Down ? "down" : "") @(b.Talking ? "talking" : "") @(b.Edge ? "edge" : "") @(b.Leader ? "leader" : "")" style="left: @(b.X)px; top: @(b.Y)px; background-color: @squad.ColorHex">
+									<label class="b-name">@b.Name</label>
+								</div>
+							}
+							@if ( _rally is { } r )
+							{
+								<div class="rally" style="left: @(r.x)px; top: @(r.y)px; border-color: @squad.ColorHex"></div>
+							}
+						</div>
+
+						<label class="section">COMMS</label>
+						<div class="comms">
+							<div class="btn @(me.RadioChannel == "squad" ? "on" : "")" onclick=@(() => Run( "/channel squad" ))>@(me.RadioChannel == "squad" ? "ON THE SQUAD NET" : "TUNE TO SQUAD NET")</div>
+							<div class="btn @(me.RadioTx ? "on" : "")" onclick=@(() => SwrpComms.SetTx( me, !me.RadioTx ))>@(me.RadioTx ? "VOICE ON RADIO · Y" : "VOICE IN HELMET · Y")</div>
+							<div class="btn @(me.CommsOn ? "on" : "")" onclick=@(() => SwrpComms.SetComms( me, !me.CommsOn ))>@(me.CommsOn ? "RECEIVER ON · N" : "RECEIVER OFF · N")</div>
+							<div class="btn" onclick=@(() => { ComlinkPanel.Open = !ComlinkPanel.Open; })>@(ComlinkPanel.Open ? "HIDE COMLINK" : "SHOW COMLINK")</div>
+						</div>
+						<div class="log">
+							@if ( _log.Count == 0 ) { <label class="empty">No squad traffic yet. /r talks on your net; hold V with Y on.</label> }
+							@foreach ( var line in _log )
+							{
+								<label class="logline">@line</label>
+							}
+						</div>
+						<div class="say">
+							<TextEntry class="field" Value:bind=@Say MaxLength=@(160) Placeholder="Message the squad net..."></TextEntry>
+							<div class="btn small" onclick=@(() => SendSay())>SEND</div>
+						</div>
+					</div>
+
+					<div class="col cards-col">
+						<label class="section">TROOPERS</label>
+						<div class="cards">
+							@for ( var i = 0; i < squad.Members.Count; i++ )
+							{
+								var id = squad.Members[i];
+								var p = SwrpPlayers.BySteam( id );
+								var v = p?.GetComponent<SwrpVitals>();
+								var hp = v is null ? 0f : Math.Clamp( v.Health / SwrpVitals.MaxHealth, 0f, 1f );
+								var status = p is null ? "OFFLINE" : v is { IsDead: true } ? "KIA" : v is { IsDowned: true } ? "DOWN" : v is { Bleeding: true } ? "BLEEDING" : "READY";
+								var speaking = p is not null && talking.Contains( p );
+								<div class="card @status.ToLowerInvariant() @(speaking ? "speaking" : "") @(id == me.OwnerSteamId ? "self" : "")" style="transition: all 0.3s ease-out @(Num( i * 0.06f ))s; border-left-color: @squad.ColorHex">
+									<div class="c-top">
+										@if ( id == squad.Leader ) { <label class="crown" style="color: @squad.ColorHex">★</label> }
+										<label class="c-name">@(p?.FullTitle ?? squad.NameOf( id ))</label>
+										<div class="grow"></div>
+										@if ( speaking ) { <div class="mic"><div class="w"></div><div class="w"></div><div class="w"></div></div> }
+										<label class="c-status">@status</label>
+									</div>
+									<div class="c-mid">
+										<label class="c-meta">@(p is null ? "Last seen in the squad" : $"{p.Class.Name} · {SwrpShip.DeckName( p.WorldPosition )}{( p == me ? "" : $" · {Meters( me, p )} m" )}")</label>
+									</div>
+									<div class="hp"><div class="fill" style="width: @(Num( hp * 100f ))%; background-color: @(hp < 0.3f ? "#ff4a3d" : squad.ColorHex)"></div></div>
+									@if ( lead && id != me.OwnerSteamId )
+									{
+										var target = id;
+										<div class="c-actions">
+											<div class="btn tiny" onclick=@(() => Run( $"/squad promote {target}" ))>MAKE LEAD</div>
+											<div class="btn tiny danger" onclick=@(() => Run( $"/squad kick {target}" ))>REMOVE</div>
+										</div>
+									}
+								</div>
+							}
+							@for ( var i = squad.Members.Count; i < SwrpRoleplay.MaxSquadSize; i++ )
+							{
+								<div class="card slot" style="transition: all 0.3s ease-out @(Num( i * 0.06f ))s"><label class="c-meta">OPEN SLOT</label></div>
+							}
+						</div>
+
+						@if ( lead )
+						{
+							<label class="section">LEADER</label>
+							<div class="lead-tools">
+								<div class="row">
+									<div class="btn" onclick=@(() => Run( "/squad rally" ))>RALLY AT CROSSHAIR</div>
+									@if ( squad.HasRally ) { <div class="btn" onclick=@(() => Run( "/squad rally clear" ))>CLEAR RALLY</div> }
+									<div class="grow"></div>
+									<div class="btn danger @(_confirmDisband ? "armed" : "")" onclick=@(() => Disband())>@(_confirmDisband ? "CLICK AGAIN TO DISBAND" : "DISBAND")</div>
+								</div>
+								<div class="row">
+									<TextEntry class="field" Value:bind=@NewName MaxLength=@(24) Placeholder="Rename the squad"></TextEntry>
+									<div class="btn small" onclick=@(() => { if ( NewName?.Trim().Length >= 2 ) { Run( $"/squad rename {NewName.Trim()}" ); NewName = ""; } })>RENAME</div>
+									<div class="swatches">
+										@foreach ( var hex in Swatches )
+										{
+											var h = hex;
+											<div class="swatch @(squad.ColorHex == h ? "on" : "")" style="background-color: @h" onclick=@(() => Run( $"/squad color {h}" ))></div>
+										}
+									</div>
+								</div>
+								@if ( squad.Members.Count < SwrpRoleplay.MaxSquadSize )
+								{
+									<label class="hint">INVITE · troopers aboard without a squad, nearest first</label>
+									<div class="invitees">
+										@foreach ( var c in Candidates( rp, me ) )
+										{
+											var target = c.OwnerSteamId;
+											var sent = state.Invites.Any( x => x.SteamId == target && x.SquadId == squad.Id );
+											<div class="invitee @(sent ? "sent" : "")" onclick=@(() => { if ( !sent ) Run( $"/squad invite {target}" ); })>
+												<label class="i-name">@($"{c.Rank.Abbreviation} {c.CharacterName}")</label>
+												<label class="i-sub">@(sent ? "INVITED" : $"{c.Faction.ShortName} · {Meters( me, c )} m")</label>
+											</div>
+										}
+									</div>
+								}
+							</div>
+						}
+						else
+						{
+							<div class="row bottom">
+								<div class="grow"></div>
+								<div class="btn danger" onclick=@(() => Run( "/squad leave" ))>LEAVE SQUAD</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+			<label class="foot">F3 OR /squad · ESC CLOSES · EVERY BUTTON IS A /squad COMMAND</label>
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary> Open on this machine. </summary>
+	public static bool Open { get; set; }
+
+	static readonly string[] Swatches = { "#5fb4ff", "#ffb547", "#7dffa1", "#ff6b6b", "#c9a4ff", "#ffe66b", "#6bfff0", "#ff9ad5" };
+
+	/// <summary> How far the radar reaches, in units (about 40 m). </summary>
+	const float RadarRange = 1600f;
+	const float RadarRadius = 150f;      // half the radar's size in the stylesheet
+	static int RadarMeters => (int)( RadarRange * 0.0254f );
+
+	SwrpPlayer Me => SwrpPlayers.Local;
+	string NewName;
+	string Say;
+	string Pick = Swatches[0];
+	bool _confirmDisband;
+	RealTimeSince _sinceDisband = 10;
+
+	record struct Blip( float X, float Y, string Name, bool Down, bool Talking, bool Edge, bool Leader );
+	readonly List<Blip> _blips = new();
+	Vector2? _rally;
+	readonly List<string> _log = new();
+	int _logVersion = -1;
+
+	/// <summary> Client: /squad with nothing after it opens the menu. </summary>
+	public static bool TryLocal( string cmd, string rest )
+	{
+		if ( cmd != "/squad" || rest.Trim().Length > 0 ) return false;
+		Show();
+		return true;
+	}
+
+	public static void Show()
+	{
+		if ( SwrpPlayers.Local is null ) return;
+		Open = true;
+		SwrpAudio.Ui( SwrpAudio.Open );
+	}
+
+	static void Close()
+	{
+		if ( !Open ) return;
+		Open = false;
+		SwrpAudio.Ui( SwrpAudio.Close );
+	}
+
+	static void Run( string command ) => SwrpChat.Submit( command );
+
+	void Create()
+	{
+		var name = ( NewName ?? "" ).Trim();
+		Run( name.Length >= 2 ? $"/squad create {name}" : "/squad create" );
+		NewName = "";
+		_pendingColor = Pick;
+		_sincePending = 0;
+	}
+
+	// the colour picked before forming goes out once the squad exists
+	string _pendingColor;
+	RealTimeSince _sincePending;
+
+	void Disband()
+	{
+		if ( _confirmDisband && _sinceDisband < 4f ) { Run( "/squad disband" ); _confirmDisband = false; return; }
+		_confirmDisband = true;
+		_sinceDisband = 0;
+	}
+
+	void SendSay()
+	{
+		var text = ( Say ?? "" ).Trim();
+		if ( text.Length == 0 ) return;
+		Run( $"/r squad {text}" );
+		Say = "";
+	}
+
+	static string Initial( string name ) => string.IsNullOrWhiteSpace( name ) ? "?" : name.Trim()[..1].ToUpperInvariant();
+
+	static string Num( float v ) => v.ToString( "0.###", System.Globalization.CultureInfo.InvariantCulture );
+
+	static int Meters( SwrpPlayer a, SwrpPlayer b ) => (int)( a.WorldPosition.Distance( b.WorldPosition ) * 0.0254f );
+
+	/// <summary> Squadmates on the air right now (you too, while you transmit). </summary>
+	static List<SwrpPlayer> Talkers( SquadInfo squad )
+		=> SwrpPlayers.Deployed.Where( p => squad.Members.Contains( p.OwnerSteamId ) && p.RadioTx && SwrpComms.Speaking( p ) ).ToList();
+
+	/// <summary> The equaliser: still when the net is quiet, jumping when someone talks. </summary>
+	static int Bar( int i, bool live )
+	{
+		if ( !live ) return 3;
+		var t = Time.Now * 9f + i * 1.7f;
+		return 4 + (int)( 18f * MathF.Abs( MathF.Sin( t ) * MathF.Cos( t * 0.37f + i ) ) );
+	}
+
+	/// <summary> Troopers aboard with no squad, nearest first (the leader's invite list). </summary>
+	static IEnumerable<SwrpPlayer> Candidates( SwrpRoleplay rp, SwrpPlayer me )
+		=> SwrpPlayers.Deployed.Where( p => p != me && !p.Invisible && rp.SquadOf( p.OwnerSteamId ) is null )
+			.OrderBy( p => p.FactionId == me.FactionId ? 0 : 1 ).ThenBy( p => p.WorldPosition.Distance( me.WorldPosition ) ).Take( 12 );
+
+	protected override void OnUpdate()
+	{
+		if ( Me is null ) { Open = false; return; }
+
+		// F3 (free in Input.config; read straight from the keyboard, so no restart is needed)
+		if ( !SwrpUiState.ChatOpen && Input.Pressed( "SquadMenu" ) )
+		{
+			if ( Open ) Close();
+			else if ( !SwrpUiState.AnyOpen ) Show();
+		}
+		if ( Open && Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			Close();
+		}
+		if ( _confirmDisband && _sinceDisband > 4f ) _confirmDisband = false;
+
+		var rp = SwrpRoleplay.Current;
+		var squad = rp?.SquadOf( Me.OwnerSteamId );
+		if ( squad is not null && _pendingColor is not null )
+		{
+			if ( squad.Leader == Me.OwnerSteamId && squad.ColorHex != _pendingColor ) Run( $"/squad color {_pendingColor}" );
+			_pendingColor = null;
+		}
+		else if ( _pendingColor is not null && _sincePending > 5f ) _pendingColor = null;
+
+		if ( !Open || squad is null ) return;
+		UpdateRadar( squad );
+		UpdateLog( squad );
+	}
+
+	void UpdateRadar( SquadInfo squad )
+	{
+		_blips.Clear();
+		_rally = null;
+		var me = Me;
+		var cam = Scene.Camera;
+		var fwd = ( cam.IsValid() ? cam.WorldRotation.Forward : me.WorldRotation.Forward ).WithZ( 0f ).Normal;
+		var right = new Vector3( fwd.y, -fwd.x, 0f );      // facing up the radar, right is right
+		var talking = Talkers( squad );
+
+		Vector2 Place( Vector3 world, out bool edge )
+		{
+			var d = ( world - me.WorldPosition ).WithZ( 0f );
+			var v = new Vector2( Vector3.Dot( d, right ), -Vector3.Dot( d, fwd ) ) / RadarRange * RadarRadius;
+			edge = v.Length > RadarRadius - 8f;
+			if ( edge ) v = v.Normal * ( RadarRadius - 8f );
+			return v + new Vector2( RadarRadius, RadarRadius );
+		}
+
+		foreach ( var p in SwrpPlayers.Deployed )
+		{
+			if ( p == me || !squad.Members.Contains( p.OwnerSteamId ) ) continue;
+			var at = Place( p.WorldPosition, out var edge );
+			var v = p.GetComponent<SwrpVitals>();
+			_blips.Add( new Blip( at.x, at.y, p.CharacterName?.ToUpperInvariant(), v is { IsDowned: true } or { IsDead: true }, talking.Contains( p ), edge, p.OwnerSteamId == squad.Leader ) );
+		}
+		if ( squad.HasRally ) _rally = Place( squad.Rally, out _ );
+	}
+
+	void UpdateLog( SquadInfo squad )
+	{
+		if ( _logVersion == SwrpChat.Version ) return;
+		_logVersion = SwrpChat.Version;
+		_log.Clear();
+		var tag = $"| {squad.Name}]";
+		foreach ( var line in SwrpChat.Lines.Where( l => l.Kind is ChatKind.Radio or ChatKind.Dispatch && l.Text.Contains( tag ) ).TakeLast( 7 ) )
+			_log.Add( line.Text );
+	}
+
+	protected override int BuildHash()
+	{
+		if ( !Open ) return 0;
+		var h = new HashCode();
+		h.Add( SwrpRoleplay.Current?.Version );
+		h.Add( Me?.RadioChannel );
+		h.Add( Me?.RadioTx );
+		h.Add( Me?.CommsOn );
+		h.Add( ComlinkPanel.Open );
+		h.Add( _confirmDisband );
+		h.Add( Pick );
+		h.Add( _logVersion );
+		h.Add( (int)( Time.Now * 12f ) );      // radar, equaliser and health bars move
+		return h.ToHashCode();
+	}
+}

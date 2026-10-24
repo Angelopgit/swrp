@@ -1,0 +1,86 @@
+@import "../Feel/_feel.scss";
+$accent: #ff7a2f;
+$text: $feel-text;
+$muted: $feel-muted;
+
+GmPanel {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 58;
+	pointer-events: none;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.3 );
+	}
+}
+
+.gm {
+	width: 820px;
+	flex-direction: column;
+	padding: 16px 20px;
+	background-color: rgba( 14, 10, 8, 0.96 );
+	border: 1px solid rgba( 255, 122, 47, 0.35 );
+	border-top: 3px solid $accent;
+	@include feel-panel-in;
+}
+
+.ghead {
+	flex-direction: row;
+	align-items: center;
+
+	.gtitle { font-size: 18px; font-weight: 700; letter-spacing: 5px; color: white; margin-right: 14px; }
+	.gsub { font-size: 10px; letter-spacing: 2px; color: $muted; }
+	.close { font-size: 16px; padding: 2px 8px; cursor: pointer; }
+}
+
+.grow { flex-grow: 1; }
+.sep { width: 14px; }
+
+.section {
+	font-size: 10px;
+	letter-spacing: 3px;
+	color: $accent;
+	margin: 14px 0 6px 0;
+}
+
+.row {
+	flex-direction: row;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.btn {
+	font-size: 11px;
+	letter-spacing: 1px;
+	padding: 7px 12px;
+	margin: 0 6px 6px 0;
+	background-color: rgba( 255, 255, 255, 0.08 );
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+
+	&:hover { background-color: rgba( 255, 255, 255, 0.18 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	&:active { sound-in: "sounds/ui/ui_click.sound"; }
+	&.on { background-color: rgba( 255, 122, 47, 0.35 ); color: white; }
+	&.go { background-color: rgba( 255, 122, 47, 0.5 ); color: white; }
+	&.danger { background-color: rgba( 255, 59, 48, 0.35 ); }
+	&.small { padding: 5px 9px; font-size: 10px; }
+}
+
+.field {
+	width: 560px;
+	height: 30px;
+	padding: 4px 8px;
+	margin: 0 6px 6px 0;
+	font-size: 12px;
+	background-color: rgba( 255, 255, 255, 0.06 );
+	border: 1px solid rgba( 255, 255, 255, 0.12 );
+	color: white;
+}

@@ -1,0 +1,111 @@
+$holo: #6fd3ff;
+$amber: #ffb547;
+$red: #ff4a3d;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+WayfindingHud {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	font-family: Orbitron;
+	color: $text;
+
+	&.hidden { opacity: 0; }
+}
+
+// ----- where you are, top centre (the identity block has the top left) -----
+
+.deck {
+	position: absolute;
+	left: 50%;
+	top: 12px;
+	width: 220px;
+	margin-left: -110px;
+	flex-direction: column;
+	align-items: center;
+	padding: 4px 12px 5px 12px;
+	border-bottom: 1px solid rgba( 111, 211, 255, 0.45 );
+	background-color: rgba( 8, 14, 24, 0.4 );
+
+	.deck-k { font-size: 8px; letter-spacing: 3px; color: $muted; }
+	.deck-v { font-size: 12px; letter-spacing: 2px; margin-top: 2px; }
+}
+
+// ----- a Game Master's objective and countdown, top centre under the order -----
+
+.event {
+	position: absolute;
+	left: 50%;
+	top: 196px;
+	width: 520px;
+	margin-left: -260px;
+	flex-direction: column;
+	align-items: center;
+	padding: 6px 14px 8px 14px;
+	background-color: rgba( 30, 18, 4, 0.62 );
+	border-bottom: 2px solid $amber;
+
+	.ev-k { font-size: 9px; letter-spacing: 4px; color: $amber; }
+	.ev-v { font-family: Poppins; font-size: 15px; margin-top: 3px; text-align: center; }
+	.ev-t {
+		font-size: 18px;
+		letter-spacing: 3px;
+		margin-top: 4px;
+		color: white;
+
+		&.low { color: $red; }
+	}
+}
+
+// ----- the directions marker -----
+
+.marker {
+	position: absolute;
+	width: 200px;
+	margin-left: -100px;
+	margin-top: -14px;
+	flex-direction: column;
+	align-items: center;
+
+	.pip {
+		width: 14px;
+		height: 14px;
+		border: 2px solid $holo;
+		background-color: rgba( 111, 211, 255, 0.25 );
+		transform: rotate( 45deg );
+		box-shadow: 0 0 10px rgba( 111, 211, 255, 0.6 );
+	}
+
+	.m-name {
+		margin-top: 6px;
+		font-size: 10px;
+		letter-spacing: 2px;
+		color: $holo;
+		text-shadow: 0 0 4px black;
+		text-align: center;
+	}
+
+	.m-dist { font-size: 10px; color: $muted; text-shadow: 0 0 4px black; }
+
+	&.edge .pip { border-color: $amber; background-color: rgba( 255, 181, 71, 0.25 ); }
+}
+
+// ----- a location tag just taken (F6, /loc): bottom left, so it lands in screenshots -----
+
+.loctag {
+	position: absolute;
+	left: 40px;
+	bottom: 230px;
+	max-width: 900px;
+	flex-direction: column;
+	padding: 6px 12px 7px 10px;
+	border-left: 2px solid $amber;
+	background-color: rgba( 8, 14, 24, 0.82 );
+
+	.lt-k { font-size: 8px; letter-spacing: 3px; color: $amber; }
+	.lt-v { font-family: Poppins; font-size: 12px; margin-top: 3px; color: white; }
+}

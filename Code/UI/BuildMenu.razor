@@ -1,0 +1,596 @@
+@using System
+@using System.Threading.Tasks
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The staff spawn menu, laid out like Facepunch's Sandbox Q menu (SpawnMenuHost, SpawnMenu, SpawnMenuPage, SpawnMenuIcon, ToolsTab,
+	UtilityTab, UIGroupedList, UISettingsPane; MIT, see Code/Build/LICENSE-facepunch-sandbox.txt): hold Q to open, release to close
+	(it stays up while you type in a search box; Q again lets go). Left: the spawn tabs (props with sbox.game search, entities, NPCs,
+	weapons, items, craft) as icon grids with a category sidebar. Right: Tools (the physgun and every tool gun mode, grouped, with the
+	picked one's settings) and Utilities (undo history, cleanup). Staff and Game Masters only (the host decides). A hint line and the
+	tool gun's crosshair show while a tool is in your hands.
+*@
+
+<root class="@(SwrpUiState.BuildOpen ? "open" : "")" onmousedown=@(() => { if ( InputFocus.Current is not TextEntry ) InputFocus.Clear(); })>
+	<div class="menu-wrapper">
+		<div class="menu-slide">
+			@if ( SwrpUiState.BuildOpen )
+			{
+			<div class="container">
+
+				<div class="spawnmenuleft">
+					<div class="tabs">
+						@foreach ( var t in SpawnTabs )
+						{
+							var tid = t.Id;
+							<div class="@(Tab == tid ? "active" : "")" onclick=@(() => { Tab = tid; Category = null; _ver++; })>
+								<label>@t.Icon</label><label>@t.Title</label>
+							</div>
+						}
+					</div>
+					<div class="body">
+						<div class="page">
+							<div class="left">
+								<TextEntry class="filter" Placeholder="Filter" Value:bind=@Filter />
+								<div class="list">
+									@foreach ( var group in Categories() )
+									{
+										<div class="group">
+											<div class="group-header"><label>@group.Title</label></div>
+											<div class="group-items">
+												@for ( var i = 0; i < group.Items.Length; i++ )
+												{
+													var cat = group.Items[i];
+													<div class="item @(i % 2 == 0 ? "alt" : "") @(CurrentCategory == cat ? "active" : "")" onclick=@(() => { Category = cat; _ver++; })><label>@cat</label></div>
+												}
+											</div>
+										</div>
+									}
+									@if ( Tab == "npcs" )
+									{
+										<div class="group">
+											<div class="group-header"><label>How many</label></div>
+											<div class="group-items">
+												@foreach ( var n in new[] { 1, 3, 5, 10 } )
+												{
+													var c = n;
+													<div class="item @(Count == c ? "active" : "")" onclick=@(() => { Count = c; _ver++; })><label>@($"×{c}")</label></div>
+												}
+											</div>
+										</div>
+									}
+								</div>
+							</div>
+							<div class="grid-body">
+								@if ( Tab == "props" && CurrentCategory == "sbox.game" )
+								{
+									<div class="toolbar">
+										<TextEntry class="filter search" Placeholder="Search sbox.game models, Enter to search" Value:bind=@Search onsubmit=@(() => RunSearch()) />
+										<div class="button" onclick=@(() => RunSearch())>Search</div>
+										@if ( Searching ) { <label class="note">Searching…</label> }
+									</div>
+								}
+								<div class="grid">
+									@{ var icons = Icons().ToList(); }
+									@if ( icons.Count == 0 )
+									{
+										<div class="empty"><label>@(Tab == "props" && CurrentCategory == "sbox.game" ? "Search for a model above" : "Nothing here")</label></div>
+									}
+									@foreach ( var icon in icons )
+									{
+										var ic = icon;
+										<div class="icon @(ic.Selected ? "selected" : "") @(ic.Thumb is null ? "noimg" : "")" onclick=@(() => ic.Click())>
+											@if ( ic.Thumb is not null ) { <div class="thumb" style="background-image: url( @ic.Thumb )"></div> }
+											else { <div class="glyph"><label>@ic.Glyph</label></div> }
+											<div class="title"><label>@ic.Title</label></div>
+											@if ( ic.Sub is not null ) { <div class="sub"><label>@ic.Sub</label></div> }
+										</div>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="spawnmenuright">
+					<div class="tabs">
+						<div class="@(RightTab == "tools" ? "active" : "")" onclick=@(() => { RightTab = "tools"; _ver++; })><label>🔧</label><label>Tools</label></div>
+						<div class="@(RightTab == "utilities" ? "active" : "")" onclick=@(() => { RightTab = "utilities"; SwrpBuildUndo.RequestHistory(); _ver++; })><label>🌍</label><label>Utilities</label></div>
+					</div>
+					<div class="body">
+						<div class="tab">
+							<div class="grouped">
+								<TextEntry class="filter" Placeholder="Filter" Value:bind=@ToolFilter />
+								<div class="list">
+									@foreach ( var group in RightGroups() )
+									{
+										<div class="group">
+											<div class="group-header"><label>@group.Title</label></div>
+											<div class="group-items">
+												@for ( var i = 0; i < group.Items.Count; i++ )
+												{
+													var item = group.Items[i];
+													<div class="item @(i % 2 == 0 ? "alt" : "") @(item.Active ? "active" : "")" onclick=@(() => { item.Click(); _ver++; })><label>@item.Title</label></div>
+												}
+											</div>
+										</div>
+									}
+								</div>
+							</div>
+							<div class="pane">
+								<div class="title-bar"><label>@PaneTitle</label></div>
+								<div class="settings-body">
+									@if ( RightTab == "utilities" )
+									{
+										@if ( UtilityPage == "undo" )
+										{
+											<div class="section-header">Newest first · click one to undo it (U undoes the newest)</div>
+											@if ( SwrpBuildUndo.History.Count == 0 ) { <div class="note">Nothing to undo yet.</div> }
+											@for ( var i = 0; i < SwrpBuildUndo.History.Count; i++ )
+											{
+												var idx = i;
+												<div class="list-entry clickable" onclick=@(() => SwrpBuildUndo.UndoAt( idx ))>
+													<div class="list-entry-icon"><label>↩</label></div>
+													<div class="list-entry-info"><label class="list-entry-name">@SwrpBuildUndo.History[i]</label></div>
+												</div>
+											}
+										}
+										else
+										{
+											<div class="section-header">Cleanup</div>
+											<div class="button wide" onclick=@(() => SwrpBuildUndo.Cleanup( 0 ))>Remove everything I built</div>
+											<div class="button wide" onclick=@(() => SwrpBuildUndo.Cleanup( 1 ))>Remove my constraints</div>
+											<div class="button wide danger" onclick=@(() => SwrpBuildUndo.Cleanup( 2 ))>Remove everyone's builds (admins)</div>
+											<div class="section-header">NPCs</div>
+											<div class="button wide" onclick=@(() => SwrpChat.Submit( "/gm cleanup" ))>Clean up NPCs (Game Masters)</div>
+											<div class="section-header">Craft</div>
+											<div class="button wide" onclick=@(() => Swrp.Flight.SwrpFlightDirector.RequestClearSpawned())>Remove spawned craft (hangar pads stay)</div>
+										}
+									}
+									else if ( SwrpBuild.Active == SwrpBuild.Tool.Physgun )
+									{
+										<div class="note">Hold left mouse to grab a prop, NPC or dropped item. The wheel pulls or pushes it. E + mouse turns it (Shift snaps 45°, Alt 15°). Right mouse freezes it, R unfreezes it and everything joined to it. Right mouse on a loose prop pulls it to you; left mouse then throws it.</div>
+									}
+									else if ( SwrpBuild.Active == SwrpBuild.Tool.Toolgun )
+									{
+										var mode = BuildToolMode.Get( SwrpBuild.ToolMode );
+										<div class="note">@mode.Description</div>
+										<div class="settings">
+											@switch ( SwrpBuild.ToolMode )
+											{
+												case "weld":
+													<div class="cnt @(WeldMode.Rigid ? "on" : "")" onclick=@(() => Set( () => WeldMode.Rigid = !WeldMode.Rigid ))>@(WeldMode.Rigid ? "RIGID" : "SOFT")</div>
+													break;
+												case "ballsocket":
+													<div class="cnt @(BallSocketMode.Collide ? "on" : "")" onclick=@(() => Set( () => BallSocketMode.Collide = !BallSocketMode.Collide ))>@(BallSocketMode.Collide ? "ENDS COLLIDE" : "ENDS PASS THROUGH")</div>
+													break;
+												case "rope":
+													<label class="tsub">SLACK</label>
+													@foreach ( var v in new[] { -50f, 0f, 25f, 50f, 100f } )
+													{
+														var val = v;
+														<div class="cnt @(RopeMode.Slack == val ? "on" : "")" onclick=@(() => Set( () => RopeMode.Slack = val ))>@($"{val:+0;-0;0}")</div>
+													}
+													<div class="cnt @(RopeMode.Rigid ? "on" : "")" onclick=@(() => Set( () => RopeMode.Rigid = !RopeMode.Rigid ))>@(RopeMode.Rigid ? "RIGID" : "LOOSE")</div>
+													break;
+												case "elastic":
+													<label class="tsub">STRENGTH</label>
+													@foreach ( var v in new[] { 1f, 2f, 4f, 8f } )
+													{
+														var val = v;
+														<div class="cnt @(ElasticMode.Frequency == val ? "on" : "")" onclick=@(() => Set( () => ElasticMode.Frequency = val ))>@val</div>
+													}
+													<label class="tsub">DAMPING</label>
+													@foreach ( var v in new[] { 0.1f, 0.5f, 1f } )
+													{
+														var val = v;
+														<div class="cnt @(ElasticMode.Damping == val ? "on" : "")" onclick=@(() => Set( () => ElasticMode.Damping = val ))>@val</div>
+													}
+													break;
+												case "colour":
+													@foreach ( var hex in Swatches )
+													{
+														var col = Color.Parse( hex ) ?? Color.White;
+														<div class="swatch @(ColourMode.Colour == col ? "on" : "")" style="background-color: @hex" onclick=@(() => Set( () => ColourMode.Colour = col ))></div>
+													}
+													break;
+												case "motor":
+													<div class="cnt @(MotorMode.AlwaysOn ? "on" : "")" onclick=@(() => Set( () => MotorMode.AlwaysOn = !MotorMode.AlwaysOn ))>@(MotorMode.AlwaysOn ? "ALWAYS ON" : "ONLY WHILE HELD (LMB/RMB)")</div>
+													<div class="cnt @(MotorMode.Reversed ? "on" : "")" onclick=@(() => Set( () => MotorMode.Reversed = !MotorMode.Reversed ))>@(MotorMode.Reversed ? "REVERSED" : "FORWARDS")</div>
+													<div class="cnt @(MotorMode.Flip ? "on" : "")" onclick=@(() => Set( () => MotorMode.Flip = !MotorMode.Flip ))>FLIP AXIS</div>
+													break;
+												case "gravity":
+													<label class="tsub">GRAVITY ×</label>
+													@foreach ( var v in new[] { -1f, 0f, 0.25f, 0.5f, 1f, 2f } )
+													{
+														var val = v;
+														<div class="cnt @(GravityMode.Value == val ? "on" : "")" onclick=@(() => Set( () => GravityMode.Value = val ))>@val</div>
+													}
+													break;
+												case "trail":
+													<label class="tsub">WIDTH</label>
+													@foreach ( var v in new[] { 2f, 4f, 8f, 16f } )
+													{
+														var val = v;
+														<div class="cnt @(TrailMode.Width == val ? "on" : "")" onclick=@(() => Set( () => TrailMode.Width = val ))>@val</div>
+													}
+													<label class="tsub">SECONDS</label>
+													@foreach ( var v in new[] { 0.5f, 1f, 3f } )
+													{
+														var val = v;
+														<div class="cnt @(TrailMode.Life == val ? "on" : "")" onclick=@(() => Set( () => TrailMode.Life = val ))>@val</div>
+													}
+													<label class="tsub">COLOUR: PICK IT IN THE COLOUR TOOL</label>
+													break;
+												case "stacker":
+													<label class="tsub">COPIES</label>
+													@foreach ( var v in new[] { 1, 2, 3, 5, 10 } )
+													{
+														var val = v;
+														<div class="cnt @(StackerMode.Count == val ? "on" : "")" onclick=@(() => Set( () => StackerMode.Count = val ))>@val</div>
+													}
+													<div class="cnt @(StackerMode.WorldAligned ? "on" : "")" onclick=@(() => Set( () => StackerMode.WorldAligned = !StackerMode.WorldAligned ))>@(StackerMode.WorldAligned ? "WORLD AXES" : "OBJECT AXES")</div>
+													break;
+												case "thruster":
+													<label class="tsub">POWER</label>
+													@foreach ( var v in new[] { 0.25f, 0.5f, 1f } )
+													{
+														var val = v;
+														<div class="cnt @(ThrusterMode.Power == val ? "on" : "")" onclick=@(() => Set( () => ThrusterMode.Power = val ))>@val</div>
+													}
+													<label class="tsub">KEY</label>
+													@foreach ( var k in SwrpContraption.Keys.Skip( 1 ) )
+													{
+														var key = k.Action;
+														<div class="cnt @(ThrusterMode.Key == key ? "on" : "")" onclick=@(() => Set( () => ThrusterMode.Key = key ))>@k.Label</div>
+													}
+													<label class="tsub">REVERSE KEY</label>
+													@foreach ( var k in SwrpContraption.Keys )
+													{
+														var key = k.Action;
+														<div class="cnt @(ThrusterMode.ReverseKey == key ? "on" : "")" onclick=@(() => Set( () => ThrusterMode.ReverseKey = key ))>@k.Label</div>
+													}
+													break;
+												case "wheel":
+													<label class="tsub">SPEED</label>
+													@foreach ( var v in new[] { 0.25f, 0.5f, 1f } )
+													{
+														var val = v;
+														<div class="cnt @(WheelMode.Speed == val ? "on" : "")" onclick=@(() => Set( () => WheelMode.Speed = val ))>@val</div>
+													}
+													<label class="tsub">POWER</label>
+													@foreach ( var v in new[] { 0.25f, 0.5f, 1f } )
+													{
+														var val = v;
+														<div class="cnt @(WheelMode.Power == val ? "on" : "")" onclick=@(() => Set( () => WheelMode.Power = val ))>@val</div>
+													}
+													<div class="cnt @(WheelMode.Steer ? "on" : "")" onclick=@(() => Set( () => WheelMode.Steer = !WheelMode.Steer ))>@(WheelMode.Steer ? "STEERS WITH A/D" : "NO STEERING")</div>
+													<div class="cnt @(WheelMode.Path.EndsWith( "wheel01.vmdl" ) ? "on" : "")" onclick=@(() => Set( () => WheelMode.Path = "models/citizen_props/wheel01.vmdl" ))>WHEEL 1</div>
+													<div class="cnt @(WheelMode.Path.EndsWith( "wheel02.vmdl" ) ? "on" : "")" onclick=@(() => Set( () => WheelMode.Path = "models/citizen_props/wheel02.vmdl" ))>WHEEL 2</div>
+													break;
+												case "hoverball":
+													<label class="tsub">SPEED</label>
+													@foreach ( var v in new[] { 0.5f, 1f, 3f } )
+													{
+														var val = v;
+														<div class="cnt @(HoverballMode.Speed == val ? "on" : "")" onclick=@(() => Set( () => HoverballMode.Speed = val ))>@val</div>
+													}
+													<label class="tsub">AIR RESISTANCE</label>
+													@foreach ( var v in new[] { 0f, 1f, 5f } )
+													{
+														var val = v;
+														<div class="cnt @(HoverballMode.Resistance == val ? "on" : "")" onclick=@(() => Set( () => HoverballMode.Resistance = val ))>@val</div>
+													}
+													break;
+												case "balloon":
+													<label class="tsub">LIFT</label>
+													@foreach ( var v in new[] { 0.5f, 1f, 2f } )
+													{
+														var val = v;
+														<div class="cnt @(BalloonMode.Force == val ? "on" : "")" onclick=@(() => Set( () => BalloonMode.Force = val ))>@val</div>
+													}
+													<label class="tsub">ROPE</label>
+													@foreach ( var v in new[] { 25f, 50f, 100f, 200f } )
+													{
+														var val = v;
+														<div class="cnt @(BalloonMode.Length == val ? "on" : "")" onclick=@(() => Set( () => BalloonMode.Length = val ))>@val</div>
+													}
+													@foreach ( var b in BalloonShapes )
+													{
+														var path = $"models/citizen_props/{b.File}.vmdl";
+														<div class="cnt @(BalloonMode.Path == path ? "on" : "")" onclick=@(() => Set( () => BalloonMode.Path = path ))>@b.Label</div>
+													}
+													<label class="tsub">COLOUR: PICK IT IN THE COLOUR TOOL</label>
+													break;
+												case "mass":
+													<label class="tsub">KG</label>
+													@foreach ( var v in new[] { 5f, 25f, 50f, 100f, 250f } )
+													{
+														var val = v;
+														<div class="cnt @(MassMode.Value == val ? "on" : "")" onclick=@(() => Set( () => MassMode.Value = val ))>@val</div>
+													}
+													break;
+											}
+										</div>
+									}
+									else
+									{
+										<div class="note">Pick a tool on the left. Your blaster comes back when you put the tool away.</div>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+			}
+		</div>
+	</div>
+
+	@if ( !SwrpUiState.BuildOpen && SwrpBuild.Active != SwrpBuild.Tool.None && SwrpBuild.Allowed && !SwrpUiState.AnyOpen )
+	{
+		@if ( SwrpBuild.Active is SwrpBuild.Tool.Toolgun or SwrpBuild.Tool.Spawner )
+		{
+			<div class="crosshair @(SwrpBuildTool.CrosshairValid ? "" : "bad")"></div>
+		}
+		<div class="hint">
+			<label>@SwrpBuildTool.Hint</label>
+			@if ( SwrpBuild.SinceNotice < 3f ) { <label class="notice">@SwrpBuild.Notice</label> }
+		</div>
+	}
+</root>
+
+@code
+{
+	int Count = 1;
+	bool _asked;
+	bool _stick;
+	string _lastCharacter;
+	bool _lastDrawn, _lastSaber;
+	int _ver;
+
+	static readonly (string Id, string Icon, string Title)[] SpawnTabs =
+	{
+		( "props", "📦", "Props" ), ( "entities", "💡", "Entities" ), ( "npcs", "🤖", "NPCs" ),
+		( "weapons", "🔫", "Weapons" ), ( "items", "🎒", "Items" ), ( "craft", "🚀", "Craft" ),
+	};
+	static string Tab = "props";
+	static string Category;
+	static string RightTab = "tools";
+	static string UtilityPage = "undo";
+
+	string Filter { get; set; }
+	string ToolFilter { get; set; }
+	string Search { get; set; }
+	bool Searching;
+	static List<(string Ident, string Title, string Thumb)> Results = new();
+
+	static readonly (string Label, string File)[] BalloonShapes = { ("ROUND", "balloonregular01"), ("HEART", "balloonheart01"), ("TALL", "balloontall01"), ("EARS", "balloonears01") };
+	static readonly string[] Swatches = { "#d9433a", "#8b1e1e", "#e8892c", "#e6c84a", "#4caf50", "#2e5fa8", "#5bc8f0", "#8e5bd0", "#f2f2f2", "#8a8f96", "#2a2d33" };
+
+	// ----- left: categories and icons -----
+
+	record Group( string Title, string[] Items );
+
+	IEnumerable<Group> Categories()
+	{
+		switch ( Tab )
+		{
+			case "props": yield return new Group( "Props", new[] { "SWRP", "Characters", "sbox.game" } ); break;
+			case "entities": yield return new Group( "Entities", new[] { "Seats", "Lights" } ); break;
+			case "npcs": yield return new Group( "NPCs", new[] { "All", "Republic", "Separatist" } ); break;
+			case "weapons": yield return new Group( "Weapons", new[] { "All" } ); break;
+			case "items": yield return new Group( "Items", new[] { "All" } ); break;
+			case "craft": yield return new Group( "Craft", new[] { "All" } ); break;
+		}
+	}
+
+	string CurrentCategory => Category ?? Categories().FirstOrDefault()?.Items.FirstOrDefault();
+
+	record SpawnIcon( string Title, string Sub, string Thumb, string Glyph, bool Selected, Action Click );
+
+	bool Match( string name ) => string.IsNullOrWhiteSpace( Filter ) || name.Contains( Filter.Trim(), StringComparison.OrdinalIgnoreCase );
+
+	IEnumerable<SpawnIcon> Icons()
+	{
+		var cat = CurrentCategory;
+		switch ( Tab )
+		{
+			case "props":
+				if ( cat == "sbox.game" )
+				{
+					foreach ( var r in Results.Where( r => Match( r.Title ) ) )
+					{
+						var ident = r.Ident;
+						var title = r.Title;
+						yield return new SpawnIcon( title, null, r.Thumb, null, SwrpBuild.SpawnModel == ident, () => SwrpBuild.Pick( ident, title ) );
+					}
+					yield break;
+				}
+				if ( cat == "Characters" )
+				{
+					// troopers and droids as ragdolls (Sandbox spawns character models as ragdolls too)
+					var seen = new HashSet<string>();
+					var characters = ClassRegistry.All.Select( c => (c.Name, c.ModelPath) )
+						.Concat( NpcRegistry.All.Select( n => (n.Name, n.ModelPath) ) );
+					foreach ( var (cname, path) in characters )
+					{
+						if ( string.IsNullOrEmpty( path ) || !seen.Add( path ) || !Match( cname ) ) continue;
+						var model = path;
+						var name = $"{cname} ragdoll";
+						yield return new SpawnIcon( cname, "Ragdoll", $"thumb:{model}", null, SwrpBuild.SpawnModel == model, () => SwrpBuild.Pick( model, name ) );
+					}
+					yield break;
+				}
+				foreach ( var p in SwrpBuild.Props.Where( p => Match( p.Name ) ) )
+				{
+					var model = p.Model;
+					var name = p.Name;
+					yield return new SpawnIcon( name, null, $"thumb:{model}", null, SwrpBuild.SpawnModel == model, () => SwrpBuild.Pick( model, name ) );
+				}
+				break;
+			case "entities":
+				foreach ( var e in SwrpBuild.Entities.Where( e => e.Id.StartsWith( "entity:seat" ) == ( cat == "Seats" ) && Match( e.Name ) ) )
+				{
+					var eid = e.Id;
+					var ename = e.Name;
+					yield return new SpawnIcon( ename, eid.StartsWith( "entity:seat" ) ? "Drives gadgets" : "Colour tool tints it",
+						eid.StartsWith( "entity:seat" ) ? $"thumb:{e.Model}" : null, eid == "entity:spot" ? "🔦" : "💡",
+						SwrpBuild.SpawnModel == eid, () => SwrpBuild.Pick( eid, ename ) );
+				}
+				break;
+			case "npcs":
+				foreach ( var d in NpcRegistry.All.Where( n => !n.EventOnly && Match( n.Name ) ) )
+				{
+					var gar = d.AllegianceId == AllegianceRegistry.Gar;
+					if ( cat == "Republic" && !gar || cat == "Separatist" && gar ) continue;
+					var id = d.Id;
+					yield return new SpawnIcon( d.Name, gar ? $"Friendly · {d.WeaponName}" : "Hostile", $"thumb:{d.ThumbModel}", null, false,
+						() => SwrpChat.Submit( $"/gm spawn {id} {Count}" ) );
+				}
+				break;
+			case "weapons":
+			case "items":
+				foreach ( var item in SwrpBuild.SpawnableItems.Where( i => ( i.Category == ItemCategory.Weapon ) == ( Tab == "weapons" ) && Match( i.Name ) ).OrderBy( i => i.Name ) )
+				{
+					var itemId = item.Id;
+					var path = ItemModels.PathFor( itemId );
+					var sub = item.Category == ItemCategory.Weapon ? ( item.Weapon is { } w ? $"{w.Damage:0} dmg · {w.MagazineSize}" : "Melee" ) : $"×{SwrpBuild.SpawnCount( item )}";
+					yield return new SpawnIcon( item.Name, sub, path is null ? null : $"thumb:{path}", "🎁", false, () => SwrpBuild.SpawnItem( itemId ) );
+				}
+				break;
+			case "craft":
+				foreach ( var c in Swrp.Flight.CraftRegistry.All.Where( c => Match( c.Name ) ) )
+				{
+					var craftId = c.Id;
+					yield return new SpawnIcon( c.Name, $"{c.Seats.Length} seats · {c.Health:0} hull", c.ModelPath is null ? null : $"thumb:{c.ModelPath}", "🚀", false,
+						() => Swrp.Flight.SwrpFlightDirector.RequestSpawn( craftId ) );
+				}
+				break;
+		}
+	}
+
+	async void RunSearch()
+	{
+		var q = Search?.Trim();
+		if ( string.IsNullOrEmpty( q ) || Searching ) return;
+		Searching = true;
+		_ver++;
+		try
+		{
+			var found = await Package.FindAsync( $"type:model {q}", 40 );
+			Results = found?.Packages?.Select( p => (p.FullIdent, p.Title ?? p.FullIdent, p.Thumb) ).ToList() ?? new();
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( $"[BUILD] model search failed: {e.Message}" );
+			Results = new();
+		}
+		Searching = false;
+		_ver++;
+	}
+
+	// ----- right: tools and utilities -----
+
+	record RightItem( string Title, bool Active, Action Click );
+	record RightGroup( string Title, List<RightItem> Items );
+
+	// V2: hot-reload keeps a static field's old value, and the first list had no Camera
+	static readonly (string Title, string[] Modes)[] ToolGroupsV2 =
+	{
+		( "Constraints", new[] { "weld", "nocollide", "ballsocket", "rope", "elastic", "slider", "motor", "upright" } ),
+		( "Building", new[] { "thruster", "wheel", "hoverball", "balloon", "stacker" } ),
+		( "Render", new[] { "colour", "trail", "camera" } ),
+		( "Tools", new[] { "remover", "resizer", "mass", "gravity" } ),
+	};
+
+	IEnumerable<RightGroup> RightGroups()
+	{
+		bool Ok( string t ) => string.IsNullOrWhiteSpace( ToolFilter ) || t.Contains( ToolFilter.Trim(), StringComparison.OrdinalIgnoreCase );
+		if ( RightTab == "utilities" )
+		{
+			yield return new RightGroup( "Utilities", new List<RightItem>
+			{
+				new( "Undo history", UtilityPage == "undo", () => { UtilityPage = "undo"; SwrpBuildUndo.RequestHistory(); } ),
+				new( "Cleanup", UtilityPage == "cleanup", () => UtilityPage = "cleanup" ),
+			}.Where( i => Ok( i.Title ) ).ToList() );
+			yield break;
+		}
+
+		var hands = new List<RightItem>
+		{
+			new( "Physgun", SwrpBuild.Active == SwrpBuild.Tool.Physgun, () => SwrpBuild.Active = SwrpBuild.Tool.Physgun ),
+			new( "Put away", SwrpBuild.Active == SwrpBuild.Tool.None, () => SwrpBuild.Active = SwrpBuild.Tool.None ),
+		}.Where( i => Ok( i.Title ) ).ToList();
+		if ( hands.Count > 0 ) yield return new RightGroup( "Weapons", hands );
+
+		foreach ( var g in ToolGroupsV2 )
+		{
+			var items = g.Modes.Select( BuildToolMode.Get ).Where( m => Ok( m.Name ) ).OrderBy( m => m.Name )
+				.Select( m => { var id = m.Id; return new RightItem( m.Name, SwrpBuild.Active == SwrpBuild.Tool.Toolgun && SwrpBuild.ToolMode == id, () => PickMode( id ) ); } )
+				.ToList();
+			if ( items.Count > 0 ) yield return new RightGroup( g.Title, items );
+		}
+	}
+
+	string PaneTitle => RightTab == "utilities" ? ( UtilityPage == "undo" ? "Undo history" : "Cleanup" )
+		: SwrpBuild.Active switch
+		{
+			SwrpBuild.Tool.Physgun => "Physgun",
+			SwrpBuild.Tool.Toolgun => BuildToolMode.Get( SwrpBuild.ToolMode ).Name,
+			SwrpBuild.Tool.Spawner => SwrpBuild.SpawnName ?? "Spawner",
+			_ => "No tool selected",
+		};
+
+	void PickMode( string id )
+	{
+		SwrpBuild.ToolMode = id;
+		SwrpBuild.Active = SwrpBuild.Tool.Toolgun;
+		_ver++;
+	}
+
+	void Set( Action change )
+	{
+		change();
+		_ver++;
+	}
+
+	// ----- open / close -----
+
+	protected override void OnUpdate()
+	{
+		var me = SwrpPlayer.Local;
+		if ( me is not null && me.GetComponent<SwrpBuildTool>() is null ) me.Components.Create<SwrpBuildTool>();
+
+		var held = Input.Down( "Menu" ) && !SwrpUiState.ChatOpen && me is not null;
+		if ( held && !_asked ) { _asked = true; SwrpBuild.RequestAccess(); }
+		if ( !held && !_stick ) _asked = false;
+
+		// like Sandbox: it stays up while you type in one of its search boxes; pressing Q again lets go
+		_stick = _stick || SwrpUiState.BuildOpen && InputFocus.Current is TextEntry entry && entry.Ancestors.Contains( Panel );
+		if ( _stick && Input.Pressed( "Menu" ) ) { _stick = false; InputFocus.Clear(); }
+
+		var open = ( held || _stick ) && SwrpBuild.Allowed;
+		if ( open && !SwrpUiState.BuildOpen ) SwrpBuildUndo.RequestHistory();
+		if ( open != SwrpUiState.BuildOpen ) SwrpUiState.BuildOpen = open;
+		if ( !open ) _stick = false;
+
+		// the tool is put away when you deploy as a character, take out a blaster or light a lightsaber
+		var who = me?.CharacterId;
+		var drawn = me?.GetComponent<SwrpBlaster>() is { Drawn: true };
+		var saber = me is not null && Swrp.Jedi.JediCombat.HoldsSaber( me );
+		if ( who != _lastCharacter || drawn && !_lastDrawn || saber && !_lastSaber ) SwrpBuild.Active = SwrpBuild.Tool.None;
+		_lastCharacter = who;
+		_lastDrawn = drawn;
+		_lastSaber = saber;
+	}
+
+	protected override int BuildHash() => HashCode.Combine(
+		HashCode.Combine( SwrpUiState.BuildOpen, SwrpBuild.Active, SwrpBuild.Allowed, Count, SwrpUiState.AnyOpen ),
+		HashCode.Combine( SwrpBuild.ToolMode, SwrpBuild.SpawnModel, _ver, Search, Tab, Filter, ToolFilter, SwrpBuildUndo.HistoryVersion ),
+		HashCode.Combine( SwrpBuildTool.Hint, SwrpBuildTool.CrosshairValid, SwrpBuild.SinceNotice < 3f, SwrpBuild.Notice, Searching ) );
+}

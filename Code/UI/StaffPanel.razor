@@ -1,0 +1,337 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	Staff panel (Moderators and Admins; the StaffMenu key, O by default, or /staff in chat). Every button types the same chat command a staff member would, so permissions,
+	rate limits and the staff log are exactly the same. Data comes from the host every two seconds while it's open.
+	The HOTKEYS row lets each staff member put noclip, god mode and invisibility on keys of their choice (SwrpStaffKeys).
+*@
+
+<root class="@(SwrpUiState.StaffOpen ? "open" : "")">
+	@if ( SwrpUiState.StaffOpen && SwrpStaffTools.Panel is { } data )
+	{
+		<div class="window">
+			<div class="header">
+				<label class="title">STAFF PANEL</label>
+				<label class="sub">@($"{data.MyRole.ToUpperInvariant()} · {( data.OnDuty ? "ON DUTY" : "OFF DUTY" )} · {data.Players.Count} ONLINE")</label>
+				<div class="grow"></div>
+				@foreach ( var tab in Tabs )
+				{
+					@if ( ( tab != "Whitelists" || IsAdmin( data ) ) && ( tab != "Permissions" || data.MyRole == "SeniorAdmin" ) )
+					{
+						<div class="tab @(Tab == tab ? "active" : "")" onclick=@(() => Tab = tab)>@tab.ToUpperInvariant()@(tab == "Reports" && OpenReports( data ) > 0 ? $" ({OpenReports( data )})" : "")</div>
+					}
+				}
+				<div class="close" onclick=@(() => SwrpUiState.StaffOpen = false)>✕</div>
+			</div>
+
+			<div class="powers">
+				<div class="btn small @(data.OnDuty ? "on" : "")" onclick=@(() => Run( "/duty" ))>DUTY</div>
+				<div class="btn small @(Me?.Noclip == true ? "on" : "")" onclick=@(() => Run( "/noclip" ))>NOCLIP</div>
+				<div class="btn small @(Me?.GodMode == true ? "on" : "")" onclick=@(() => Run( "/god" ))>GOD</div>
+				<div class="btn small @(Me?.Invisible == true ? "on" : "")" onclick=@(() => Run( "/invis" ))>INVISIBLE</div>
+				<TextEntry class="field wide" Value:bind="@Announcement" Placeholder="Server-wide announcement..."></TextEntry>
+				<div class="btn small" onclick=@(() => { if ( !string.IsNullOrWhiteSpace( Announcement ) ) { Run( $"/announce {Announcement}" ); Announcement = ""; } })>ANNOUNCE</div>
+			</div>
+
+			<div class="hotkeys">
+				<label class="hk-title">HOTKEYS</label>
+				@foreach ( var power in SwrpStaffKeys.Powers )
+				{
+					var key = SwrpStaffKeys.KeyOf( power.Id );
+					var clash = SwrpStaffKeys.Clash( key );
+					<div class="hk @(SwrpStaffKeys.Capturing == power.Id ? "capturing" : "")">
+						<label class="hk-name">@power.Label</label>
+						<div class="hk-key @(key.Length == 0 ? "none" : "")" onclick=@(() => SwrpStaffKeys.Capturing = power.Id)>@(SwrpStaffKeys.Capturing == power.Id ? "PRESS A KEY" : SwrpStaffKeys.KeyName( key ))</div>
+						@if ( key.Length > 0 )
+						{
+							<div class="hk-clear" onclick=@(() => SwrpStaffKeys.Bind( power.Id, "" ))>✕</div>
+						}
+						@if ( clash is not null )
+						{
+							<label class="hk-clash">@clash</label>
+						}
+					</div>
+				}
+				<div class="grow"></div>
+				<label class="hk-hint">@(data.OnDuty ? "CLICK A KEY TO CHANGE IT" : "HOTKEYS WORK ON DUTY")</label>
+			</div>
+
+			@if ( Tab == "Players" )
+			{
+				<div class="body">
+					<div class="list">
+						@foreach ( var p in data.Players )
+						{
+							<div class="prow @(p.SteamId == Selected ? "sel" : "")" onclick=@(() => Selected = p.SteamId)>
+								<div class="pmain">
+									<label class="pname">@p.Name</label>
+									<label class="pchar">@( p.CharacterName is null ? "not deployed" : $"{p.Rank} · {p.Designation} \"{p.CharacterName}\"" )</label>
+								</div>
+								<div class="pside">
+									<label class="prole @p.Role.ToLowerInvariant()">@p.Role.ToUpperInvariant()</label>
+									<label class="pping">@($"{p.Ping} ms")</label>
+								</div>
+							</div>
+						}
+					</div>
+
+					<div class="detail">
+						@if ( data.Players.FirstOrDefault( x => x.SteamId == Selected ) is { } s )
+						{
+							<label class="dname">@s.Name</label>
+							<label class="dline">@($"SteamID {s.SteamId} · {s.Role} · {s.Ping} ms")</label>
+							<label class="dline">@( s.CharacterName is null ? "No character deployed" : $"{s.Faction} · {s.Rank} · {s.Designation} \"{s.CharacterName}\"" )</label>
+							<label class="dflags">@FlagText( s )</label>
+
+							@if ( s.IsHost )
+							{
+								<label class="warn">The host can't be targeted by staff actions.</label>
+							}
+							else
+							{
+								<div class="row">
+									<TextEntry class="field" Value:bind="@Duration" Placeholder="Duration (30m, 2h, 3d, perm)"></TextEntry>
+									<TextEntry class="field wide" Value:bind="@Reason" Placeholder="Reason"></TextEntry>
+								</div>
+								<div class="actions">
+									<div class="btn" onclick=@(() => Act( "/kick", Reason ))>KICK</div>
+									<div class="btn danger" onclick=@(() => Act( "/ban", $"{Dur( "1h" )} {Reason}" ))>BAN</div>
+									<div class="btn" onclick=@(() => Act( s.Muted ? "/unmute" : "/mute", s.Muted ? "" : Dur( "" ) ))>@(s.Muted ? "UNMUTE" : "MUTE")</div>
+									<div class="btn" onclick=@(() => Act( s.Gagged ? "/ungag" : "/gag", s.Gagged ? "" : Dur( "" ) ))>@(s.Gagged ? "UNGAG" : "GAG")</div>
+									<div class="btn" onclick=@(() => Act( s.Jailed ? "/unjail" : "/jail", s.Jailed ? "" : Dur( "" ) ))>@(s.Jailed ? "UNJAIL" : "JAIL")</div>
+									<div class="btn" onclick=@(() => Act( s.Frozen ? "/unfreeze" : "/freeze", "" ))>@(s.Frozen ? "UNFREEZE" : "FREEZE")</div>
+									<div class="btn danger" onclick=@(() => Act( "/slay", "" ))>SLAY</div>
+									<div class="btn" onclick=@(() => Act( "/respawn", "" ))>RESPAWN</div>
+									<div class="btn" onclick=@(() => Act( "/bring", "" ))>BRING</div>
+									<div class="btn" onclick=@(() => Act( "/goto", "" ))>GOTO</div>
+									<div class="btn" onclick=@(() => Act( "/return", "" ))>RETURN</div>
+									<div class="btn" onclick=@(() => { Act( "/spectate", "" ); SwrpUiState.StaffOpen = false; })>SPECTATE</div>
+								</div>
+							}
+
+							@if ( IsAdmin( data ) && !s.IsHost )
+							{
+								<label class="section">CHARACTER (DEPLOYED) · ADMIN</label>
+								<div class="row">
+									<TextEntry class="field wide" Value:bind="@Value" Placeholder="New value: name, description, faction id or rank"></TextEntry>
+								</div>
+								<div class="actions">
+									<div class="btn" onclick=@(() => Act( "/setname", Value ))>SET NAME</div>
+									<div class="btn" onclick=@(() => Act( "/setdesc", Value ))>SET DESC</div>
+									<div class="btn" onclick=@(() => Act( "/setfaction", Value ))>SET FACTION</div>
+									<div class="btn" onclick=@(() => Act( "/setrank", Value ))>SET RANK</div>
+									<div class="btn" onclick=@(() => Act( "/promote", "" ))>PROMOTE</div>
+									<div class="btn" onclick=@(() => Act( "/demote", "" ))>DEMOTE</div>
+								</div>
+
+								<label class="section">CHARACTERS</label>
+								@foreach ( var c in s.Characters )
+								{
+									<label class="dline">@($"{( c.Deployed ? "▶ " : "" )}{c.Rank} {c.Designation} \"{c.Name}\" · {c.Faction} · {c.Class}")</label>
+								}
+
+								<label class="section">WHITELIST</label>
+								<div class="actions">
+									@foreach ( var f in data.Factions )
+									{
+										var has = s.Whitelist.Contains( f );
+										<div class="btn small @(has ? "on" : "")" onclick=@(() => Act( has ? "/unwhitelist" : "/whitelist", f ))>@f</div>
+									}
+								</div>
+							}
+
+							<label class="section">RECENT ACTIONS</label>
+							@if ( s.Recent.Count == 0 ) { <label class="dline dim">Nothing logged.</label> }
+							@foreach ( var r in s.Recent )
+							{
+								<label class="dline">@r</label>
+							}
+						}
+						else
+						{
+							<label class="dline dim">Pick a player on the left.</label>
+						}
+					</div>
+				</div>
+			}
+			else if ( Tab == "Reports" )
+			{
+				<div class="body column">
+					@if ( data.Reports.Count == 0 ) { <label class="dline dim">No reports.</label> }
+					@foreach ( var r in data.Reports.AsEnumerable().Reverse() )
+					{
+						<div class="report @(r.Closed ? "closed" : "")">
+							<label class="rhead">@($"#{r.Id} · {r.When:HH:mm} · {r.Reporter} reported {r.Target}")</label>
+							<label class="rtext">@r.Reason</label>
+							<label class="rstate">@( r.Closed ? $"Closed by {r.ClaimedBy}{( string.IsNullOrEmpty( r.Note ) ? "" : $": {r.Note}" )}" : r.ClaimedBy is null ? "Unclaimed" : $"Claimed by {r.ClaimedBy}" )</label>
+							@if ( !r.Closed )
+							{
+								<div class="actions">
+									<div class="btn small" onclick=@(() => Run( $"/report claim {r.Id}" ))>CLAIM</div>
+									<div class="btn small" onclick=@(() => Run( $"/report close {r.Id} {Reason}" ))>CLOSE</div>
+									@if ( r.TargetSteamId != 0 )
+									{
+										<div class="btn small" onclick=@(() => { Selected = r.TargetSteamId; Tab = "Players"; })>VIEW PLAYER</div>
+									}
+								</div>
+							}
+						</div>
+					}
+				</div>
+			}
+			else if ( Tab == "Log" )
+			{
+				<div class="body column">
+					<TextEntry class="field wide" Value:bind="@Filter" Placeholder="Filter by player..."></TextEntry>
+					@foreach ( var line in data.Log.Where( l => string.IsNullOrWhiteSpace( Filter ) || l.Contains( Filter, StringComparison.OrdinalIgnoreCase ) ) )
+					{
+						<label class="logline">@line</label>
+					}
+				</div>
+			}
+			else if ( Tab == "Permissions" )
+			{
+				<div class="body column">
+					<label class="logline">The lowest role that can use each staff command. Changes apply at once and go in the staff log.</label>
+					@foreach ( var row in data.Perms )
+					{
+						var p = row.Split( '|' );
+						<div class="hk">
+							<label class="hk-name">@p[0]</label>
+							@foreach ( var r in PermRoles )
+							{
+								<div class="btn small @(p[1] == r ? "on" : "")" onclick=@(() => Run( $"/perm {p[0]} {r}" ))>@RoleLabel( r )</div>
+							}
+							@if ( p[1] != p[2] )
+							{
+								<div class="btn small" onclick=@(() => Run( $"/perm {p[0]} default" ))>@($"DEFAULT ({RoleLabel( p[2] )})")</div>
+							}
+						</div>
+					}
+				</div>
+			}
+			else if ( Tab == "Battalions" )
+			{
+				<div class="body column">
+					<div class="row">
+						<TextEntry class="field wide" Value:bind="@Value" Placeholder="Player name or SteamID for the post..."></TextEntry>
+					</div>
+					@foreach ( var line in data.Battalions )
+					{
+						var b = line.Split( '|' );
+						var id = b[0];
+						<label class="section">@b[1].ToUpperInvariant()</label>
+						<label class="dline">@($"Commander (leader): {b[2]} · Executive Officer (co-leader): {b[3]} · Jedi General: {b[4]}")</label>
+						<div class="actions">
+							<div class="btn small" onclick=@(() => Run( $"/battalion post {id} commander {( string.IsNullOrWhiteSpace( Value ) ? "none" : Value )}" ))>SET COMMANDER</div>
+							<div class="btn small" onclick=@(() => Run( $"/battalion post {id} xo {( string.IsNullOrWhiteSpace( Value ) ? "none" : Value )}" ))>SET XO</div>
+							<div class="btn small" onclick=@(() => Run( $"/battalion post {id} jedi {( string.IsNullOrWhiteSpace( Value ) ? "none" : Value )}" ))>SET JEDI GENERAL</div>
+							<div class="btn small" onclick=@(() => { Run( $"/battalion view {id}" ); SwrpUiState.StaffOpen = false; })>OPEN ROSTER</div>
+						</div>
+					}
+					<label class="dline dim">Leave the name empty to clear a post. Every change is in the battalion log, the rank log and the staff log, and can be reversed from the roster (L or /battalion).</label>
+				</div>
+			}
+			else if ( Tab == "Whitelists" )
+			{
+				<div class="body column">
+					@foreach ( var f in data.Factions )
+					{
+						var grants = data.Grants.Where( g => g.Faction == f ).ToList();
+						@if ( grants.Count > 0 )
+						{
+							<label class="section">@f.ToUpperInvariant()</label>
+							@foreach ( var g in grants )
+							{
+								<label class="dline">@($"{g.Player} · granted by {g.By}{( string.IsNullOrEmpty( g.When ) ? "" : $" on {g.When}" )}")</label>
+							}
+						}
+					}
+					@if ( data.Grants.Count == 0 ) { <label class="dline dim">Nobody is whitelisted yet. Use the buttons on a player or /whitelist.</label> }
+				</div>
+			}
+		</div>
+
+		@if ( SwrpStaffKeys.Capturing is not null )
+		{
+			<StaffKeyCapture class="capture"></StaffKeyCapture>
+		}
+	}
+</root>
+
+@code
+{
+	static readonly string[] Tabs = { "Players", "Reports", "Log", "Whitelists", "Battalions", "Permissions" };
+	static readonly string[] PermRoles = { "TrialModerator", "Moderator", "Admin", "SeniorAdmin" };
+	static string RoleLabel( string r ) => r switch { "TrialModerator" => "TRIAL", "SeniorAdmin" => "SENIOR", _ => r.ToUpperInvariant() };
+
+	public string Tab { get; set; } = "Players";
+	public ulong Selected { get; set; }
+	public string Duration { get; set; } = "";
+	public string Reason { get; set; } = "";
+	public string Value { get; set; } = "";
+	public string Filter { get; set; } = "";
+	public string Announcement { get; set; } = "";
+
+	RealTimeSince _sinceRequest = 10;
+	SwrpPlayer Me => SwrpPlayer.Local;
+
+	static bool IsAdmin( SwrpStaffTools.PanelData d ) => d.MyRole is "Admin" or "SeniorAdmin";
+	static int OpenReports( SwrpStaffTools.PanelData d ) => d.Reports.Count( r => !r.Closed );
+
+	string Dur( string fallback ) => string.IsNullOrWhiteSpace( Duration ) ? fallback : Duration.Trim();
+
+	static string FlagText( SwrpStaffTools.PanelPlayer p )
+	{
+		var f = new List<string>();
+		if ( p.Jailed ) f.Add( "JAILED" );
+		if ( p.Frozen ) f.Add( "FROZEN" );
+		if ( p.Muted ) f.Add( "MUTED" );
+		if ( p.Gagged ) f.Add( "GAGGED" );
+		return f.Count == 0 ? "" : string.Join( " · ", f );
+	}
+
+	void Act( string cmd, string extra ) => Run( $"{cmd} {Selected} {extra}".Trim() );
+
+	void Run( string command )
+	{
+		SwrpChat.Submit( command );
+		_sinceRequest = 1.5f;     // refresh soon after an action
+	}
+
+	protected override void OnUpdate()
+	{
+		// setting a hotkey: the next key binds it and nothing else reacts to that press
+		if ( SwrpStaffKeys.Capturing is not null || SwrpStaffKeys.SinceBound < 0.15f )
+		{
+			SwrpStaffKeys.TickCapture();
+			return;
+		}
+
+		// The StaffMenu key (O by default, rebindable) toggles the panel (staff only; the host refuses to send data to anyone else).
+		if ( Input.Pressed( "StaffMenu" ) && !SwrpUiState.ChatOpen )
+		{
+			SwrpUiState.StaffOpen = !SwrpUiState.StaffOpen;
+			if ( SwrpUiState.StaffOpen ) { SwrpStaffTools.RequestPanel(); _sinceRequest = 0; }
+		}
+
+		if ( SwrpUiState.StaffOpen && Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			SwrpUiState.StaffOpen = false;
+		}
+
+		if ( SwrpUiState.StaffOpen && _sinceRequest > 2f )
+		{
+			_sinceRequest = 0;
+			SwrpStaffTools.RequestPanel();
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( HashCode.Combine( SwrpUiState.StaffOpen, SwrpStaffTools.PanelVersion, Tab, Selected, Filter, Me?.Noclip, Me?.GodMode, Me?.Invisible ),
+		SwrpStaffKeys.Capturing, SwrpStaffKeys.NoclipKey, SwrpStaffKeys.GodKey, SwrpStaffKeys.InvisibleKey );
+}

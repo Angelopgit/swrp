@@ -1,0 +1,199 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The battalion roster and officer tools (the BattalionMenu key, L by default, or /battalion). Everyone in a battalion sees
+	its roster; officers, the Commander, XO and Jedi General get the actions their authority allows (the host decides, per
+	member). Every button types a /battalion command, so limits and logging are exactly the host's.
+*@
+
+<root class="@(SwrpUiState.BattalionOpen ? "open" : "")">
+	@if ( SwrpUiState.BattalionOpen && SwrpBattalions.Menu is { } d )
+	{
+		<div class="bat" style="border-top-color: @d.ColorHex">
+			<div class="bhead">
+				<label class="btitle" style="color: @d.ColorHex">@d.Name.ToUpperInvariant()</label>
+				<label class="bsub">@($"GRAND ARMY OF THE REPUBLIC · {d.Members.Count( m => m.RankIndex >= 0 )} TROOPERS · {d.Members.Count( m => m.Online )} ONLINE")</label>
+				<div class="grow"></div>
+				<div class="close" onclick=@(() => SwrpUiState.BattalionOpen = false)>✕</div>
+			</div>
+			<div class="posts">
+				<label class="post">@($"COMMANDER: {d.Commander}")</label>
+				<label class="post">@($"EXECUTIVE OFFICER: {d.Executive}")</label>
+				<label class="post">@($"JEDI GENERAL: {d.JediGeneral}")</label>
+				@if ( d.IsOfficer )
+				{
+					<label class="post mine">@($"YOU: {( string.IsNullOrEmpty( d.MyPost ) ? ( d.IsStaff ? "STAFF" : "OFFICER" ) : d.MyPost.ToUpperInvariant() )}{( string.IsNullOrEmpty( d.PromoteLimit ) ? "" : $" · PROMOTE UP TO {d.PromoteLimit.ToUpperInvariant()}" )}")</label>
+				}
+			</div>
+
+			@if ( d.IsStaff )
+			{
+				<div class="row">
+					@foreach ( var b in d.Battalions )
+					{
+						var id = b;
+						<div class="btn small @(d.Battalion == id ? "on" : "")" onclick=@(() => Run( $"/battalion view {id}" ))>@id.ToUpperInvariant()</div>
+					}
+				</div>
+			}
+
+			<div class="body">
+				<div class="roster">
+					<div class="mrow head">
+						<label class="c-dot"></label>
+						<label class="c-rank">RANK</label>
+						<label class="c-name">TROOPER</label>
+						<label class="c-role">ROLE</label>
+						<label class="c-seen">LAST SEEN</label>
+					</div>
+					@foreach ( var m in d.Members )
+					{
+						var key = m.CharacterId ?? m.SteamId.ToString();
+						var role = m.Role;
+						<div class="mrow @(Selected == key ? "sel" : "")" onclick=@(() => { Selected = key; RoleText = role; })>
+							<label class="c-dot @(m.Online ? "on" : "")">●</label>
+							<label class="c-rank">@m.Rank</label>
+							<div class="c-name">
+								<label class="nm">@($"{m.Designation} {m.Name}".Trim())</label>
+								<label class="pl">@($"{m.Player}{( string.IsNullOrEmpty( m.Post ) ? "" : $" · {m.Post}" )}")</label>
+							</div>
+							<label class="c-role">@m.Role</label>
+							<label class="c-seen">@m.LastSeen</label>
+						</div>
+					}
+				</div>
+
+				<div class="side">
+					@if ( d.Members.FirstOrDefault( m => ( m.CharacterId ?? m.SteamId.ToString() ) == Selected ) is { } s )
+					{
+						var key = s.CharacterId ?? s.SteamId.ToString();
+						<label class="sname">@($"{s.Rank} {s.Designation} {s.Name}".Trim())</label>
+						<label class="sline">@($"{s.Player} · {( s.Online ? "online" : $"last seen {s.LastSeen}" )}")</label>
+						@if ( !string.IsNullOrEmpty( s.Post ) )
+						{
+							<label class="sline post">@s.Post</label>
+						}
+						@if ( s.CanRank )
+						{
+							<div class="row">
+								<div class="btn" onclick=@(() => Run( $"/battalion promote {key}" ))>PROMOTE</div>
+								<div class="btn" onclick=@(() => Run( $"/battalion demote {key}" ))>DEMOTE</div>
+							</div>
+						}
+						@if ( s.CanRole )
+						{
+							<div class="row">
+								<TextEntry class="field" Value:bind="@RoleText" MaxLength=@(24) Placeholder="Role (Medic, ARC, Squad Lead...)"></TextEntry>
+								<div class="btn" onclick=@(() => Run( $"/battalion role {key} {( string.IsNullOrWhiteSpace( RoleText ) ? "none" : RoleText )}" ))>SET</div>
+							</div>
+						}
+						@if ( s.CanTransfer )
+						{
+							<label class="section">TRANSFER TO</label>
+							<div class="row">
+								@foreach ( var b in d.Battalions.Where( x => x != d.Battalion ) )
+								{
+									var id = b;
+									<div class="btn small" onclick=@(() => Run( $"/battalion transfer {key} {id}" ))>@id.ToUpperInvariant()</div>
+								}
+							</div>
+						}
+						@if ( s.CanRemove )
+						{
+							<div class="row"><div class="btn danger" onclick=@(() => Run( $"/battalion remove {key}" ))>REMOVE FROM BATTALION</div></div>
+						}
+						@if ( !s.CanRank && !s.CanRemove && d.IsOfficer )
+						{
+							<label class="sline dim">Out of your authority: they outrank you or hold a post.</label>
+						}
+					}
+					else
+					{
+						<label class="sline dim">Select a trooper.</label>
+					}
+
+					@if ( d.IsOfficer )
+					{
+						<label class="section">WHITELIST A PLAYER</label>
+						<div class="row">
+							<TextEntry class="field" Value:bind="@AddText" Placeholder="Player name or SteamID"></TextEntry>
+							<div class="btn" onclick=@(() => { if ( !string.IsNullOrWhiteSpace( AddText ) ) { Run( $"/battalion add {AddText}" ); AddText = ""; } })>ADD</div>
+						</div>
+					}
+
+					@if ( d.Pending.Count > 0 )
+					{
+						<label class="section">TRANSFER REQUESTS</label>
+						@for ( var i = 0; i < d.Pending.Count; i++ )
+						{
+							var id = d.PendingIds[i];
+							<label class="logline">@d.Pending[i]</label>
+							@if ( d.IsCommand )
+							{
+								<div class="row">
+									<div class="btn small" onclick=@(() => Run( $"/battalion approve {id}" ))>APPROVE</div>
+									<div class="btn small" onclick=@(() => Run( $"/battalion deny {id}" ))>DENY</div>
+								</div>
+							}
+						}
+					}
+
+					<label class="section">RECENT CHANGES</label>
+					@for ( var i = 0; i < d.Log.Count; i++ )
+					{
+						var id = d.LogIds[i];
+						<div class="row tight">
+							<label class="logline">@d.Log[i]</label>
+							@if ( d.IsStaff && id > 0 )
+							{
+								<div class="btn tiny" onclick=@(() => Run( $"/battalion reverse {id}" ))>REVERSE</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	string Selected;
+	string RoleText;
+	string AddText;
+	RealTimeSince _sinceRequest;
+
+	void Run( string command )
+	{
+		SwrpChat.Submit( command );
+		_sinceRequest = 2.5f;
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( Input.Pressed( "BattalionMenu" ) && !SwrpUiState.ChatOpen )
+		{
+			if ( SwrpUiState.BattalionOpen ) SwrpUiState.BattalionOpen = false;
+			else SwrpChat.Submit( "/battalion" );      // the host opens it and sends the roster
+		}
+
+		if ( !SwrpUiState.BattalionOpen ) return;
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			SwrpUiState.BattalionOpen = false;
+			return;
+		}
+		if ( _sinceRequest > 3f )
+		{
+			_sinceRequest = 0;
+			SwrpBattalions.RequestRoster();
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( SwrpUiState.BattalionOpen, SwrpBattalions.MenuVersion, Selected );
+}

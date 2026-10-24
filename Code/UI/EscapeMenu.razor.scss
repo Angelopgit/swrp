@@ -1,0 +1,369 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$amber: #ffb547;
+$red: #ff4a3d;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+EscapeMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 90;
+
+	&.open {
+		pointer-events: all;
+	}
+}
+
+// the game behind: dimmed, blurred and tinted toward the holo blue
+.backdrop {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	backdrop-filter: blur( 9px );
+	background-color: rgba( 2, 8, 16, 0.55 );
+	transition: all 0.25s ease-out;
+
+	&:intro {
+		opacity: 0;
+		backdrop-filter: blur( 0px );
+	}
+}
+
+// the display hangs in front of you, turned a little in space
+.stage {
+	width: 1080px;
+	height: 620px;
+	transform-origin: 50% 50%;
+}
+
+.holo {
+	width: 100%;
+	height: 100%;
+	flex-direction: row;
+	background-color: rgba( 8, 22, 38, 0.82 );
+	border: 1px solid $holo-dim;
+	border-radius: 4px;
+	box-shadow: 0 0 40px rgba( 111, 211, 255, 0.18 ), inset 0 0 60px rgba( 111, 211, 255, 0.06 );
+	transition: all 0.35s ease-out;
+	overflow: hidden;
+
+	&:intro {
+		opacity: 0;
+		transform: translateY( 40px ) scale( 0.92 ) rotateX( 18deg );
+	}
+}
+
+// a slow scan line rolling down the display
+.scan {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 120px;
+	background-image: linear-gradient( to bottom, rgba( 111, 211, 255, 0 ), rgba( 111, 211, 255, 0.07 ), rgba( 111, 211, 255, 0 ) );
+	animation: scan 5s linear infinite;
+	pointer-events: none;
+}
+
+@keyframes scan {
+	0% { top: -120px; }
+	100% { top: 640px; }
+}
+
+.rail {
+	width: 300px;
+	flex-direction: column;
+	padding: 24px 0 20px 0;
+	background-color: rgba( 111, 211, 255, 0.05 );
+	border-right: 1px solid $holo-dim;
+}
+
+.brand {
+	flex-direction: row;
+	align-items: center;
+	padding: 0 22px 20px 22px;
+	margin-bottom: 8px;
+	border-bottom: 1px solid rgba( 111, 211, 255, 0.18 );
+
+	.seal {
+		width: 34px;
+		height: 34px;
+		border-radius: 17px;
+		border: 3px solid $holo;
+		margin-right: 12px;
+		box-shadow: 0 0 12px rgba( 111, 211, 255, 0.6 );
+	}
+
+	.brand-text { flex-direction: column; }
+	.brand-title { font-size: 20px; letter-spacing: 6px; color: white; }
+	.brand-sub { font-size: 9px; letter-spacing: 2px; color: $muted; margin-top: 2px; }
+}
+
+.option {
+	flex-direction: column;
+	padding: 12px 22px;
+	border-left: 3px solid transparent;
+	cursor: pointer;
+	transition: all 0.12s ease-out;
+
+	.opt-name { font-size: 17px; letter-spacing: 4px; color: $text; }
+	.opt-sub { font-family: Poppins; font-size: 12px; color: $muted; margin-top: 2px; }
+
+	&:hover {
+		background-color: rgba( 111, 211, 255, 0.1 );
+		border-left-color: $holo-dim;
+		padding-left: 28px;
+		sound-in: "sounds/ui/ui_hover.sound";
+	}
+
+	&.on {
+		background-color: rgba( 111, 211, 255, 0.16 );
+		border-left-color: $holo;
+
+		.opt-name { color: $holo; }
+	}
+
+	&.danger:hover .opt-name { color: $red; }
+}
+
+.grow { flex-grow: 1; }
+
+.who {
+	font-family: Poppins;
+	font-size: 12px;
+	color: $muted;
+	padding: 0 22px;
+}
+
+.hint {
+	font-size: 10px;
+	letter-spacing: 3px;
+	color: $holo-dim;
+	padding: 6px 22px 0 22px;
+}
+
+.pane {
+	flex-grow: 1;
+	flex-direction: column;
+	padding: 26px 30px;
+}
+
+.pane-title { font-size: 24px; letter-spacing: 6px; color: white; }
+.pane-sub { font-size: 11px; letter-spacing: 3px; color: $holo; margin: 4px 0 18px 0; }
+.pane-note { font-family: Poppins; font-size: 14px; color: $muted; margin-top: 22px; }
+
+.status {
+	flex-direction: row;
+	gap: 14px;
+
+	.stat {
+		flex-direction: column;
+		padding: 14px 18px;
+		min-width: 170px;
+		background-color: rgba( 111, 211, 255, 0.07 );
+		border: 1px solid rgba( 111, 211, 255, 0.2 );
+	}
+
+	.k { font-size: 10px; letter-spacing: 3px; color: $muted; }
+	.v { font-size: 22px; color: white; margin-top: 4px; }
+}
+
+// scoreboard
+.table {
+	flex-direction: column;
+	overflow-y: scroll;
+	flex-grow: 1;
+}
+
+.row {
+	flex-direction: row;
+	align-items: center;
+	padding: 6px 10px;
+	font-family: Poppins;
+	font-size: 14px;
+	border-bottom: 1px solid rgba( 111, 211, 255, 0.08 );
+
+	&.head {
+		font-family: Orbitron;
+		font-size: 10px;
+		letter-spacing: 3px;
+		color: $muted;
+	}
+
+	&.me {
+		background-color: rgba( 111, 211, 255, 0.12 );
+		color: white;
+	}
+
+	&.dim { color: $muted; }
+
+	.c-name { flex-grow: 1; }
+	.c-rank { width: 190px; }
+	.c-class { width: 110px; }
+	.c-ping { width: 70px; text-align: right; }
+}
+
+.unit {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 12px;
+	padding: 4px 10px;
+	border-left: 3px solid $holo;
+	background-color: rgba( 111, 211, 255, 0.06 );
+
+	.unit-name { flex-grow: 1; font-size: 12px; letter-spacing: 3px; color: white; }
+	.unit-count { font-size: 12px; color: $muted; }
+}
+
+// settings
+.settings {
+	flex-direction: column;
+	overflow-y: scroll;
+	flex-grow: 1;
+}
+
+.setting {
+	flex-direction: row;
+	align-items: center;
+	padding: 8px 4px;
+	border-bottom: 1px solid rgba( 111, 211, 255, 0.08 );
+
+	.s-text { flex-direction: column; flex-grow: 1; }
+	.s-name { font-size: 13px; letter-spacing: 2px; color: white; }
+	.s-help { font-family: Poppins; font-size: 12px; color: $muted; margin-top: 1px; }
+}
+
+.toggle {
+	width: 74px;
+	padding: 6px 0;
+	justify-content: center;
+	font-size: 12px;
+	letter-spacing: 2px;
+	border: 1px solid rgba( 111, 211, 255, 0.3 );
+	color: $muted;
+	cursor: pointer;
+
+	&.on {
+		background-color: rgba( 111, 211, 255, 0.22 );
+		border-color: $holo;
+		color: white;
+	}
+
+	&:hover { sound-in: "sounds/ui/ui_hover.sound"; }
+}
+
+.stepper {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+
+	.step {
+		width: 28px;
+		height: 28px;
+		justify-content: center;
+		align-items: center;
+		font-size: 18px;
+		border: 1px solid rgba( 111, 211, 255, 0.3 );
+		cursor: pointer;
+
+		&:hover { background-color: rgba( 111, 211, 255, 0.15 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	}
+
+	.bar {
+		width: 120px;
+		height: 4px;
+		background-color: rgba( 255, 255, 255, 0.1 );
+	}
+
+	.fill { height: 100%; background-color: $holo; }
+	.value { width: 54px; font-size: 12px; text-align: right; color: white; }
+}
+
+// leave
+.leave {
+	flex-direction: column;
+	gap: 12px;
+	margin-top: 8px;
+}
+
+.big-button {
+	flex-direction: column;
+	padding: 16px 20px;
+	width: 420px;
+	border: 1px solid rgba( 111, 211, 255, 0.35 );
+	background-color: rgba( 111, 211, 255, 0.07 );
+	cursor: pointer;
+
+	.b-name { font-size: 16px; letter-spacing: 4px; color: white; }
+	.b-sub { font-family: Poppins; font-size: 13px; color: $muted; margin-top: 2px; }
+
+	&:hover { background-color: rgba( 111, 211, 255, 0.16 ); sound-in: "sounds/ui/ui_hover.sound"; }
+
+	&.danger {
+		border-color: rgba( 255, 74, 61, 0.5 );
+		.b-name { color: $red; }
+		&:hover { background-color: rgba( 255, 74, 61, 0.14 ); }
+	}
+
+	&.ghost { border-color: rgba( 255, 255, 255, 0.15 ); background-color: transparent; }
+}
+
+.option:active, .toggle:active, .step:active, .big-button:active {
+	sound-in: "sounds/ui/ui_click.sound";
+}
+
+// guide, keys and rules
+.pane-note.first { margin: 0 0 12px 0; color: $text; }
+.pane-sub.where { margin-top: 18px; }
+
+.setting {
+	.num { width: 34px; font-size: 16px; color: $holo; }
+	.rule { font-size: 14px; color: $text; }
+
+	&.key { padding: 5px 4px; }
+}
+
+.keycap {
+	min-width: 230px;
+	margin-right: 14px;
+	font-size: 11px;
+	letter-spacing: 1px;
+	color: $holo;
+}
+
+.places {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 8px;
+
+	.place {
+		padding: 8px 14px;
+		font-size: 11px;
+		letter-spacing: 2px;
+		border: 1px solid rgba( 111, 211, 255, 0.3 );
+		background-color: rgba( 111, 211, 255, 0.06 );
+		cursor: pointer;
+
+		&:hover { background-color: rgba( 111, 211, 255, 0.18 ); sound-in: "sounds/ui/ui_hover.sound"; }
+		&:active { sound-in: "sounds/ui/ui_click.sound"; }
+		&.tour { border-color: $holo; color: white; }
+	}
+}
+
+.leave.row-buttons {
+	flex-direction: row;
+	margin-top: 14px;
+
+	.big-button { width: 300px; }
+}

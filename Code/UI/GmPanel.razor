@@ -1,0 +1,183 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The Game Master menu (the GmMenu key, J by default, or /gm). Every button types a /gm chat command, so permissions and the
+	staff log are the host's, exactly as if typed. "At crosshair" means where you were aiming when you opened the menu.
+*@
+
+<root class="@(SwrpUiState.GmOpen ? "open" : "")">
+	@if ( SwrpUiState.GmOpen )
+	{
+		<div class="gm">
+			<div class="ghead">
+				<label class="gtitle">GAME MASTER</label>
+				<label class="gsub">@($"{Alive} NPCS ACTIVE · {Me?.EventDef?.Name?.ToUpperInvariant() ?? "PLAYING YOUR TROOPER"}")</label>
+				<div class="grow"></div>
+				<div class="close" onclick=@(() => SwrpUiState.GmOpen = false)>✕</div>
+			</div>
+
+			<label class="section">SPAWN AT CROSSHAIR</label>
+			<div class="row">
+				@foreach ( var d in Spawnable )
+				{
+					var id = d.Id;
+					<div class="btn @(Type == id ? "on" : "")" onclick=@(() => Type = id)>@d.Name.ToUpperInvariant()</div>
+				}
+			</div>
+			<div class="row">
+				@foreach ( var n in new[] { 1, 3, 5, 10 } )
+				{
+					var c = n;
+					<div class="btn small @(Count == c ? "on" : "")" onclick=@(() => Count = c)>@($"×{c}")</div>
+				}
+				<div class="grow"></div>
+				<div class="btn go" onclick=@(() => Run( $"/gm spawn {Type} {Count}" ))>SPAWN</div>
+			</div>
+
+			<label class="section">WAVES FROM CROSSHAIR (THEY HUNT THE NEAREST CLONES)</label>
+			<div class="row">
+				<div class="btn small @(WaveType == "mix" ? "on" : "")" onclick=@(() => WaveType = "mix")>MIXED</div>
+				@foreach ( var d in Spawnable.Where( x => x.AllegianceId != AllegianceRegistry.Gar ) )
+				{
+					var id = d.Id;
+					<div class="btn small @(WaveType == id ? "on" : "")" onclick=@(() => WaveType = id)>@d.Short.ToUpperInvariant()</div>
+				}
+				<div class="sep"></div>
+				@foreach ( var n in new[] { 2, 4, 6, 8 } )
+				{
+					var c = n;
+					<div class="btn small @(PerWave == c ? "on" : "")" onclick=@(() => PerWave = c)>@($"{c}/WAVE")</div>
+				}
+			</div>
+			<div class="row">
+				@foreach ( var n in new[] { 1, 3, 5, 10 } )
+				{
+					var c = n;
+					<div class="btn small @(Waves == c ? "on" : "")" onclick=@(() => Waves = c)>@($"{c} WAVE{( c == 1 ? "" : "S" )}")</div>
+				}
+				<div class="sep"></div>
+				@foreach ( var n in new[] { 20, 45, 90 } )
+				{
+					var c = n;
+					<div class="btn small @(Interval == c ? "on" : "")" onclick=@(() => Interval = c)>@($"EVERY {c}S")</div>
+				}
+				<div class="grow"></div>
+				<div class="btn go" onclick=@(() => Run( $"/gm wave {WaveType} {PerWave} {Waves} {Interval}" ))>START</div>
+				<div class="btn" onclick=@(() => Run( "/gm wave stop" ))>STOP</div>
+			</div>
+
+			<label class="section">ORDERS</label>
+			<div class="row">
+				<div class="btn" onclick=@(() => Run( "/gm goto" ))>ALL NPCS TO CROSSHAIR</div>
+				<div class="btn" onclick=@(() => Run( "/gm hunt" ))>HUNT</div>
+				<div class="btn" onclick=@(() => Run( "/gm hold" ))>HOLD</div>
+				<div class="grow"></div>
+				<div class="btn danger" onclick=@(() => Run( "/gm cleanup" ))>CLEAN UP EVERYTHING</div>
+			</div>
+
+			<label class="section">SHIP</label>
+			<div class="row">
+				@for ( var lv = 5; lv >= 1; lv-- )
+				{
+					var level = lv;
+					<div class="btn small @(SwrpShip.Current?.AlertLevel == level ? "on" : "")" style="border-bottom-color: @SwrpShip.Levels[level].Hex" onclick=@(() => Run( $"/gm alert {level}" ))>@($"DEFCON {level}")</div>
+				}
+			</div>
+			<div class="row">
+				<div class="btn go @(SwrpShip.Current?.BoardingShip == true ? "on" : "")" onclick=@(() => Run( "/gm board" ))>BOARDING ATTACK: WARP IN ENEMY SHIP</div>
+				<div class="btn" onclick=@(() => Run( "/gm board off" ))>SEND IT AWAY</div>
+			</div>
+			<div class="row">
+				<TextEntry class="field" Value:bind="@Announcement" MaxLength=@(160) Placeholder="Announcement to the whole ship..."></TextEntry>
+				<div class="btn" onclick=@(() => { if ( !string.IsNullOrWhiteSpace( Announcement ) ) { Run( $"/gm announce {Announcement}" ); Announcement = ""; } })>ANNOUNCE</div>
+			</div>
+
+			<label class="section">EVENT</label>
+			<div class="row">
+				<div class="btn" onclick=@(() => Run( "/gm eventspawn set" ))>EVENT SPAWN AT CROSSHAIR</div>
+				<div class="btn" onclick=@(() => Run( "/gm eventspawn clear" ))>CLEAR SPAWN</div>
+				<div class="btn" onclick=@(() => Run( "/gm bring all" ))>BRING EVERYONE</div>
+				<div class="grow"></div>
+				@foreach ( var t in new[] { 5, 10, 20 } )
+				{
+					var m = t;
+					<div class="btn small" onclick=@(() => Run( $"/gm timer {m}" ))>@($"{m} MIN")</div>
+				}
+				<div class="btn small" onclick=@(() => Run( "/gm timer stop" ))>STOP TIMER</div>
+			</div>
+			<div class="row">
+				<TextEntry class="field" Value:bind="@Objective" MaxLength=@(140) Placeholder="Event objective on everyone's HUD..."></TextEntry>
+				<div class="btn" onclick=@(() => { if ( !string.IsNullOrWhiteSpace( Objective ) ) { Run( $"/gm objective {Objective}" ); Objective = ""; } })>SET</div>
+				<div class="btn" onclick=@(() => Run( "/gm objective clear" ))>CLEAR</div>
+			</div>
+			<div class="row">
+				@foreach ( var track in new[] { "theme", "underlevel", "hyperlane", "outer_rim", "kessel" } )
+				{
+					var tr = track;
+					<div class="btn small" onclick=@(() => Run( $"/gm music {tr}" ))>@tr.Replace( "_", " " ).ToUpperInvariant()</div>
+				}
+				<div class="btn small" onclick=@(() => Run( "/gm music stop" ))>MUSIC OFF</div>
+				<div class="grow"></div>
+				<div class="btn small" onclick=@(() => Run( "/gm layout list" ))>LAYOUTS</div>
+			</div>
+
+			<label class="section">PLAY AS</label>
+			<div class="row">
+				@foreach ( var d in NpcRegistry.All.Where( x => x.Style != NpcStyle.Roller && x.AllegianceId != AllegianceRegistry.Gar ) )
+				{
+					var id = d.Id;
+					<div class="btn @(Me?.EventCharacter == id ? "on" : "")" onclick=@(() => Run( $"/gm become {id}" ))>@d.Name.ToUpperInvariant()</div>
+				}
+				<div class="btn" onclick=@(() => Run( "/gm become off" ))>MY TROOPER</div>
+			</div>
+
+			<label class="section">JEDI TESTING (YOUR DEPLOYED JEDI)</label>
+			<div class="row">
+				<div class="btn go" onclick=@(() => Run( "/gm jedi max" ))>MAX OUT LIGHTSABER TRAINING</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary> Set by the host's answer to SwrpGameMaster.RequestAccess. </summary>
+	public static bool Allowed { get; set; }
+
+	static IEnumerable<NpcDefinition> Spawnable => NpcRegistry.All.Where( n => !n.EventOnly );
+
+	SwrpPlayer Me => SwrpPlayer.Local;
+	string Type = NpcRegistry.B1;
+	int Count = 3;
+	string WaveType = "mix";
+	int PerWave = 4;
+	int Waves = 3;
+	int Interval = 45;
+	string Announcement;
+	string Objective;
+
+	int Alive => Scene.GetAllComponents<SwrpNpc>().Count( n => !n.IsDead );
+
+	void Run( string command ) => SwrpChat.Submit( command );
+
+	protected override void OnUpdate()
+	{
+		if ( Input.Pressed( "GmMenu" ) && !SwrpUiState.ChatOpen )
+		{
+			if ( SwrpUiState.GmOpen ) SwrpUiState.GmOpen = false;
+			else SwrpChat.Submit( "/gm" );      // the host opens it if you are a Game Master
+		}
+
+		if ( SwrpUiState.GmOpen && Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			SwrpUiState.GmOpen = false;
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( SwrpUiState.GmOpen, Type, Count, HashCode.Combine( WaveType, PerWave, Waves, Interval ), Alive, Me?.EventCharacter, HashCode.Combine( SwrpShip.Current?.AlertLevel, SwrpShip.Current?.BoardingShip ) );
+}

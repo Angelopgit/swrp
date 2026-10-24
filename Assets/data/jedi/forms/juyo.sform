@@ -1,0 +1,76 @@
+{
+  "Id": "juyo",
+  "Title": "Juyo",
+  "Numeral": "VII",
+  "FormId": 6,
+  "AnimationSet": "saber_juyo",
+  "RequiredLevel": 12,
+  "Requires": "djemso",
+  "Description": "The way of the vornskr. Ferocious and unpredictable: the fastest, hardest chains there are, at a heavy cost in focus and guard.",
+  "Tempo": 1.25,
+  "Damage": 1.2,
+  "FocusCost": 14.0,
+  "BlockCost": 1.3,
+  "ParryWindow": 0.12,
+  "DeflectSkill": 0.5,
+  "Riposte": 1.4,
+  "BlockMove": 0.8,
+  "LockStrength": 1.2,
+  "GuardPitch": -20.0,
+  "GuardYaw": -30.0,
+  "Crouch": 0.35,
+  "Reach": 1.05,
+  "ForceCost": 1.1,
+  "StanceWidth": 14.0,
+  "StanceDepth": 15.0,
+  "StanceTurn": 40.0,
+  "StanceShift": 2.5,
+  "StanceBend": 14.0,
+  "CutTilt": 0.6,
+  "WristLead": 0.7,
+  "BodyDrive": 1.35,
+  "BlockOut": 12.0,
+  "BlockLean": -18.0,
+  "BlockHeight": -3.0,
+  "GuardHand": "12,-8,-12",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 1.15,
+      "Damage": 1.05,
+      "Arc": 160.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.2,
+      "Damage": 1.1,
+      "Arc": 160.0
+    },
+    {
+      "Direction": "Rising",
+      "Speed": 1.25,
+      "Damage": 1.1,
+      "Arc": 150.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.25,
+      "Damage": 1.15,
+      "Arc": 170.0
+    },
+    {
+      "Direction": "Overhead",
+      "Speed": 1.1,
+      "Damage": 1.25,
+      "Arc": 170.0
+    },
+    {
+      "Direction": "Spin",
+      "Speed": 1.1,
+      "Damage": 1.4,
+      "Arc": 360.0
+    }
+  ],
+  "Version": 6,
+  "OneHanded": false
+}

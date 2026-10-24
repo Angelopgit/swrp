@@ -1,0 +1,74 @@
+VisorOverlay {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+
+	// The inside of the helmet round the T-shaped visor: soft dark edges above the eye slot and either side of the
+	// drop below it, with a faint glassy rim where the visor meets the shell.
+	.edge {
+		position: absolute;
+	}
+
+	.top {
+		left: 0;
+		right: 0;
+		top: 0;
+		height: 20%;
+		background: linear-gradient( to bottom, rgba( 3, 5, 8, 0.82 ), rgba( 3, 5, 8, 0 ) );
+	}
+
+	.left, .right {
+		bottom: 0;
+		height: 46%;
+		width: 38%;
+	}
+
+	.left {
+		left: 0;
+		background: linear-gradient( to left, rgba( 3, 5, 8, 0 ), rgba( 3, 5, 8, 0.78 ) 45% );
+	}
+
+	.right {
+		right: 0;
+		background: linear-gradient( to right, rgba( 3, 5, 8, 0 ), rgba( 3, 5, 8, 0.78 ) 45% );
+	}
+
+	.left-top, .right-top {
+		bottom: 46%;
+		height: 9%;
+		width: 34%;
+	}
+
+	.left-top {
+		left: 0;
+		background: linear-gradient( to top, rgba( 3, 5, 8, 0.6 ), rgba( 3, 5, 8, 0 ) );
+	}
+
+	.right-top {
+		right: 0;
+		background: linear-gradient( to top, rgba( 3, 5, 8, 0.6 ), rgba( 3, 5, 8, 0 ) );
+	}
+
+	.rim {
+		background-color: rgba( 140, 210, 255, 0.07 );
+	}
+
+	.rim-top { left: 3%; right: 3%; top: 19.5%; height: 2px; }
+	.rim-l { left: 37.5%; bottom: 0; height: 45%; width: 2px; }
+	.rim-r { right: 37.5%; bottom: 0; height: 45%; width: 2px; }
+
+	.scan {
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		background-image: url( "materials/fx/scanlines.png" );
+		background-size: 4px 4px;
+		background-repeat: repeat;
+		opacity: 0.8;
+	}
+}

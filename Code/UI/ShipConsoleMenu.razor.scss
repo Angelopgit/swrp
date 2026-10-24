@@ -1,0 +1,105 @@
+@import "../Feel/_feel.scss";
+$accent: $feel-holo;
+$text: $feel-text;
+$muted: $feel-muted;
+
+ShipConsoleMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 55;
+	pointer-events: none;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.3 );
+	}
+}
+
+.ship {
+	width: 640px;
+	flex-direction: column;
+	padding: 16px 20px;
+	background-color: rgba( 10, 16, 26, 0.96 );
+	border: 1px solid rgba( 111, 211, 255, 0.35 );
+	border-top: 3px solid $accent;
+	@include feel-panel-in;
+}
+
+.shead {
+	flex-direction: row;
+	align-items: center;
+
+	.stitle { font-size: 18px; font-weight: 700; letter-spacing: 5px; color: white; margin-right: 14px; }
+	.ssub { font-size: 10px; letter-spacing: 2px; color: $muted; }
+	.close { font-size: 16px; padding: 2px 8px; cursor: pointer; }
+}
+
+.grow { flex-grow: 1; }
+
+.section {
+	font-size: 10px;
+	letter-spacing: 3px;
+	color: $accent;
+	margin: 16px 0 6px 0;
+}
+
+.levels {
+	flex-direction: row;
+	margin-bottom: 8px;
+}
+
+.level {
+	flex-grow: 1;
+	flex-direction: column;
+	align-items: center;
+	padding: 8px 4px;
+	margin-right: 6px;
+	background-color: rgba( 255, 255, 255, 0.05 );
+	border-top: 3px solid white;
+	cursor: pointer;
+
+	&:hover { background-color: rgba( 255, 255, 255, 0.14 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	&:active { sound-in: "sounds/ui/ui_click.sound"; }
+	&.on { background-color: rgba( 255, 255, 255, 0.2 ); }
+
+	.lnum { font-size: 22px; font-weight: 700; }
+	.lname { font-size: 7px; letter-spacing: 1px; color: $muted; text-align: center; }
+}
+
+.field {
+	height: 30px;
+	padding: 4px 8px;
+	font-size: 12px;
+	background-color: rgba( 255, 255, 255, 0.06 );
+	border: 1px solid rgba( 255, 255, 255, 0.12 );
+	color: white;
+}
+
+.note {
+	font-size: 9px;
+	color: $muted;
+	margin-top: 4px;
+}
+
+.row {
+	flex-direction: row;
+	margin-top: 8px;
+}
+
+.btn {
+	font-size: 11px;
+	letter-spacing: 2px;
+	padding: 8px 16px;
+	background-color: rgba( 111, 211, 255, 0.25 );
+	cursor: pointer;
+
+	&:hover { background-color: rgba( 111, 211, 255, 0.4 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	&:active { sound-in: "sounds/ui/ui_click.sound"; }
+}

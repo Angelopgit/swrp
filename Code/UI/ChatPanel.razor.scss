@@ -1,0 +1,139 @@
+ChatPanel {
+	position: absolute;
+	left: 32px;
+	bottom: 190px;
+	width: 560px;
+	flex-direction: column;
+	font-family: Poppins;
+	pointer-events: none;
+
+	// in a craft the ship panel takes the bottom left: chat moves up above it
+	&.invehicle { bottom: 330px; width: 480px; .status { display: none; } }
+}
+
+.lines {
+	flex-direction: column;
+	justify-content: flex-end;
+}
+
+.line {
+	font-size: 15px;
+	color: white;
+	padding: 3px 10px;
+	margin-top: 2px;
+	background-color: rgba( 6, 10, 18, 0.55 );
+	border-radius: 3px;
+	text-shadow: 1px 1px 2px black;
+	max-width: 560px;
+
+	&.me {
+		color: #f5b95f;
+		font-style: italic;
+	}
+
+	&.ooc {
+		color: #8fb4d8;
+		font-size: 13px;
+	}
+
+	&.system {
+		color: #9bd48a;
+	}
+
+	&.do {
+		color: #e7c27d;
+	}
+
+	&.whisper {
+		color: #b8c4d4;
+		font-style: italic;
+		font-size: 14px;
+	}
+
+	&.yell {
+		color: #ffffff;
+		font-weight: 700;
+		font-size: 16px;
+	}
+
+	&.roll {
+		color: #c9a4ff;
+	}
+
+	&.radio {
+		color: #7fd3ff;
+	}
+
+	&.broadcast {
+		color: #ffd166;
+		font-weight: 700;
+		background-color: rgba( 60, 40, 0, 0.6 );
+	}
+
+	&.looc {
+		color: #8fb4d8;
+		font-size: 13px;
+	}
+
+	&.dispatch {
+		color: #9fe6ff;
+		font-weight: 700;
+		background-color: rgba( 0, 40, 70, 0.6 );
+		border-left: 2px solid #5fb4ff;
+		padding-left: 6px;
+	}
+
+	&.staff {
+		color: #ff8a80;
+		font-size: 13px;
+	}
+
+	&:intro {
+		opacity: 0;
+		transform: translateX( -12px );
+	}
+}
+
+.entry {
+	margin-top: 8px;
+	flex-direction: row;
+	align-items: center;
+	pointer-events: all;
+	background-color: rgba( 6, 10, 18, 0.85 );
+	border: 1px solid rgba( 95, 180, 255, 0.5 );
+	border-radius: 4px;
+	padding: 6px 10px;
+
+	.hint {
+		font-size: 11px;
+		letter-spacing: 2px;
+		color: #5fb4ff;
+		margin-right: 10px;
+		min-width: 52px;
+	}
+
+	TextEntry {
+		flex-grow: 1;
+		font-size: 16px;
+		color: white;
+	}
+}
+
+.status {
+	flex-direction: row;
+	margin-bottom: 6px;
+
+	label {
+		font-size: 11px;
+		letter-spacing: 2px;
+		padding: 2px 8px;
+		margin-right: 6px;
+		border-radius: 3px;
+		background-color: rgba( 6, 10, 18, 0.6 );
+		color: rgba( 255, 255, 255, 0.75 );
+	}
+
+	.flag {
+		color: #ff8a80;
+	}
+}

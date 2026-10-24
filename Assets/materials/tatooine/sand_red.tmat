@@ -1,0 +1,16 @@
+{
+  "AlbedoImage": "materials/tatooine/sand_red_color.png",
+  "RoughnessImage": "materials/tatooine/sand_red_rough.png",
+  "NormalImage": "materials/tatooine/sand_red_normal.png",
+  "HeightImage": "materials/tatooine/sand_red_height.png",
+  "AOImage": "materials/tatooine/sand_red_ao.png",
+  "UVScale": 0.9,
+  "Metalness": 0,
+  "NormalStrength": 1,
+  "HeightBlendStrength": 1,
+  "DisplacementScale": 1,
+  "NoTiling": true,
+  "Surface": "surfaces/dirt.surface",
+  "__references": [],
+  "__version": 0
+}

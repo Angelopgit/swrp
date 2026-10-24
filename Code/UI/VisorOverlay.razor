@@ -1,0 +1,63 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The optional helmet visor (swrp_visor 1): the T-shaped opening of a clone helmet with faint dark edges and a little
+	scanline, in first person only. Also runs the screenshot switch: swrp_hud 0 (or F8) hides the whole HUD, nametags
+	included, until it is turned back on; menus still show when opened. Sits on the Screen FX panel under the HUD, with
+	the colour grade.
+*@
+
+<root>
+	@if ( ShowVisor )
+	{
+		<div class="edge top"></div>
+		<div class="edge left-top"></div>
+		<div class="edge right-top"></div>
+		<div class="edge left"></div>
+		<div class="edge right"></div>
+		<div class="edge rim rim-top"></div>
+		<div class="edge rim rim-l"></div>
+		<div class="edge rim rim-r"></div>
+		<div class="scan"></div>
+	}
+</root>
+
+@code
+{
+	[ConVar( "swrp_visor", Help = "Helmet visor overlay in first person: faint T-visor edges and scanlines (1 = on, 0 = off)", Saved = true )]
+	public static bool VisorOn { get; set; }
+
+	[ConVar( "swrp_hud", Help = "Show the HUD (0 hides all of it, nametags too, for screenshots; F8 toggles)" )]
+	public static bool HudOn { get; set; } = true;
+
+	/// <summary> The HUD is hidden right now (swrp_hud 0, and no menu open). </summary>
+	public static bool HudHidden => !HudOn && SwrpPlayer.Local is not null && !SwrpUiState.AnyOpen && !SwrpUiState.CharacterMenuOpen;
+
+	// (a camera placed with swrp_cam before deploying previews it, for screenshots)
+	static bool FirstPerson => SwrpPlayer.Local is { } p ? p.Controller is { ThirdPerson: false } && p.GetComponent<SwrpVitals>() is not { IsDead: true } : SwrpAnimMannequin.CameraPlaced;
+
+	bool ShowVisor => VisorOn && !HudHidden && FirstPerson && SwrpUiState.SpectateSteamId == 0;
+
+	bool _shownHidden;
+
+	protected override void OnUpdate()
+	{
+		// F8, read straight from the keyboard (F8 clashed with an s&box key; no Input.config entry, so no editor restart)
+		if ( Input.Pressed( "HideHud" ) && !SwrpUiState.ChatOpen ) HudOn = !HudOn;
+
+		// hide or show every other screen panel (the HUD and menus)
+		var hidden = HudHidden;
+		// while hidden, keep hiding: panels made after F8 (squad menu, build hints, new HUD parts) would show otherwise
+		if ( hidden == _shownHidden && !hidden ) return;
+		_shownHidden = hidden;
+		var own = GameObject;
+		foreach ( var panel in Scene.GetAllComponents<ScreenPanel>() )
+			if ( panel.GameObject != own ) panel.Opacity = hidden ? 0f : 1f;
+	}
+
+	protected override int BuildHash() => HashCode.Combine( ShowVisor );
+}

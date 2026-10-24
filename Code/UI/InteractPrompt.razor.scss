@@ -1,0 +1,60 @@
+InteractPrompt {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	font-family: Orbitron;
+	z-index: 20;
+}
+
+.card {
+	position: absolute;
+	transform: translateX( -50% ) translateY( -100% );
+	flex-direction: row;
+	align-items: center;
+	padding: 8px 16px 8px 8px;
+	background-color: rgba( 8, 14, 24, 0.85 );
+	border: 1px solid rgba( 95, 180, 255, 0.55 );
+	border-radius: 4px;
+
+	&.ok .key { background-color: #2fd47a; }
+	&.ok.restricted .key { background-color: #f2b33b; }
+	&.denied { border-color: rgba( 255, 90, 70, 0.7 ); }
+	&.denied .key { background-color: #e5483a; }
+	&.locked { border-color: rgba( 255, 60, 50, 0.85 ); }
+	&.locked .key { background-color: #b0201a; }
+	&.info .key { background-color: #5fb4ff; }
+}
+
+.key {
+	width: 32px;
+	height: 32px;
+	margin-right: 12px;
+	justify-content: center;
+	align-items: center;
+	border-radius: 3px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #0a1018;
+}
+
+.text {
+	flex-direction: column;
+}
+
+.title {
+	font-size: 16px;
+	font-weight: 700;
+	color: white;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.sub {
+	font-size: 11px;
+	color: rgba( 200, 225, 255, 0.75 );
+	text-transform: uppercase;
+	letter-spacing: 2px;
+}

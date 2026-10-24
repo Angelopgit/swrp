@@ -1,0 +1,148 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	An animated wall screen for the living ship (SwrpWallScreen puts it on a WorldPanel): a status readout of shifting
+	bars and scrolling glyph lines, a radar sweep, or a waveform graph. The ship's alert level turns it red, and the
+	hyperspace jump shows on every screen. Redrawn a few times a second.
+*@
+
+<root class="screen @Mode @(Alert ? "alert" : "")">
+	<div class="head">
+		<div class="glyphs">
+			@foreach ( var w in Glyphs( 1000, 7 ) )
+			{
+				<div class="g" style="width: @(w)px"></div>
+			}
+		</div>
+		<div class="tag">@Tag</div>
+	</div>
+
+	@if ( Mode == "radar" )
+	{
+		<div class="radar">
+			<div class="ring r1"></div>
+			<div class="ring r2"></div>
+			<div class="ring r3"></div>
+			<div class="sweep" style="transform: rotate(@(Sweep.ToString( "0" ))deg)"></div>
+			@foreach ( var b in Blips() )
+			{
+				<div class="blip" style="left: @(b.X)px; top: @(b.Y)px; opacity: @(b.A.ToString( "0.00", System.Globalization.CultureInfo.InvariantCulture ))"></div>
+			}
+		</div>
+		<div class="side">
+			@for ( var i = 0; i < 6; i++ )
+			{
+				<div class="line">
+					@foreach ( var w in Glyphs( i + Frame / 4, 4 ) )
+					{
+						<div class="g" style="width: @(w)px"></div>
+					}
+				</div>
+			}
+		</div>
+	}
+	else if ( Mode == "graph" )
+	{
+		<div class="graph">
+			@for ( var i = 0; i < 36; i++ )
+			{
+				<div class="col" style="height: @(Wave( i ))%"></div>
+			}
+		</div>
+		<div class="foot">
+			@for ( var i = 0; i < 3; i++ )
+			{
+				<div class="num">@Number( i )</div>
+			}
+		</div>
+	}
+	else
+	{
+		<div class="bars">
+			@for ( var i = 0; i < 6; i++ )
+			{
+				<div class="bar"><div class="fill" style="width: @(Level( i ))%"></div></div>
+			}
+		</div>
+		<div class="log">
+			@for ( var i = 0; i < 7; i++ )
+			{
+				<div class="line">
+					@foreach ( var w in Glyphs( Frame / 3 + i, 6 ) )
+					{
+						<div class="g" style="width: @(w)px"></div>
+					}
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary> status, radar or graph. </summary>
+	public string Mode { get; set; } = "status";
+	public int Seed { get; set; }
+
+	int Frame => (int)( Time.Now * 6f );
+	bool Alert => SwrpShip.Current is { AlertLevel: < 4 };
+	bool Hyper => SwrpSpace.Jumping || SwrpSpace.Current is { InHyperspace: true };
+
+	string Tag => Hyper ? "HYPERSPACE" : SwrpShip.Current is { AlertLevel: < 5 } s ? $"DEFCON {s.AlertLevel}" : Mode switch
+	{
+		"radar" => $"SCAN {( Seed % 9 ) + 1}-{( Frame / 30 ) % 10}",
+		"graph" => $"PWR {( Seed % 7 ) + 2}.{( Frame / 8 ) % 10}",
+		_ => $"SYS {( Seed % 12 ) + 1}",
+	};
+
+	/// <summary> Widths of the made-up glyph blocks on one line (an alien script, nothing readable). </summary>
+	List<int> Glyphs( int line, int count )
+	{
+		var r = new Random( Seed * 31 + line * 977 );
+		var list = new List<int>();
+		for ( var i = 0; i < count; i++ ) list.Add( r.Next( 14, 58 ) );
+		return list;
+	}
+
+	int Level( int i )
+	{
+		var t = Time.Now * ( 0.35f + 0.1f * i ) + Seed * 0.37f + i * 1.9f;
+		var v = 0.55f + 0.3f * MathF.Sin( t ) + 0.12f * MathF.Sin( t * 3.7f );
+		if ( Alert ) v = MathF.Min( 1f, v + 0.25f );
+		return (int)Math.Clamp( v * 100f, 4f, 100f );
+	}
+
+	int Wave( int i )
+	{
+		var t = Time.Now * ( Hyper ? 6f : 2.2f );
+		var v = 0.5f + 0.3f * MathF.Sin( i * 0.45f + t ) + 0.15f * MathF.Sin( i * 1.3f - t * 1.7f + Seed );
+		return (int)Math.Clamp( v * 100f, 5f, 100f );
+	}
+
+	string Number( int i ) => $"{( ( Seed * ( i + 3 ) + Frame / 10 ) % 900 ) + 100}";
+
+	float Sweep => ( Time.Now * 90f + Seed ) % 360f;
+
+	List<(int X, int Y, float A)> Blips()
+	{
+		var r = new Random( Seed );
+		var list = new List<(int, int, float)>();
+		for ( var i = 0; i < 5; i++ )
+		{
+			var ang = (float)r.NextDouble() * 360f;
+			var rad = 30f + (float)r.NextDouble() * 120f;
+			var behind = ( Sweep - ang + 360f ) % 360f;
+			var a = MathF.Max( 0f, 1f - behind / 240f );
+			var x = 170 + (int)( MathF.Cos( ang.DegreeToRadian() ) * rad ) - 5;
+			var y = 170 + (int)( MathF.Sin( ang.DegreeToRadian() ) * rad ) - 5;
+			list.Add( (x, y, a) );
+		}
+		return list;
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Frame, Mode, Alert, Hyper, SwrpShip.Current?.AlertLevel );
+}

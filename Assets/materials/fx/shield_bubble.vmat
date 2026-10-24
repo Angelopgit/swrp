@@ -1,0 +1,6 @@
+// Droideka deflector bubble, outer layer (Code/Npc/DroidekaShield.cs): additive rim, hexes, hit ripples.
+
+Layer0
+{
+	shader "shaders/swrp_shield.shader"
+}

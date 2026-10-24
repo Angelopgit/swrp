@@ -1,0 +1,16 @@
+{
+  "AlbedoImage": "materials/tatooine/hardpan_color.png",
+  "RoughnessImage": "materials/tatooine/hardpan_rough.png",
+  "NormalImage": "materials/tatooine/hardpan_normal.png",
+  "HeightImage": "materials/tatooine/hardpan_height.png",
+  "AOImage": "materials/tatooine/hardpan_ao.png",
+  "UVScale": 1.0,
+  "Metalness": 0,
+  "NormalStrength": 1,
+  "HeightBlendStrength": 1,
+  "DisplacementScale": 1,
+  "NoTiling": true,
+  "Surface": "surfaces/dirt.surface",
+  "__references": [],
+  "__version": 0
+}

@@ -1,0 +1,84 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$amber: #ffb547;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+.saber-builder {
+	flex-direction: column;
+	flex-shrink: 0;
+
+	.crystal {
+		flex-direction: row;
+		align-items: center;
+		margin: 6px 0 4px 0;
+
+		.swatch {
+			width: 26px;
+			height: 6px;
+			border-radius: 3px;
+			margin-right: 10px;
+		}
+
+		.note {
+			font-size: 10px;
+			color: $muted;
+			flex-shrink: 1;
+		}
+	}
+
+	.sstats {
+		flex-direction: column;
+		margin-top: 2px;
+	}
+
+	.sstat {
+		flex-direction: row;
+		align-items: center;
+		height: 12px;
+
+		.k {
+			width: 64px;
+			font-size: 8px;
+			letter-spacing: 2px;
+			color: $muted;
+		}
+
+		.track {
+			position: relative;
+			flex-grow: 1;
+			height: 3px;
+			background-color: rgba( 255, 255, 255, 0.08 );
+
+			.mid {
+				position: absolute;
+				left: 50%;
+				top: -2px;
+				width: 1px;
+				height: 7px;
+				background-color: $holo-dim;
+			}
+
+			.fill {
+				position: absolute;
+				top: 0;
+				height: 100%;
+
+				&.up { background-color: $holo; }
+				&.down { background-color: $amber; }
+			}
+		}
+
+		.v {
+			width: 40px;
+			text-align: right;
+			font-size: 9px;
+			color: $muted;
+		}
+	}
+
+	.hint {
+		margin-top: 4px;
+		font-size: 9px;
+		color: $muted;
+	}
+}

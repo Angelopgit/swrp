@@ -1,0 +1,1 @@
+{"volume": 0.28, "sounds": ["sounds/ambient/dist_hatch.wav", "sounds/ambient/dist_cargo.wav", "sounds/ambient/dist_droid.wav", "sounds/ambient/dist_pa.wav"], "VolumeRandom": 0.2, "Pitch": 1.0, "PitchRandom": 0.08, "DistanceMax": 3000, "UI": false}

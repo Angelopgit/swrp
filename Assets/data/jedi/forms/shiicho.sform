@@ -1,0 +1,57 @@
+{
+  "Id": "shiicho",
+  "Title": "Shii-Cho",
+  "Numeral": "I",
+  "FormId": 0,
+  "AnimationSet": "saber_shiicho",
+  "RequiredLevel": 1,
+  "Description": "The way of the sarlacc. The first form: the widest, cheapest sweeps, made for fighting many at once; its parries are the plainest.",
+  "Tempo": 1.0,
+  "Damage": 1.0,
+  "FocusCost": 6.0,
+  "BlockCost": 1.05,
+  "ParryWindow": 0.15,
+  "DeflectSkill": 0.45,
+  "Riposte": 1.2,
+  "BlockMove": 0.75,
+  "LockStrength": 1.0,
+  "GuardPitch": 55.0,
+  "GuardYaw": 10.0,
+  "Crouch": 0.15,
+  "Reach": 1.06,
+  "StanceWidth": 10.0,
+  "StanceDepth": 10.0,
+  "StanceTurn": 18.0,
+  "StanceShift": 0.5,
+  "StanceBend": 3.0,
+  "CutTilt": 0.4,
+  "WristLead": 0.8,
+  "BodyDrive": 1.1,
+  "BlockOut": 13.0,
+  "BlockLean": 0.0,
+  "BlockHeight": 1.0,
+  "GuardHand": "13,-4,-6",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 1.0,
+      "Damage": 1.0,
+      "Arc": 175.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.05,
+      "Damage": 1.05,
+      "Arc": 185.0
+    },
+    {
+      "Direction": "Spin",
+      "Speed": 0.95,
+      "Damage": 1.25,
+      "Arc": 360.0
+    }
+  ],
+  "Version": 6,
+  "Requires": "",
+  "OneHanded": false
+}

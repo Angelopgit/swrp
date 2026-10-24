@@ -1,0 +1,70 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Jedi
+@inherits Panel
+
+@*
+	The lightsaber builder in the character screen's Jedi section: hilt parts, finish, kyber crystal (colour and feel),
+	single / dual / staff, and blade length, with what the choices do to the saber. Writes into the Appearance being made,
+	so it's saved with the character; the hangar's mannequin shows the saber as it's built.
+*@
+
+<root class="saber-builder">
+	<label class="section">LIGHTSABER</label>
+	@foreach ( var (label, options, get, set) in Rows )
+	{
+		<div class="look-row">
+			<label class="key">@label</label>
+			<div class="arrow" onclick=@(() => Step( set, get, options.Length, -1 ))>‹</div>
+			<label class="value">@options[Math.Clamp( get(), 0, options.Length - 1 )]</label>
+			<div class="arrow" onclick=@(() => Step( set, get, options.Length, 1 ))>›</div>
+		</div>
+	}
+	@if ( Look is not null )
+	{
+		var d = Look.Saber;
+		var stats = d.Stats;
+		<div class="crystal">
+			<div class="swatch" style="background-color: @d.BladeColor.Hex; box-shadow: 0 0 10px @d.BladeColor.Hex;"></div>
+			<label class="note">@d.CrystalDef.Note</label>
+		</div>
+		<div class="sstats">
+			@foreach ( var (name, v) in new[] { ( "DAMAGE", stats.Damage ), ( "SPEED", stats.Speed ), ( "GUARD", stats.Block ), ( "PARRY", stats.Parry ), ( "REACH", stats.Reach ) } )
+			{
+				<div class="sstat">
+					<label class="k">@name</label>
+					<div class="track"><div class="mid"></div><div class="fill @(v >= 1f ? "up" : "down")" style="left: @(v >= 1f ? 50 : (int)( 50 - ( 1f - v ) * 250f ))%; width: @((int)Math.Clamp( MathF.Abs( v - 1f ) * 250f, 1f, 50f ))%;"></div></div>
+					<label class="v">@($"{( v - 1f ) * 100f:+0;-0;0}%")</label>
+				</div>
+			}
+		</div>
+		<label class="hint">@($"{d.HiltLength * 2.54f:0} cm hilt, {d.BladeLength * 2.54f / 100f:0.00} m blade{( d.IsStaff ? "s" : "" )}{( d.IsDual ? $", {SaberDesign.ShotoBlade * 2.54f / 100f:0.00} m shoto" : "" )}")</label>
+	}
+</root>
+
+@code
+{
+	/// <summary> The looks being built (the character screen's NewLook). </summary>
+	public Appearance Look { get; set; }
+
+	IEnumerable<(string, string[], Func<int>, Action<int>)> Rows => Look is null ? Array.Empty<(string, string[], Func<int>, Action<int>)>() : new (string, string[], Func<int>, Action<int>)[]
+	{
+		( "CRYSTAL", SaberDesign.Crystals.Select( c => c.Name ).ToArray(), () => Look.SaberCrystal, v => Look.SaberCrystal = v ),
+		( "BLADE", SaberDesign.Modes, () => Look.SaberMode, v => Look.SaberMode = v ),
+		( "LENGTH", SaberDesign.Lengths, () => Look.SaberLength, v => Look.SaberLength = v ),
+		( "EMITTER", SaberDesign.Emitters, () => Look.SaberEmitter, v => Look.SaberEmitter = v ),
+		( "GRIP", SaberDesign.Grips, () => Look.SaberGrip, v => Look.SaberGrip = v ),
+		( "POMMEL", SaberDesign.Pommels, () => Look.SaberPommel, v => Look.SaberPommel = v ),
+		( "FINISH", SaberDesign.Finishes, () => Look.SaberFinish, v => Look.SaberFinish = v ),
+	};
+
+	void Step( Action<int> set, Func<int> get, int count, int by )
+	{
+		set( ( get() + by + count ) % count );
+		SwrpAudio.Ui( SwrpAudio.Click );
+		StateHasChanged();
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Look?.ToString() );
+}

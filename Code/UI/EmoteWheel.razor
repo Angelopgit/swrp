@@ -1,0 +1,73 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The emote picker: with empty hands (no blaster drawn), hold right mouse, point at Salute or At Ease and let go (or
+	click one). Emotes are toggles: picking the one you're in, or Stand Down, ends it. SwrpPlayer carries the chosen emote to everyone; SwrpEmotes poses the body.
+*@
+
+<root class="@(SwrpUiState.EmoteOpen ? "open" : "")">
+	@if ( SwrpUiState.EmoteOpen )
+	{
+		<div class="wheel">
+			<div class="opt left @(_hover == SwrpEmotes.Salute ? "hover" : "")" onmouseover=@(() => _hover = SwrpEmotes.Salute) onclick=@(() => Pick( SwrpEmotes.Salute ))>
+				<label class="name">SALUTE</label>
+				<label class="sub">RIGHT HAND TO THE BROW</label>
+			</div>
+			<div class="hub">
+				<label class="hubt">EMOTE</label>
+				<label class="hubs">RELEASE TO CHOOSE</label>
+			</div>
+			<div class="opt right @(_hover == SwrpEmotes.AtEase ? "hover" : "")" onmouseover=@(() => _hover = SwrpEmotes.AtEase) onclick=@(() => Pick( SwrpEmotes.AtEase ))>
+				<label class="name">AT EASE</label>
+				<label class="sub">HANDS BEHIND THE BACK</label>
+			</div>
+			@if ( SwrpPlayer.Local is { Emote: > 0 } )
+			{
+				<div class="opt down @(_hover == -1 ? "hover" : "")" onmouseover=@(() => _hover = -1) onclick=@(() => Pick( SwrpEmotes.None ))>
+					<label class="name">STAND DOWN</label>
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	int _hover;
+
+	void Pick( int emote )
+	{
+		SwrpPlayer.Local?.StartEmote( emote );
+		SwrpUiState.EmoteOpen = false;
+		_hover = 0;
+	}
+
+	protected override void OnUpdate()
+	{
+		var me = SwrpPlayer.Local;
+		if ( me is null ) { SwrpUiState.EmoteOpen = false; return; }
+
+		// opens on right mouse with empty hands; letting go picks what the pointer is on
+		if ( !SwrpUiState.EmoteOpen )
+		{
+			if ( Input.Pressed( "Attack2" ) && me.CanEmote && !SwrpUiState.AnyOpen )
+			{
+				SwrpUiState.EmoteOpen = true;
+				_hover = 0;
+			}
+			return;
+		}
+		if ( !Input.Down( "Attack2" ) || !me.CanEmote )
+		{
+			if ( me.CanEmote && _hover != 0 ) me.StartEmote( _hover < 0 ? SwrpEmotes.None : _hover );
+			SwrpUiState.EmoteOpen = false;
+			_hover = 0;
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( SwrpUiState.EmoteOpen, _hover, SwrpPlayer.Local?.Emote );
+}

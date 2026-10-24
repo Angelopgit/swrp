@@ -1,0 +1,48 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The name floating over another trooper's head: thin white text that drifts gently up and down and fades with distance.
+	Your own isn't drawn; invisible staff don't get one.
+*@
+
+<root class="@(Visible ? "" : "hidden")" style="opacity: @(Opacity.ToString( "0.00", System.Globalization.CultureInfo.InvariantCulture ))">
+	@if ( Player is { } p && Visible )
+	{
+		<label class="name">@p.ShortName</label>
+		<label class="sub">@(p.EventDef is { } ev ? ev.Allegiance?.ShortName ?? "" : p.Faction.Name)</label>
+	}
+</root>
+
+@code
+{
+	SwrpPlayer Player => GetComponentInParent<SwrpPlayer>();
+
+	// Don't draw our own nametag.
+	bool Visible => Player is { } p && p.IsProxy && p.CharacterId is not null && !p.Invisible && !VisorOverlay.HudHidden;
+
+	const float FadeStart = 500f, FadeEnd = 1100f;
+	float Opacity = 1f;
+	float _seed = -1f;
+
+	protected override void OnUpdate()
+	{
+		if ( _seed < 0 ) _seed = Game.Random.Float( 0f, 10f );
+		var p = Player;
+		if ( p is null ) return;
+
+		// a slow drift, out of step with everyone else's
+		var baseZ = 88f * MathF.Max( 0.5f, p.BodyScale );
+		GameObject.LocalPosition = Vector3.Up * ( baseZ + MathF.Sin( ( Time.Now + _seed ) * 1.6f ) * 1.6f );
+
+		var cam = Scene.Camera;
+		var d = cam.IsValid() ? cam.WorldPosition.Distance( GameObject.WorldPosition ) : 0f;
+		var o = 1f - Math.Clamp( ( d - FadeStart ) / ( FadeEnd - FadeStart ), 0f, 1f );
+		if ( MathF.Abs( o - Opacity ) > 0.02f ) Opacity = o;
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Visible, Player?.CharacterId, Player?.RankIndex, Player?.FactionId, Player?.EventCharacter, (int)( Opacity * 50 ) );
+}

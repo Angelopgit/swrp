@@ -1,0 +1,152 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	Mission board and scoreboard: hold Tab. The active order (and a Game Master's event objective), the last few finished
+	orders, every squad and platoon, and everyone aboard by battalion with rank, class and ping. Read-only; officers post
+	and close orders with /order.
+*@
+
+<root class="@(Open ? "open" : "")">
+	@if ( Open && SwrpRoleplay.Current is { } rp )
+	{
+		var state = rp.State;
+		<div class="board">
+			<div class="header">
+				<label class="title">MISSION BOARD</label>
+				<label class="sub">@($"GAR-NET // {Aboard} ABOARD{( SwrpGuide.BoardTotw is { } totw ? $"  ·  TROOPER OF THE WEEK: {totw.ToUpperInvariant()}" : "" )}")</label>
+			</div>
+			@if ( SwrpEvents.HudObjective is { } eventObjective )
+			{
+				<div class="card active high event">
+					<label class="prio">EVENT</label>
+					<label class="otitle">@eventObjective</label>
+				</div>
+			}
+
+			<div class="cols">
+				<div class="col orders">
+					<label class="section">ACTIVE ORDER</label>
+					@if ( state.Order is { } o )
+					{
+						<div class="card active @o.Priority">
+							<label class="prio">@o.Priority.ToUpperInvariant()</label>
+							<label class="otitle">@o.Title</label>
+							@if ( !string.IsNullOrWhiteSpace( o.Objective ) ) { <label class="otext">@o.Objective</label> }
+							@if ( !string.IsNullOrWhiteSpace( o.Rally ) ) { <label class="orally">@($"RALLY: {o.Rally}")</label> }
+							<label class="ometa">@($"{o.Author} · {Ago( o.Posted )}")</label>
+						</div>
+					}
+					else
+					{
+						<label class="empty">No active order. Captains post one with /order.</label>
+					}
+
+					<label class="section">RECENT</label>
+					@foreach ( var r in state.RecentOrders )
+					{
+						<div class="row @r.Status">
+							<label class="status">@r.Status.ToUpperInvariant()</label>
+							<label class="rtitle">@r.Title</label>
+							<label class="rmeta">@($"{r.Author} · {Ago( r.Closed ?? r.Posted )}")</label>
+						</div>
+					}
+				</div>
+
+				<div class="col roster">
+					<label class="section">ON BOARD</label>
+					<div class="scroll">
+						@foreach ( var g in Roster )
+						{
+							<div class="unitrow" style="border-left-color: @g.Color">
+								<label class="rtitle">@g.Name.ToUpperInvariant()</label>
+								<label class="rmeta">@g.Players.Count</label>
+							</div>
+							@foreach ( var p in g.Players )
+							{
+								<div class="prow @(p == SwrpPlayers.Local ? "me" : "")">
+									<label class="pname">@p.FullTitle</label>
+									<label class="pclass">@p.Class.Name</label>
+									<label class="pping">@(p.Network.Owner is { } c ? $"{c.Ping}" : "-")</label>
+								</div>
+							}
+						}
+					</div>
+				</div>
+
+				<div class="col units">
+					<label class="section">PLATOONS</label>
+					@if ( state.Platoons.Count == 0 ) { <label class="empty">None formed. Lieutenants: /platoon create.</label> }
+					@foreach ( var pl in state.Platoons )
+					{
+						<div class="row">
+							<label class="rtitle">@pl.Name</label>
+							<label class="rmeta">@pl.CommanderName</label>
+						</div>
+					}
+
+					<label class="section">SQUADS</label>
+					@if ( state.Squads.Count == 0 ) { <label class="empty">None formed. /squad create [name].</label> }
+					@foreach ( var s in state.Squads )
+					{
+						<div class="row squadrow" style="border-left-color: @s.ColorHex">
+							<label class="rtitle">@($"{s.Name}  ({s.Members.Count}/{SwrpRoleplay.MaxSquadSize})")</label>
+							<label class="rmeta">@MemberNames( s )</label>
+						</div>
+					}
+				</div>
+			</div>
+			<label class="hint">/order · /squad · /platoon · /r · /channel · /dispatch · /briefing — /help for details</label>
+		</div>
+	}
+</root>
+
+@code
+{
+	bool Open => SwrpPlayer.Local is not null && Input.Down( "Score" ) && !SwrpUiState.ChatOpen && !SwrpUiState.CharacterMenuOpen;
+
+	static string Ago( DateTime when )
+	{
+		var span = DateTime.UtcNow - when;
+		return span.TotalMinutes < 1 ? "just now" : span.TotalHours < 1 ? $"{(int)span.TotalMinutes} min ago" : span.TotalDays < 1 ? $"{(int)span.TotalHours} h ago" : $"{(int)span.TotalDays} d ago";
+	}
+
+	string MemberNames( SquadInfo s )
+	{
+		var names = new List<string>();
+		foreach ( var p in SwrpPlayers.Valid )
+			if ( p.CharacterId is not null && s.Members.Contains( p.OwnerSteamId ) )
+				names.Add( s.Leader == p.OwnerSteamId ? $"{p.Rank.Abbreviation} {p.CharacterName} (lead)" : $"{p.Rank.Abbreviation} {p.CharacterName}" );
+		return string.Join( ", ", names );
+	}
+
+	sealed class Group
+	{
+		public string Name;
+		public string Color;
+		public List<SwrpPlayer> Players = new();
+	}
+
+	List<Group> _roster = new();
+	RealTimeSince _sinceRoster = 10;
+	int Aboard => Roster.Sum( g => g.Players.Count );
+
+	/// <summary> Everyone deployed, by battalion, biggest first, officers first inside each; rebuilt once a second. </summary>
+	List<Group> Roster
+	{
+		get
+		{
+			if ( _sinceRoster < 1f ) return _roster;
+			_sinceRoster = 0;
+			_roster = SwrpPlayers.Deployed.Where( p => !p.Invisible || p == SwrpPlayers.Local ).GroupBy( p => p.FactionId )
+				.Select( g => new Group { Name = g.First().Faction.Name, Color = g.First().Faction.ColorHex, Players = g.OrderByDescending( p => p.RankIndex ).ThenBy( p => p.CharacterName ).ToList() } )
+				.OrderByDescending( g => g.Players.Count ).ToList();
+			return _roster;
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Open, SwrpRoleplay.Current?.Version, Open ? (int)( Time.Now ) : 0, SwrpEvents.HudObjective, SwrpGuide.BoardTotw );
+}

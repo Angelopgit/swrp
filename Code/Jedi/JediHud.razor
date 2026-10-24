@@ -1,0 +1,124 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Jedi
+@inherits PanelComponent
+
+@*
+	The Jedi's HUD (only for a Jedi, and only while the saber is out): focus and Force bars, the form, the Force power on F with its cooldown, the level,
+	the blade-lock struggle, and the Force wheel while Z is held. Sits above the ammo readout, bottom right, in the same
+	thin holo lines as the trooper HUD.
+*@
+
+<root>
+	@if ( Me is { } j )
+	{
+		<div class="jedi @(j.SaberOn ? "lit" : "")">
+			<div class="row head">
+				<label class="form">@($"FORM {j.Form.Numeral} · {j.Form.Title.ToUpperInvariant()}")</label>
+				<label class="lvl">@($"LV {j.Level}")</label>
+			</div>
+			<div class="meter focus @(j.Focus < 20 ? "low" : "")">
+				<label class="key">FOC</label>
+				<div class="track"><div class="fill" style="width: @(Pct( j.Focus, j.MaxFocus ))%"></div></div>
+				<label class="num">@MathF.Round( j.Focus )</label>
+			</div>
+			<div class="meter force">
+				<label class="key">FRC</label>
+				<div class="track"><div class="fill" style="width: @(Pct( j.ForcePoints, j.MaxForce ))%"></div></div>
+				<label class="num">@MathF.Round( j.ForcePoints )</label>
+			</div>
+			<div class="row power">
+				@if ( JediForce.Get( j.SelectedPower ) is { } p )
+				{
+					var cd = j.CooldownLeft( p.Index );
+					<label class="glyph @(cd > 0 || j.ForcePoints < p.Cost ? "wait" : "")">@p.Glyph</label>
+					<label class="pname">@($"{p.Title.ToUpperInvariant()}  [F]")</label>
+					@if ( cd > 0 )
+					{
+						<label class="cd">@($"{cd:0.0}s")</label>
+					}
+				}
+				<label class="hint">@(j.SaberOn ? "Z POWERS · R FORM · P TRAINING" : "H IGNITE · Z POWERS · P TRAINING")</label>
+			</div>
+			<div class="xp"><div class="fill" style="width: @(Pct( j.Xp, JediProgress.XpToNext( j.Level ) ))%"></div></div>
+			@if ( j.SkillPoints > 0 )
+			{
+				<label class="points">@($"{j.SkillPoints} SKILL POINT{(j.SkillPoints == 1 ? "" : "S")} TO SPEND  [P]")</label>
+			}
+		</div>
+
+		@if ( JediUi.SinceFlash < 0.9f && JediUi.FlashText is { } flash )
+		{
+			<div class="flash @(JediUi.FlashGood ? "good" : "bad")" style="opacity: @((1f - MathF.Max( 0f, JediUi.SinceFlash - 0.5f ) / 0.4f).ToString( System.Globalization.CultureInfo.InvariantCulture ))"><label>@flash</label></div>
+		}
+
+		@if ( j.LockWith != Guid.Empty )
+		{
+			<div class="lock">
+				<label class="t">BLADE LOCK</label>
+				<div class="bar">
+					<div class="mine" style="width: @(MathF.Round( ( j.LockMeter + 1f ) * 50f ))%"></div>
+				</div>
+				<label class="s">MASH ATTACK TO DRIVE THEM BACK</label>
+			</div>
+		}
+		else if ( j.Motion.Kind == MotionKind.React && j.ReactType == (int)ReactKind.GuardBreak )
+		{
+			<div class="lock broken"><label class="t">GUARD BROKEN</label></div>
+		}
+
+		@if ( JediUi.WheelOpen )
+		{
+			var known = JediForce.Known( j );
+			<div class="wheel">
+				@for ( var i = 0; i < known.Count; i++ )
+				{
+					var p = known[i];
+					var a = i / (float)known.Count * MathF.PI * 2f;
+					var x = MathF.Sin( a ) * 150f;
+					var y = -MathF.Cos( a ) * 150f;
+					<div class="opt @(JediUi.WheelHover == p.Index ? "hover" : "") @(j.SelectedPower == p.Index ? "sel" : "")" style="left: @(MathF.Round( 210f + x - 55f ))px; top: @(MathF.Round( 210f + y - 55f ))px;">
+						<label class="g">@p.Glyph</label>
+						<label class="n">@p.Title.ToUpperInvariant()</label>
+						<label class="c">@($"{p.Cost:0} FP")</label>
+					</div>
+				}
+				<div class="hub">
+					<label class="t">THE FORCE</label>
+					<label class="s">RELEASE TO CHOOSE</label>
+				</div>
+			</div>
+		}
+	}
+</root>
+
+@code
+{
+	JediCombat Me => JediCombat.Local is { IsJedi: true } j && SwrpUiState.SpectateSteamId == 0 && !VisorOverlay.HudHidden && InUse( j ) ? j : null;
+
+	/// <summary> Only while the saber is out (lit, thrown or locked), or the Force wheel or a parry flash is up: put away, the HUD goes too. </summary>
+	static bool InUse( JediCombat j ) => j.SaberOn || j.Thrown || j.LockWith != Guid.Empty || JediUi.WheelOpen || JediUi.SinceFlash < 0.9f;
+
+	static int Pct( float v, float max ) => (int)Math.Clamp( v / MathF.Max( 1f, max ) * 100f, 0f, 100f );
+
+	/// <summary> Put the Jedi HUD and training panel on the scene's UI (scenes built before they existed). </summary>
+	public static void Ensure( Scene scene )
+	{
+		if ( _ensuredFor == scene ) return;
+		var ui = scene.GetAllComponents<ScreenPanel>().FirstOrDefault( p => p.GameObject.Name == "UI" );
+		if ( !ui.IsValid() ) return;
+		_ensuredFor = scene;
+		if ( ui.GetComponent<JediHud>() is null ) ui.Components.Create<JediHud>();
+		if ( ui.GetComponent<JediSkillsPanel>() is null ) ui.Components.Create<JediSkillsPanel>();
+	}
+	static Scene _ensuredFor;
+
+	protected override int BuildHash()
+	{
+		var j = Me;
+		if ( j is null ) return 0;
+		return HashCode.Combine( HashCode.Combine( j.SaberOn, (int)j.Focus, (int)j.ForcePoints, j.FormId, j.Level, j.Xp, j.SkillPoints, j.SelectedPower ),
+			HashCode.Combine( j.LockWith, (int)( j.LockMeter * 50 ), JediUi.WheelOpen, JediUi.WheelHover, JediUi.SinceFlash < 0.9f ? (int)( JediUi.SinceFlash * 20 ) : -1, (int)( j.CooldownLeft( j.SelectedPower ) * 10 ), j.Motion.Kind, j.ReactType ) );
+	}
+}

@@ -1,0 +1,90 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Jedi
+@inherits PanelComponent
+
+@*
+	Jedi training (P): level and experience, skill points, and the three branches (forms, techniques, the Force).
+	Clicking something you can learn asks the host to teach it (it checks the level, the prerequisite and the points).
+*@
+
+<root class="@(Open ? "open" : "")">
+	@if ( Open && Me is { } j )
+	{
+		<div class="panel">
+			<div class="top">
+				<div class="title">
+					<label class="t">JEDI TRAINING</label>
+					<label class="s">@($"{SwrpPlayer.Local?.CharacterName ?? ""}  ·  LEVEL {j.Level}  ·  {j.Xp} / {JediProgress.XpToNext( j.Level )} XP")</label>
+				</div>
+				<label class="pts @(j.SkillPoints > 0 ? "some" : "")">@($"{j.SkillPoints} POINT{(j.SkillPoints == 1 ? "" : "S")}")</label>
+				<div class="close" onclick=@(() => JediUi.SkillsOpen = false)>✕</div>
+			</div>
+			<div class="xpbar"><div class="fill" style="width: @((int)Math.Clamp( j.Xp * 100f / Math.Max( 1, JediProgress.XpToNext( j.Level ) ), 0, 100 ))%"></div></div>
+			<div class="cols">
+				@foreach ( var branch in new[] { JediProgress.BranchForms, JediProgress.BranchTech, JediProgress.BranchForce } )
+				{
+					<div class="col">
+						<label class="branch">@branch</label>
+						@foreach ( var s in JediProgress.Skills.Where( x => x.Branch == branch ) )
+						{
+							var state = StateOf( j, s, out var why );
+							<div class="skill @state" onclick=@(() => Learn( j, s, state ))>
+								<div class="row">
+									<label class="name">@s.Title.ToUpperInvariant()</label>
+									<label class="req">@(state == "known" ? "LEARNED" : state == "open" ? ( s.Cost == 1 ? "1 POINT" : $"{s.Cost} POINTS" ) : $"LV {s.Level}")</label>
+								</div>
+								<label class="desc">@s.Description</label>
+								@if ( state == "locked" && why is not null )
+								{
+									<label class="why">@why</label>
+								}
+								@if ( s.Id.StartsWith( "form_" ) && state == "known" )
+								{
+									<label class="active">@(j.FormId == s.Id[5..] ? "IN USE" : "R CYCLES FORMS")</label>
+								}
+							</div>
+						}
+					</div>
+				}
+			</div>
+			<label class="foot">Experience comes from fighting: saber hits, kills, parries, deflected bolts, blocks and the Force.</label>
+		</div>
+	}
+</root>
+
+@code
+{
+	static bool Open => JediUi.SkillsOpen && Me is not null;
+	static JediCombat Me => JediCombat.Local is { IsJediOrder: true } j ? j : null;
+
+	static string StateOf( JediCombat j, JediSkill s, out string why )
+	{
+		why = null;
+		if ( j.Knows( s.Id ) ) return "known";
+		if ( s.Id == "force_lightning" && !JediCombat.LightningAllowed ) { why = "Not allowed on this server."; return "locked"; }
+		if ( j.Level < s.Level ) { why = $"Needs level {s.Level}."; return "locked"; }
+		if ( s.Requires is { } req && !j.Knows( req ) ) { why = $"Needs {JediProgress.Skill( req )?.Title ?? req}."; return "locked"; }
+		if ( j.SkillPoints < s.Cost ) { why = "No skill points."; return "locked"; }
+		return "open";
+	}
+
+	static void Learn( JediCombat j, JediSkill s, string state )
+	{
+		if ( state != "open" ) { SwrpAudio.Ui( SwrpAudio.Deny ); return; }
+		j.Learn( s.Id );
+		SwrpAudio.Ui( SwrpAudio.Confirm );
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( JediUi.SkillsOpen && Me is null ) JediUi.SkillsOpen = false;
+	}
+
+	protected override int BuildHash()
+	{
+		var j = Me;
+		return HashCode.Combine( Open, j?.Level, j?.Xp, j?.SkillPoints, j?.SkillList, j?.FormId );
+	}
+}

@@ -1,0 +1,249 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$amber: #ffb547;
+$red: #ff4a3d;
+$green: #7dffa1;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+ComlinkPanel {
+	position: absolute;
+	right: 40px;
+	top: 36%;
+	width: 380px;
+	pointer-events: none;
+	font-family: Orbitron;
+	color: $text;
+	transition: opacity 0.4s ease-out;
+
+	&.hidden {
+		opacity: 0;
+	}
+
+	&.quiet {
+		opacity: 0.72;
+	}
+}
+
+.frame {
+	flex-direction: column;
+	padding: 8px 10px 10px 12px;
+	background: linear-gradient( to right, rgba( 6, 14, 24, 0.82 ), rgba( 6, 14, 24, 0.55 ) );
+	border-left: 3px solid $holo;
+	border-top: 1px solid $holo-dim;
+	border-bottom: 1px solid $holo-dim;
+}
+
+.head {
+	flex-direction: row;
+	align-items: center;
+	padding-bottom: 5px;
+	border-bottom: 1px solid $holo-dim;
+
+	.glyphs {
+		flex-direction: row;
+		margin-right: 8px;
+
+		.g {
+			height: 6px;
+			margin-right: 3px;
+			background-color: $holo-dim;
+			border-radius: 1px;
+		}
+	}
+
+	.title {
+		font-size: 13px;
+		font-weight: 800;
+		letter-spacing: 4px;
+		color: $holo;
+		flex-grow: 1;
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.freq {
+		white-space: nowrap;
+		font-size: 10px;
+		letter-spacing: 1px;
+		color: $muted;
+	}
+}
+
+.net {
+	flex-direction: row;
+	align-items: flex-end;
+	margin-top: 6px;
+
+	.signal {
+		flex-direction: row;
+		align-items: flex-end;
+		height: 14px;
+		margin-right: 8px;
+
+		.bar {
+			width: 3px;
+			margin-right: 2px;
+			background-color: $holo-dim;
+		}
+
+		&.rx .bar {
+			background-color: $holo;
+		}
+	}
+
+	.netname {
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 2px;
+	}
+}
+
+.chips {
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin-top: 6px;
+
+	.chip {
+		flex-direction: row;
+		align-items: center;
+		font-size: 9px;
+		letter-spacing: 1px;
+		padding: 2px 6px;
+		margin-right: 5px;
+		margin-bottom: 3px;
+		color: $muted;
+		border: 1px solid rgba( 230, 242, 251, 0.18 );
+		background-color: rgba( 230, 242, 251, 0.04 );
+
+		&.on {
+			color: $green;
+			border-color: rgba( 125, 255, 161, 0.45 );
+		}
+
+		&.off {
+			color: $red;
+			border-color: rgba( 255, 74, 61, 0.5 );
+		}
+
+		&.tx {
+			color: $amber;
+			border-color: rgba( 255, 181, 71, 0.6 );
+			background-color: rgba( 255, 181, 71, 0.1 );
+		}
+
+		.key {
+			margin-left: 4px;
+			color: $text;
+			opacity: 0.7;
+		}
+	}
+}
+
+.live {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 7px;
+	padding: 5px 6px;
+	background-color: rgba( 111, 211, 255, 0.1 );
+	border-left: 2px solid $holo;
+
+	&.me {
+		background-color: rgba( 255, 181, 71, 0.1 );
+		border-left-color: $amber;
+
+		.w {
+			background-color: $amber;
+		}
+
+		.state {
+			color: $amber;
+		}
+	}
+
+	.wave {
+		flex-direction: row;
+		align-items: center;
+		height: 22px;
+		width: 72px;
+		margin-right: 8px;
+
+		.w {
+			width: 3px;
+			margin-right: 2px;
+			background-color: $holo;
+			border-radius: 1px;
+		}
+	}
+
+	.who {
+		flex-direction: column;
+
+		.callsign {
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: 1px;
+		}
+
+		.state {
+			font-size: 8px;
+			letter-spacing: 2px;
+			color: $holo;
+		}
+	}
+}
+
+.log {
+	flex-direction: column;
+	margin-top: 6px;
+
+	.msg {
+		flex-direction: column;
+		margin-top: 5px;
+		padding-left: 6px;
+		border-left: 1px solid $holo-dim;
+
+		.meta {
+			flex-direction: row;
+			align-items: center;
+		}
+
+		.tag {
+			font-size: 8px;
+			letter-spacing: 1px;
+			padding: 1px 4px;
+			margin-right: 6px;
+			color: #08121c;
+			background-color: $holo;
+		}
+
+		.from {
+			font-size: 9px;
+			letter-spacing: 1px;
+			color: $holo;
+		}
+
+		.text {
+			font-family: Poppins;
+			font-size: 13px;
+			color: $text;
+			margin-top: 1px;
+		}
+
+		&.dispatch {
+			border-left-color: $amber;
+
+			.tag {
+				background-color: $amber;
+			}
+
+			.from {
+				color: $amber;
+			}
+		}
+
+		&.fresh {
+			background-color: rgba( 111, 211, 255, 0.12 );
+		}
+	}
+}

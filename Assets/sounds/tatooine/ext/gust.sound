@@ -1,0 +1,1 @@
+{"volume": 0.45, "sounds": ["sounds/tatooine/ext/gust_0.wav", "sounds/tatooine/ext/gust_1.wav", "sounds/tatooine/ext/gust_2.wav", "sounds/tatooine/ext/gust_3.wav", "sounds/tatooine/ext/gust_4.wav", "sounds/tatooine/ext/gust_5.wav"], "VolumeRandom": 0.1, "Pitch": 1.0, "PitchRandom": 0.06, "DistanceMax": 2000.0, "UI": true}

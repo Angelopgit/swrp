@@ -1,0 +1,244 @@
+@import "../Feel/_feel.scss";
+$accent: $feel-holo;
+$held: #f2cf5b;
+
+InventoryPanel {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Poppins;
+	color: #dfe8f2;
+	z-index: 50;
+
+	&.hidden {
+		display: none;
+		pointer-events: none;
+	}
+
+	&.visible {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.25 );
+	}
+}
+
+.window {
+	width: 452px;
+	flex-direction: column;
+	padding: 14px 16px;
+	background-color: rgba( 10, 16, 26, 0.94 );
+	border: 1px solid rgba( 111, 211, 255, 0.3 );
+	border-radius: 5px;
+	transition: all 0.12s ease-out;
+
+	&:intro {
+		opacity: 0;
+		transform: scale( 0.97 );
+	}
+}
+
+.header {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 10px;
+
+	.title {
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: 3px;
+		color: white;
+		margin-right: 10px;
+	}
+
+	.owner {
+		flex-grow: 1;
+		font-size: 11px;
+		color: rgba( 223, 232, 242, 0.55 );
+	}
+
+	.used {
+		font-size: 11px;
+		color: rgba( 223, 232, 242, 0.45 );
+		margin-right: 6px;
+	}
+
+	.close {
+		font-size: 16px;
+		padding: 2px 8px;
+		cursor: pointer;
+	}
+}
+
+.quickbar {
+	flex-direction: row;
+	gap: 4px;
+	margin-bottom: 8px;
+
+	.quick {
+		flex-grow: 1;
+		width: 0;
+		height: 30px;
+		flex-direction: row;
+		align-items: center;
+		padding: 0 6px;
+		background-color: rgba( 111, 211, 255, 0.08 );
+		border: 1px solid rgba( 111, 211, 255, 0.2 );
+		border-radius: 3px;
+		cursor: pointer;
+		overflow: hidden;
+
+		&:hover { background-color: rgba( 111, 211, 255, 0.18 ); }
+
+		&.empty {
+			cursor: default;
+			opacity: 0.4;
+		}
+
+		&.in-hand {
+			border-color: $held;
+			background-color: rgba( 242, 207, 91, 0.14 );
+		}
+
+		.num {
+			font-size: 11px;
+			font-weight: 700;
+			color: $accent;
+			margin-right: 5px;
+		}
+
+		.qname {
+			font-size: 10px;
+			white-space: nowrap;
+			color: rgba( 223, 232, 242, 0.85 );
+		}
+	}
+}
+
+.grid {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.slot {
+	width: 66px;
+	height: 52px;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba( 255, 255, 255, 0.04 );
+	border: 1px solid rgba( 255, 255, 255, 0.07 );
+	border-radius: 3px;
+	cursor: pointer;
+	position: relative;
+
+	&:hover { background-color: rgba( 111, 211, 255, 0.1 ); }
+
+	&.selected {
+		border-color: $accent;
+		background-color: rgba( 111, 211, 255, 0.18 );
+	}
+
+	&.in-hand {
+		border-color: $held;
+		background-color: rgba( 242, 207, 91, 0.12 );
+	}
+
+	&.empty {
+		cursor: default;
+		opacity: 0.45;
+	}
+
+	&.unknown i { color: #ff8a7a; }
+
+	i {
+		font-size: 24px;
+		color: white;
+	}
+
+	.key {
+		position: absolute;
+		left: 4px;
+		top: 2px;
+		font-size: 10px;
+		font-weight: 700;
+		color: $accent;
+	}
+
+	.count {
+		position: absolute;
+		right: 4px;
+		bottom: 2px;
+		font-size: 11px;
+		font-weight: 700;
+		color: $held;
+	}
+}
+
+.details {
+	flex-direction: row;
+	align-items: center;
+	min-height: 48px;
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px solid rgba( 111, 211, 255, 0.18 );
+
+	.info {
+		flex-grow: 1;
+		flex-direction: column;
+		margin-right: 8px;
+	}
+
+	.item-name {
+		font-size: 13px;
+		font-weight: 700;
+		color: white;
+	}
+
+	.item-desc {
+		font-size: 11px;
+		margin-top: 2px;
+		color: rgba( 223, 232, 242, 0.7 );
+	}
+}
+
+.buttons {
+	flex-direction: row;
+	flex-shrink: 0;
+	gap: 5px;
+}
+
+.button {
+	padding: 6px 11px;
+	font-size: 12px;
+	font-weight: 600;
+	border-radius: 3px;
+	cursor: pointer;
+	background-color: rgba( 255, 255, 255, 0.08 );
+
+	&:hover { background-color: rgba( 255, 255, 255, 0.16 ); }
+
+	&.primary {
+		background-color: #2a6fb8;
+		color: white;
+
+		&:hover { background-color: #3a86d6; }
+	}
+}
+
+// ---- Sounds (events live in Assets/sounds/ui; see SwrpAudio.cs) ----
+.button, .close, .slot, .quick {
+	&:hover {
+		sound-in: "sounds/ui/ui_hover.sound";
+	}
+
+	&:active {
+		sound-in: "sounds/ui/ui_click.sound";
+	}
+}
+
+.button.primary:active {
+	sound-in: "sounds/ui/ui_confirm.sound";
+}

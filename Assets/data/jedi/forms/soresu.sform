@@ -1,0 +1,51 @@
+{
+  "Id": "soresu",
+  "Title": "Soresu",
+  "Numeral": "III",
+  "FormId": 2,
+  "AnimationSet": "saber_soresu",
+  "RequiredLevel": 3,
+  "Description": "The way of the mynock. Tight, economical defence: blocks cost far less focus and deflected bolts go where you look.",
+  "Tempo": 0.96,
+  "Damage": 0.85,
+  "FocusCost": 7.0,
+  "BlockCost": 0.6,
+  "ParryWindow": 0.18,
+  "DeflectSkill": 0.95,
+  "Riposte": 1.2,
+  "BlockMove": 0.9,
+  "LockStrength": 1.05,
+  "GuardPitch": 70.0,
+  "GuardYaw": 25.0,
+  "Crouch": 0.25,
+  "Reach": 0.9,
+  "StanceWidth": 11.0,
+  "StanceDepth": 7.0,
+  "StanceTurn": 22.0,
+  "StanceShift": -1.5,
+  "StanceBend": -1.0,
+  "CutTilt": 0.5,
+  "WristLead": 0.85,
+  "BodyDrive": 0.75,
+  "BlockOut": 10.0,
+  "BlockLean": 25.0,
+  "BlockHeight": 0.0,
+  "GuardHand": "12,-1,-3",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 1.0,
+      "Damage": 0.95,
+      "Arc": 120.0
+    },
+    {
+      "Direction": "Any",
+      "Speed": 1.05,
+      "Damage": 1.0,
+      "Arc": 120.0
+    }
+  ],
+  "Version": 6,
+  "Requires": "",
+  "OneHanded": false
+}

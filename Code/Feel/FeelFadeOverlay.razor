@@ -1,0 +1,31 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Feel
+@inherits PanelComponent
+
+@*
+	The fade layer (made by FeelSystem over everything, menus included): FeelTransition's black or white. Never takes the mouse.
+*@
+
+<root>
+	@if ( FeelTransition.Alpha > 0.002f )
+	{
+		<div class="fade" style="background-color: @Css"></div>
+	}
+</root>
+
+@code
+{
+	static string Css
+	{
+		get
+		{
+			var c = FeelTransition.Tint;
+			var inv = System.Globalization.CultureInfo.InvariantCulture;
+			return $"rgba( {(int)( c.r * 255 )}, {(int)( c.g * 255 )}, {(int)( c.b * 255 )}, {FeelTransition.Alpha.ToString( "0.000", inv )} )";
+		}
+	}
+
+	protected override int BuildHash() => HashCode.Combine( (int)( FeelTransition.Alpha * 255 ), FeelTransition.Tint );
+}

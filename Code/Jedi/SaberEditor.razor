@@ -1,0 +1,71 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Jedi
+@inherits Panel
+
+@*
+	Rebuild an existing Jedi's lightsaber from the character screen (the roster's dossier): the same rows as at enlistment,
+	shown live on the hangar mannequin, saved to the character with SAVE LIGHTSABER (the host keeps the looks and only
+	takes the saber parts).
+*@
+
+<root class="saber-editor">
+	@if ( Character is not null && _look is not null )
+	{
+		<SaberBuilder Look=@_look />
+		@if ( Changed )
+		{
+			<div class="saber-save">
+				<div class="button ghost" onclick=@Reset>UNDO</div>
+				<div class="button primary" onclick=@Save>SAVE LIGHTSABER</div>
+			</div>
+		}
+	}
+</root>
+
+@code
+{
+	public CharacterSummary Character { get; set; }
+
+	Appearance _look;
+	string _for, _base;
+
+	static string _previewFor, _preview;
+
+	/// <summary> The looks the hangar should show for a roster character: the saber being rebuilt, or what's saved. </summary>
+	public static string PreviewFor( CharacterSummary c ) => c is not null && c.Id == _previewFor && _preview is not null ? _preview : c?.Appearance;
+
+	bool Changed => _look is not null && _look.ToString() != _base;
+
+	public override void Tick()
+	{
+		base.Tick();
+		if ( Character is null ) return;
+		if ( _for != Character.Id || _base != Appearance.Parse( Character.Appearance ).ToString() && !Changed )
+		{
+			_for = Character.Id;
+			_look = Appearance.Parse( Character.Appearance );
+			_base = _look.ToString();
+		}
+		_previewFor = Character.Id;
+		_preview = _look?.ToString();
+	}
+
+	void Reset()
+	{
+		_look = Appearance.Parse( Character.Appearance );
+		_base = _look.ToString();
+		StateHasChanged();
+	}
+
+	void Save()
+	{
+		JediNet.RequestSaber( Character.Id, _look.ToString() );
+		_base = _look.ToString();
+		SwrpAudio.Ui( SwrpAudio.Confirm );
+		StateHasChanged();
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Character?.Id, _look?.ToString(), _base );
+}

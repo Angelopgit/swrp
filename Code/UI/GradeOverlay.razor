@@ -1,0 +1,34 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The area colour grade (SwrpPostFx): a faint full-screen tint under the HUD. Never takes the mouse.
+*@
+
+<root style="background-color: @Css">
+</root>
+
+@code
+{
+	// the area grade, washed out to blue-white by the hyperspace jump's flash
+	Color Tint
+	{
+		get
+		{
+			var c = SwrpPostFx.OverlayTint;
+			var sub = SwrpBactaPod.LocalSubmerged;
+			if ( sub > 0f ) c = Color.Lerp( c, new Color( 0.3f, 1f, 0.55f, 0.32f ), sub );
+			var f = SwrpSpace.Flash;
+			if ( f <= 0f ) return c;
+			var a = MathF.Max( c.a, f * 0.85f );
+			return Color.Lerp( c.WithAlpha( a ), new Color( 0.85f, 0.93f, 1f, a ), f );
+		}
+	}
+
+	string Css => $"rgba( {(int)( Tint.r * 255 )}, {(int)( Tint.g * 255 )}, {(int)( Tint.b * 255 )}, {Tint.a.ToString( "0.000", System.Globalization.CultureInfo.InvariantCulture )} )";
+
+	protected override int BuildHash() => HashCode.Combine( (int)( Tint.r * 255 ), (int)( Tint.g * 255 ), (int)( Tint.b * 255 ), (int)( Tint.a * 1000 ) );
+}

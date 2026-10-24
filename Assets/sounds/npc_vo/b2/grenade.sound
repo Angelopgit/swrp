@@ -1,0 +1,1 @@
+{"volume": 1.0, "sounds": ["sounds/npc_vo/b2/grenade_00.wav", "sounds/npc_vo/b2/grenade_01.wav", "sounds/npc_vo/b2/grenade_02.wav", "sounds/npc_vo/b2/grenade_03.wav"], "VolumeRandom": 0.0, "Pitch": 1.0, "PitchRandom": 0.03, "DistanceMax": 2600.0, "UI": false}

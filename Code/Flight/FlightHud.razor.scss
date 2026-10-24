@@ -1,0 +1,490 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$amber: #ffb547;
+$red: #ff4a3d;
+$green: #7dffa1;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+FlightHud {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	font-family: Orbitron;
+	color: $text;
+
+	&.hidden {
+		display: none;
+	}
+}
+
+.cross {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 26px;
+	height: 26px;
+	margin-left: -13px;
+	margin-top: -13px;
+	border: 1px solid $holo-dim;
+	border-radius: 13px;
+
+	.h, .v {
+		position: absolute;
+		background-color: $holo;
+	}
+
+	.h {
+		left: 11px;
+		top: 12px;
+		width: 4px;
+		height: 2px;
+	}
+
+	.v {
+		left: 12px;
+		top: 11px;
+		width: 2px;
+		height: 4px;
+	}
+}
+
+.pipper {
+	position: absolute;
+	width: 18px;
+	height: 18px;
+	margin-left: -9px;
+	margin-top: -9px;
+	border: 2px solid $green;
+	transform: rotate( 45deg );
+	opacity: 0.85;
+}
+
+.left, .right {
+	position: absolute;
+	bottom: 56px;      // the infantry vitals step aside in a seat (SwrpHud); chat sits above (ChatPanel .invehicle)
+	flex-direction: column;
+	padding: 10px 14px;
+	background-color: rgba( 6, 16, 26, 0.55 );
+	border-left: 2px solid $holo;
+	min-width: 260px;
+}
+
+.left {
+	left: 40px;
+}
+
+.right {
+	right: 40px;
+	border-left: none;
+	border-right: 2px solid $holo;
+	align-items: flex-end;
+}
+
+.craft {
+	font-size: 18px;
+	color: $holo;
+	letter-spacing: 2px;
+}
+
+.seat {
+	font-size: 11px;
+	color: $muted;
+	margin-bottom: 8px;
+	letter-spacing: 1px;
+}
+
+.row {
+	flex-direction: row;
+	align-items: center;
+	margin-top: 4px;
+
+	.k {
+		width: 56px;
+		font-size: 11px;
+		color: $muted;
+	}
+
+	.v {
+		font-size: 20px;
+		min-width: 70px;
+
+		&.on { color: $green; font-size: 14px; }
+		&.off { color: $amber; font-size: 14px; }
+	}
+
+	.u {
+		font-size: 10px;
+		color: $muted;
+		margin-left: 6px;
+	}
+}
+
+.bar {
+	width: 170px;
+	height: 8px;
+	background-color: rgba( 111, 211, 255, 0.15 );
+
+	.fill {
+		height: 100%;
+		background-color: $holo;
+	}
+
+	&.hull .fill { background-color: $green; }
+	&.hull.low .fill { background-color: $red; }
+}
+
+.weapon {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 4px;
+
+	.key {
+		font-size: 10px;
+		color: $holo;
+		border: 1px solid $holo-dim;
+		padding: 1px 4px;
+		margin-right: 8px;
+	}
+
+	.name {
+		font-size: 13px;
+	}
+
+	.ammo {
+		font-size: 14px;
+		margin-left: 10px;
+		color: $amber;
+
+		&.empty { color: $red; }
+	}
+}
+
+.crew {
+	flex-direction: column;
+	align-items: flex-end;
+	margin-top: 8px;
+
+	.c {
+		font-size: 10px;
+		color: $muted;
+
+		&.me { color: $holo; }
+	}
+}
+
+.keys {
+	position: absolute;
+	bottom: 16px;      // its own row, under the panels
+	left: 0;
+	width: 100%;
+	justify-content: center;
+	text-shadow: 0 1px 3px rgba( 0, 0, 0, 0.9 );
+	font-size: 11px;
+	color: $muted;
+	letter-spacing: 1px;
+}
+
+.warn {
+	position: absolute;
+	top: 30%;
+	width: 100%;
+	justify-content: center;
+	font-size: 22px;
+	color: $red;
+	letter-spacing: 3px;
+
+	&.soft {
+		color: $amber;
+		font-size: 16px;
+	}
+}
+
+.edge {
+	position: absolute;
+	top: 22%;
+	left: 0;
+	right: 0;
+	text-align: center;
+	justify-content: center;
+	font-size: 13px;
+	letter-spacing: 3px;
+	color: #ffb040;
+	text-shadow: 0 1px 3px black;
+}
+
+// ----- pilot instruments (2026-10-21) -----
+
+.ladder {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 0px;
+	height: 0px;
+	transform-origin: 0 0;
+
+	.rung {
+		position: absolute;
+		width: 460px;
+		height: 14px;
+		margin-left: -230px;
+		margin-top: -7px;
+		flex-direction: row;
+		align-items: center;
+		opacity: 0.75;
+
+		.arm {
+			width: 120px;
+			height: 2px;
+			background-color: $green;
+		}
+
+		.gap {
+			flex-grow: 1;
+		}
+
+		.n {
+			font-size: 11px;
+			color: $green;
+			margin: 0 6px;
+			min-width: 20px;
+		}
+
+		&.below .arm {
+			background-color: transparent;
+			border-top: 2px dashed $green;
+		}
+
+		&.horizon {
+			width: 840px;
+			margin-left: -420px;
+			opacity: 0.9;
+
+			.arm { width: 340px; }
+			.n { color: transparent; }
+		}
+	}
+}
+
+.fpm {
+	position: absolute;
+	width: 0px;
+	height: 0px;
+
+	.ring {
+		position: absolute;
+		left: -9px;
+		top: -9px;
+		width: 18px;
+		height: 18px;
+		border: 2px solid $green;
+		border-radius: 9px;
+	}
+
+	.wing {
+		position: absolute;
+		top: -1px;
+		width: 14px;
+		height: 2px;
+		background-color: $green;
+
+		&.l { left: -23px; }
+		&.r { left: 9px; }
+	}
+
+	.fin {
+		position: absolute;
+		left: -1px;
+		top: -17px;
+		width: 2px;
+		height: 8px;
+		background-color: $green;
+	}
+}
+
+.heading {
+	position: absolute;
+	top: 70px;      // under the location banner
+	left: 50%;
+	width: 480px;
+	height: 44px;
+	margin-left: -240px;
+	overflow: hidden;
+	border-bottom: 1px solid $holo-dim;
+
+	.tape {
+		position: absolute;
+		top: 0;
+		width: 480px;
+		height: 30px;
+	}
+
+	.tick {
+		position: absolute;
+		bottom: 0;
+		width: 1px;
+		height: 6px;
+		background-color: $holo-dim;
+
+		&.major {
+			height: 12px;
+			background-color: $holo;
+		}
+
+		label {
+			position: absolute;
+			bottom: 14px;
+			left: -12px;
+			width: 24px;
+			justify-content: center;
+			font-size: 11px;
+			color: $holo;
+		}
+	}
+
+	.caret {
+		position: absolute;
+		left: 234px;
+		top: 30px;
+		width: 12px;
+		height: 12px;
+		border-left: 2px solid $amber;
+		border-top: 2px solid $amber;
+		transform: rotate( 45deg );
+	}
+
+	.hdg {
+		position: absolute;
+		left: 0;
+		width: 480px;
+		top: 0;
+		justify-content: center;
+		font-size: 0px;
+	}
+}
+
+.tapebox {
+	position: absolute;
+	top: 50%;
+	margin-top: -46px;
+	width: 116px;
+	height: 92px;
+	padding: 8px 10px;
+	flex-direction: column;
+	background-color: rgba( 6, 16, 26, 0.45 );
+	border: 1px solid $holo-dim;
+
+	.k { font-size: 10px; color: $muted; letter-spacing: 2px; }
+	.big { font-size: 30px; color: $green; }
+	.u { font-size: 10px; color: $muted; }
+	.vs { font-size: 11px; color: $holo; margin-top: 2px; &.down { color: $amber; } }
+
+	.thr {
+		position: absolute;
+		left: -12px;
+		top: 0;
+		width: 6px;
+		height: 100%;
+		background-color: rgba( 111, 211, 255, 0.15 );
+		flex-direction: column-reverse;
+
+		.fill { width: 100%; background-color: $holo; }
+	}
+
+	&.speed { left: 50%; margin-left: -330px; align-items: flex-end; border-right: 2px solid $green; }
+	&.alt { left: 50%; margin-left: 214px; border-left: 2px solid $green; }
+}
+
+.boost {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: 120px;
+	margin-left: -110px;
+	width: 220px;
+	flex-direction: column;
+	align-items: center;
+
+	.k { font-size: 10px; color: $muted; letter-spacing: 3px; }
+
+	.bar {
+		width: 220px;
+		height: 6px;
+		margin-top: 3px;
+		.fill { background-color: $holo; }
+	}
+
+	&.lit {
+		.k { color: $amber; }
+		.bar .fill { background-color: $amber; }
+	}
+
+	&.hot {
+		.k { color: $red; }
+		.bar .fill { background-color: $red; }
+	}
+}
+
+.lock {
+	position: absolute;
+	border: 2px solid $amber;
+
+	.tag {
+		position: absolute;
+		top: -18px;
+		left: 0;
+		font-size: 10px;
+		color: $amber;
+		letter-spacing: 2px;
+	}
+
+	&.locked {
+		border-color: $red;
+		.tag { color: $red; }
+	}
+}
+
+.lead {
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	margin-left: -7px;
+	margin-top: -7px;
+	border: 2px solid $red;
+	border-radius: 7px;
+}
+
+.pct {
+	font-size: 11px;
+	margin-left: 8px;
+	color: $muted;
+}
+
+// third person: a compact status under the sight
+.compact {
+	position: absolute;
+	bottom: 96px;      // the lower middle, above the keys line (it sat on the craft in the chase view)
+	left: 50%;
+	margin-left: -120px;
+	width: 240px;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: baseline;
+
+	.v { font-size: 16px; color: $green; margin-left: 10px; }
+	.u { font-size: 9px; color: $muted; margin-left: 3px; }
+
+	.heat {
+		width: 160px;
+		height: 3px;
+		margin-top: 4px;
+		background-color: rgba( 111, 211, 255, 0.15 );
+		.fill { height: 100%; background-color: $holo; }
+		&.lit .fill { background-color: $amber; }
+		&.hot .fill { background-color: $red; }
+	}
+}

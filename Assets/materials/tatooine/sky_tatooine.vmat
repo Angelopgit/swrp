@@ -1,0 +1,6 @@
+// Tatooine sky: twin suns, dusty atmosphere, follows TatooinePlanet's sun (original, from the engine's atmosphere sky)
+
+Layer0
+{
+	shader "shaders/swrp_tatooine_sky.shader"
+}

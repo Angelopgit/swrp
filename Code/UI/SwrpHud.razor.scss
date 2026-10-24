@@ -1,0 +1,644 @@
+// Minimal Grand Army field HUD: thin holo lines, no boxes, numbers do the talking.
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$amber: #ffb547;
+$red: #ff4a3d;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+SwrpHud {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	font-family: Poppins;
+	color: $text;
+}
+
+// ----- Identity, top left -----
+
+.identity {
+	position: absolute;
+	left: 40px;
+	top: 36px;
+	flex-direction: row;
+
+	.stripe {
+		width: 3px;
+		margin-right: 12px;
+	}
+
+	.text {
+		flex-direction: column;
+	}
+
+	.name {
+		font-size: 18px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-shadow: 0 1px 4px black;
+	}
+
+	.unit {
+		font-size: 11px;
+		letter-spacing: 3px;
+		color: $muted;
+	}
+
+	.credits {
+		font-size: 12px;
+		letter-spacing: 2px;
+		color: $amber;
+		margin-top: 2px;
+	}
+}
+
+// ----- Vitals, bottom left -----
+
+.vitals {
+	position: absolute;
+	left: 40px;
+	bottom: 40px;
+	width: 340px;
+	flex-direction: column;
+	padding: 12px 0 0 14px;
+	border-left: 2px solid $holo-dim;
+	border-top: 1px solid $holo-dim;
+
+	.tag {
+		font-size: 10px;
+		letter-spacing: 4px;
+		color: $holo;
+		margin-bottom: 8px;
+	}
+}
+
+.meter {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 7px;
+
+	.key {
+		width: 40px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 2px;
+		color: $muted;
+	}
+
+	.track {
+		flex-grow: 1;
+		height: 8px;
+		background-color: rgba( 255, 255, 255, 0.1 );
+
+		&.thin {
+			height: 4px;
+		}
+
+		.fill {
+			height: 100%;
+			background-color: $text;
+			transition: width 0.15s linear;
+		}
+	}
+
+	.num {
+		width: 44px;
+		text-align: right;
+		font-size: 18px;
+		font-weight: 700;
+		text-shadow: 0 1px 4px black;
+	}
+
+	&.health.low {
+		.fill { background-color: $red; }
+		.num { color: $red; }
+	}
+
+	&.armor {
+		.fill {
+			background-color: $holo;
+			box-shadow: 0 0 8px $holo-dim;
+		}
+		.num { color: $holo; }
+	}
+
+	&.stamina {
+		.fill { background-color: $amber; }
+		.num {
+			font-size: 13px;
+			color: $amber;
+		}
+
+		&.out .num {
+			color: $red;
+		}
+	}
+}
+
+// ----- Ammo, bottom right -----
+
+.ammo {
+	position: absolute;
+	right: 40px;
+	bottom: 40px;
+	width: 260px;
+	flex-direction: column;
+	align-items: flex-end;
+	padding: 12px 14px 0 0;
+	border-right: 2px solid $holo-dim;
+	border-top: 1px solid $holo-dim;
+
+	.weapon {
+		font-size: 11px;
+		letter-spacing: 4px;
+		color: $holo;
+
+		&.dim {
+			color: $muted;
+		}
+	}
+
+	.count {
+		flex-direction: row;
+		align-items: flex-end;
+	}
+
+	.clip {
+		font-size: 52px;
+		font-weight: 700;
+		line-height: 56px;
+		text-shadow: 0 0 14px rgba( 111, 211, 255, 0.35 );
+
+		&.low {
+			color: $red;
+		}
+	}
+
+	.reserve {
+		font-size: 13px;
+		letter-spacing: 2px;
+		color: $muted;
+		margin: 0 0 9px 8px;
+	}
+
+	.loadout {
+		flex-direction: column;
+		align-items: flex-end;
+		margin-top: 8px;
+		padding-bottom: 6px;
+	}
+
+	.gun {
+		font-family: Orbitron;
+		font-size: 10px;
+		letter-spacing: 2px;
+		color: $muted;
+		margin-top: 2px;
+
+		&.on {
+			color: $holo;
+		}
+	}
+
+	.mag {
+		width: 100%;
+		height: 3px;
+		margin-top: 4px;
+		background-color: rgba( 255, 255, 255, 0.1 );
+
+		.fill {
+			height: 100%;
+			background-color: $holo;
+		}
+	}
+
+	.status {
+		font-size: 11px;
+		letter-spacing: 3px;
+		color: $muted;
+		margin-top: 6px;
+
+		&.warn {
+			color: $red;
+		}
+
+		&.blink {
+			color: $amber;
+			animation-name: blink;
+			animation-duration: 0.8s;
+			animation-iteration-count: infinite;
+		}
+	}
+}
+
+@keyframes blink {
+	0% { opacity: 1; }
+	50% { opacity: 0.25; }
+	100% { opacity: 1; }
+}
+
+// ----- Reticle -----
+
+.reticle {
+	// size and margins are set every frame from the spread cone (SwrpHud.UpdateReticle): the ticks sit on its edge
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 30px;
+	height: 30px;
+	margin-left: -15px;
+	margin-top: -15px;
+
+	.tick, .dot {
+		position: absolute;
+		background-color: rgba( 255, 255, 255, 0.92 );
+		box-shadow: 0 0 2px rgba( 0, 0, 0, 0.7 );
+		transition: background-color 0.08s linear, opacity 0.12s ease-out;
+	}
+
+	.tick {
+		&.t { left: 50%; top: 0; width: 2px; height: 7px; margin-left: -1px; }
+		&.b { left: 50%; bottom: 0; width: 2px; height: 7px; margin-left: -1px; }
+		&.l { top: 50%; left: 0; width: 7px; height: 2px; margin-top: -1px; }
+		&.r { top: 50%; right: 0; width: 7px; height: 2px; margin-top: -1px; }
+	}
+
+	.dot {
+		left: 50%;
+		top: 50%;
+		width: 2px;
+		height: 2px;
+		margin-left: -1px;
+		margin-top: -1px;
+	}
+
+	&.enemy .tick, &.enemy .dot { background-color: $red; }
+	&.friend .tick, &.friend .dot { background-color: $holo; }
+
+	// down the sights the gun's own sights do the aiming: only the dot stays
+	&.sighted .tick { opacity: 0; }
+}
+
+// ----- Overlays -----
+
+.hit {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient( circle, rgba( 255, 40, 30, 0 ) 55%, rgba( 255, 40, 30, 0.45 ) 100% );
+	opacity: 0;
+	transition: opacity 0.25s ease-out;
+
+	&.show {
+		opacity: 1;
+		transition: opacity 0.03s linear;
+	}
+}
+
+.critical {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient( circle, rgba( 160, 0, 0, 0 ) 60%, rgba( 160, 0, 0, 0.35 ) 100% );
+	animation-name: pulse;
+	animation-duration: 1.2s;
+	animation-iteration-count: infinite;
+}
+
+@keyframes pulse {
+	0% { opacity: 0.4; }
+	50% { opacity: 1; }
+	100% { opacity: 0.4; }
+}
+
+.downed {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 38%;
+	flex-direction: column;
+	align-items: center;
+	padding: 24px 0;
+	background-color: rgba( 20, 0, 0, 0.55 );
+	border-top: 1px solid rgba( 255, 74, 61, 0.6 );
+	border-bottom: 1px solid rgba( 255, 74, 61, 0.6 );
+
+	.big {
+		font-size: 40px;
+		font-weight: 700;
+		letter-spacing: 14px;
+		color: $red;
+	}
+
+	.small {
+		font-size: 14px;
+		letter-spacing: 5px;
+		color: $text;
+	}
+}
+
+// ----- Key hints, top right -----
+
+.keys {
+	position: absolute;
+	right: 40px;
+	top: 36px;
+	flex-direction: column;
+	align-items: flex-end;
+	font-size: 11px;
+	letter-spacing: 2px;
+	color: $muted;
+
+	.hint {
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 4px;
+	}
+
+	.key {
+		padding: 0 6px;
+		margin-right: 8px;
+		border: 1px solid $holo-dim;
+		color: $holo;
+	}
+}
+
+.toast-row {
+	position: absolute;
+	top: 90px;
+	left: 0;
+	right: 0;
+	justify-content: center;
+}
+
+.toast {
+	padding: 8px 20px;
+	font-size: 14px;
+	letter-spacing: 1px;
+	background-color: rgba( 6, 14, 26, 0.85 );
+	border-left: 2px solid $holo;
+	transition: all 0.25s ease-out;
+
+	&.error {
+		border-left-color: $red;
+		color: #ffd6d3;
+	}
+
+	&:intro {
+		opacity: 0;
+		transform: translateY( -10px );
+	}
+}
+
+// ----- Orbitron for labels and numbers; toasts stay in Poppins for readability -----
+
+.identity .name, .identity .unit, .identity .credits, .vitals .tag, .meter .key, .meter .num,
+.ammo .weapon, .ammo .clip, .ammo .reserve, .ammo .status, .downed .big, .downed .small, .keys {
+	font-family: Orbitron;
+}
+
+.identity .name {
+	font-size: 17px;
+}
+
+.ammo .clip {
+	font-size: 48px;
+}
+
+.downed .big {
+	letter-spacing: 10px;
+}
+
+// Orbitron is wider than Poppins: give the meter labels and numbers room so they don't wrap or overlap the bars.
+.meter {
+	.key {
+		width: 54px;
+		letter-spacing: 1px;
+	}
+
+	.num {
+		width: 60px;
+		font-size: 16px;
+	}
+}
+
+
+// ----- Combat feedback -----
+
+.ammo {
+	.cells {
+		font-size: 10px;
+		letter-spacing: 2px;
+		color: $muted;
+		margin-top: 4px;
+	}
+
+	.stun {
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 3px;
+		color: #d8f2ff;
+		background-color: rgba( 111, 211, 255, 0.25 );
+		padding: 2px 8px;
+		margin-top: 6px;
+	}
+}
+
+.hitmarker {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 36px;
+	height: 36px;
+	margin-left: -18px;
+	margin-top: -18px;
+
+	.x {
+		position: absolute;
+		width: 8px;
+		height: 2px;
+		background-color: white;
+		box-shadow: 0 0 2px rgba( 0, 0, 0, 0.7 );
+
+		&.a { left: 2px; top: 6px; transform: rotate( 45deg ); }
+		&.b { right: 2px; top: 6px; transform: rotate( -45deg ); }
+		&.c { left: 2px; bottom: 6px; transform: rotate( -45deg ); }
+		&.d { right: 2px; bottom: 6px; transform: rotate( 45deg ); }
+	}
+
+	&.head .x { background-color: $amber; width: 10px; }
+	&.kill .x { background-color: $red; width: 12px; }
+	&.stun .x { background-color: $holo; }
+	&.friendly .x { background-color: rgba( 255, 255, 255, 0.35 ); }
+}
+
+.dmgdir {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 0;
+	height: 0;
+
+	.arc {
+		position: absolute;
+		left: -60px;
+		top: -190px;
+		width: 120px;
+		height: 14px;
+		border-radius: 60px 60px 0 0;
+		border-top: 5px solid rgba( 255, 60, 45, 0.95 );
+		box-shadow: 0 -2px 10px rgba( 255, 40, 30, 0.6 );
+	}
+
+	&.stun .arc {
+		border-top-color: rgba( 160, 225, 255, 0.95 );
+		box-shadow: 0 -2px 10px rgba( 111, 211, 255, 0.6 );
+	}
+}
+
+.feed {
+	position: absolute;
+	right: 40px;
+	top: 90px;
+	flex-direction: column;
+	align-items: flex-end;
+	font-family: Orbitron;
+
+	.entry {
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 4px;
+		padding: 3px 10px;
+		background-color: rgba( 8, 14, 24, 0.6 );
+		border-right: 2px solid $holo-dim;
+	}
+
+	.who {
+		font-size: 12px;
+		color: $text;
+
+		&.victim {
+			color: $red;
+		}
+	}
+
+	.how {
+		font-size: 10px;
+		letter-spacing: 1px;
+		color: $holo;
+		margin: 0 8px;
+	}
+}
+
+.downed.stunned {
+	background-color: rgba( 0, 14, 30, 0.55 );
+	border-top-color: rgba( 111, 211, 255, 0.6 );
+	border-bottom-color: rgba( 111, 211, 255, 0.6 );
+
+	.big {
+		color: $holo;
+	}
+}
+
+
+// ----- Injury -----
+
+.downed.wounded {
+	.hint { color: $amber; margin-top: 6px; }
+	.revive { color: #7dffa1; margin-top: 6px; }
+
+	.bar {
+		width: 320px;
+		height: 4px;
+		margin-top: 6px;
+		background-color: rgba( 255, 255, 255, 0.15 );
+
+		.fill { height: 100%; background-color: #7dffa1; }
+		&.giveup .fill { background-color: $red; }
+	}
+}
+
+.bleed {
+	position: absolute;
+	left: 40px;
+	bottom: 286px;
+	padding: 3px 8px;
+	background-color: rgba( 60, 0, 0, 0.6 );
+	border-left: 2px solid $red;
+	font-family: Orbitron;
+	font-size: 11px;
+	letter-spacing: 2px;
+	color: $red;
+	animation-name: blink;
+	animation-duration: 1.4s;
+	animation-iteration-count: infinite;
+}
+
+.progress {
+	position: absolute;
+	left: 50%;
+	top: 60%;
+	width: 340px;
+	margin-left: -170px;
+	flex-direction: column;
+	align-items: center;
+	font-family: Orbitron;
+	font-size: 12px;
+	letter-spacing: 3px;
+	color: $text;
+	text-shadow: 0 1px 3px black;
+
+	.bar {
+		width: 100%;
+		height: 4px;
+		margin-top: 6px;
+		background-color: rgba( 255, 255, 255, 0.15 );
+
+		.fill { height: 100%; background-color: #7dffa1; }
+	}
+}
+
+// The fading HUD (swrp_hud_fade): parts you don't need right now fade out and come back when they matter.
+.identity, .vitals, .ammo, .keys {
+	transition: opacity 0.6s ease-out;
+}
+
+.faded {
+	opacity: 0;
+}
+
+// the view down a long scope (SwrpBlaster.ScopeView): black round the glass, fine crosshairs
+.scope {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	pointer-events: none;
+
+	.lens {
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		background: radial-gradient( circle, rgba( 0, 0, 0, 0 ) 0%, rgba( 0, 0, 0, 0 ) 34%, rgba( 2, 4, 6, 0.6 ) 37%, rgba( 2, 4, 6, 1 ) 39% );
+	}
+
+	.hair {
+		position: absolute;
+		background-color: rgba( 10, 14, 18, 0.85 );
+
+		&.h { width: 60%; height: 1px; left: 20%; top: 50%; }
+		&.v { height: 72%; width: 1px; top: 14%; left: 50%; }
+	}
+}

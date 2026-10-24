@@ -1,0 +1,64 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The brig shield control (E at the console ring in the brig's first room): every brig shield with a switch, and all-cells
+	buttons. Captains and up, the Coruscant Guard and staff; the host checks every switch and logs it.
+*@
+
+<root class="@(Console is not null ? "open" : "")">
+	@if ( Console is { } con )
+	{
+		<div class="brig">
+			<div class="ghead">
+				<label class="gtitle">BRIG SHIELD CONTROL</label>
+				<label class="gsub">@($"{FactionRegistry.CloneRanks[SwrpBrig.Rank].Name.ToUpperInvariant()}+ OR {FactionRegistry.Get( SwrpBrig.Guard )?.Name.ToUpperInvariant()}")</label>
+				<div class="grow"></div>
+				<div class="close" onclick=@(() => SwrpUiState.BrigMenu = null)>✕</div>
+			</div>
+			<div class="row">
+				<div class="btn up" onclick=@(() => con.RequestSwitch( "*cells", true ))>ALL CELLS: SHIELDS UP</div>
+				<div class="btn down" onclick=@(() => con.RequestSwitch( "*cells", false ))>ALL CELLS: SHIELDS DOWN</div>
+			</div>
+			<div class="grid">
+				@foreach ( var d in SwrpBrig.Shields( Scene ) )
+				{
+					var id = d.DoorId;
+					var up = SwrpBrig.IsUp( d );
+					<div class="shield @(up ? "on" : "off")" onclick=@(() => con.RequestSwitch( id, !up ))>
+						<label class="sname">@d.DisplayName.ToUpperInvariant()</label>
+						<label class="sstate">@(up ? "SHIELD UP" : "DOWN")</label>
+					</div>
+				}
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	SwrpBrigConsole Console => SwrpUiState.BrigMenu.IsValid() ? SwrpUiState.BrigMenu : null;
+
+	protected override void OnUpdate()
+	{
+		if ( Console is not { } con ) return;
+		var me = SwrpPlayer.Local;
+		if ( Input.EscapePressed || me is null || me.WorldPosition.Distance( con.WorldPosition ) > SwrpBrigConsole.Reach + 60f )
+		{
+			Input.EscapePressed = false;
+			SwrpUiState.BrigMenu = null;
+		}
+	}
+
+	protected override int BuildHash()
+	{
+		var h = new HashCode();
+		h.Add( Console );
+		if ( Console is not null )
+			foreach ( var d in SwrpBrig.Shields( Scene ) ) h.Add( d.IsOpen );
+		return h.ToHashCode();
+	}
+}

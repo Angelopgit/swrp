@@ -1,0 +1,519 @@
+@import "../Feel/_feel.scss";
+
+// The squad menu (SquadMenu.razor): holo palette and motion from STYLE_GUIDE.md / _feel.scss.
+
+SquadMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: $feel-font-title;
+	color: $feel-text;
+	pointer-events: none;
+
+	&.open { pointer-events: all; }
+}
+
+.backdrop {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba( 0, 4, 10, 0.55 );
+	backdrop-filter: blur( 3px );
+	@include feel-fade-in;
+}
+
+.window {
+	position: relative;
+	width: 1240px;
+	max-height: 92%;
+	flex-direction: column;
+	padding: $feel-space-6 28px $feel-space-3 28px;
+	background-color: $feel-panel-deep;
+	border: 1px solid $feel-holo-dim;
+	border-top: 3px solid $feel-holo;
+	border-radius: $feel-radius-panel;
+	overflow: hidden;
+	@include feel-holo-in;
+}
+
+.scan {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 120px;
+	background: linear-gradient( to bottom, rgba( 111, 211, 255, 0.07 ), rgba( 111, 211, 255, 0 ) );
+	animation: squad-scan 4s linear infinite;
+	pointer-events: none;
+}
+
+@keyframes squad-scan {
+	0% { top: -120px; }
+	100% { top: 100%; }
+}
+
+.grow { flex-grow: 1; }
+
+// ----- header -----
+
+.head {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: $feel-space-4;
+}
+
+.emblem {
+	width: 72px;
+	height: 72px;
+	margin-right: $feel-space-4;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid $feel-holo;
+	border-radius: 50%;
+
+	.ring {
+		position: absolute;
+		left: -8px;
+		top: -8px;
+		width: 84px;
+		height: 84px;
+		border: 1px dashed $feel-holo-dim;
+		border-radius: 50%;
+		animation: squad-spin 12s linear infinite;
+	}
+
+	.glyph { font-size: 34px; font-weight: 700; }
+
+	&.none .glyph { color: $feel-muted; }
+}
+
+@keyframes squad-spin {
+	0% { transform: rotate( 0deg ); }
+	100% { transform: rotate( 360deg ); }
+}
+
+.titles {
+	flex-direction: column;
+
+	.kicker { font-size: $feel-size-xs; letter-spacing: 4px; color: $feel-muted; }
+	.name { font-size: 30px; font-weight: 700; letter-spacing: 6px; margin: 2px 0; }
+	.sub { font-family: $feel-font-body; font-size: $feel-size-m; color: $feel-muted; }
+}
+
+.net {
+	flex-direction: column;
+	align-items: flex-end;
+	min-width: 250px;
+	padding: $feel-space-2 $feel-space-3;
+	margin-right: $feel-space-3;
+	border: 1px solid $feel-holo-dim;
+	border-radius: $feel-radius;
+	background-color: rgba( 111, 211, 255, 0.04 );
+	opacity: 0.7;
+	transition: all 0.25s ease-out;
+
+	&.tuned { opacity: 1; background-color: rgba( 111, 211, 255, 0.1 ); }
+	&.live { box-shadow: 0 0 22px rgba( 111, 211, 255, 0.35 ); }
+
+	.net-k { font-size: $feel-size-xs; letter-spacing: 3px; color: $feel-muted; }
+	.net-f { font-size: $feel-size-l; letter-spacing: 2px; color: white; margin-top: 2px; }
+	.net-who { font-size: $feel-size-xs; letter-spacing: 2px; color: $feel-muted; margin-top: 4px; }
+
+	.eq {
+		flex-direction: row;
+		align-items: flex-end;
+		height: 24px;
+		margin-top: 4px;
+		gap: 3px;
+	}
+
+	.bar {
+		width: 5px;
+		border-radius: 1px;
+		transition: height 0.08s linear;
+	}
+}
+
+.x {
+	width: 34px;
+	height: 34px;
+	justify-content: center;
+	align-items: center;
+	font-size: $feel-size-l;
+	color: $feel-muted;
+	cursor: pointer;
+	@include feel-button;
+}
+
+// ----- body -----
+
+.body {
+	flex-direction: row;
+	gap: 28px;
+	flex-grow: 1;
+	overflow: hidden;
+}
+
+.col {
+	flex-direction: column;
+	flex-grow: 1;
+	width: 50%;
+
+	&.radar-col { flex-grow: 0; width: 330px; }
+}
+
+.section {
+	font-size: $feel-size-xs;
+	letter-spacing: 4px;
+	color: $feel-holo;
+	margin: $feel-space-3 0 $feel-space-2 0;
+}
+
+.empty, .hint {
+	font-family: $feel-font-body;
+	font-size: 12px;
+	color: $feel-muted;
+}
+
+.hint { margin: $feel-space-3 0 $feel-space-1 0; font-family: $feel-font-title; font-size: $feel-size-xs; letter-spacing: 2px; }
+
+.row {
+	flex-direction: row;
+	align-items: center;
+	gap: $feel-space-2;
+	margin-bottom: $feel-space-2;
+
+	&.bottom { margin-top: $feel-space-4; }
+}
+
+.btn {
+	padding: 7px 12px;
+	font-size: $feel-size-s;
+	letter-spacing: 2px;
+	border: 1px solid $feel-holo-dim;
+	border-radius: $feel-radius;
+	background-color: rgba( 111, 211, 255, 0.05 );
+	cursor: pointer;
+	white-space: nowrap;
+	@include feel-button;
+
+	&.on { background-color: rgba( 111, 211, 255, 0.22 ); border-color: $feel-holo; color: white; }
+	&.go { border-color: $feel-green; color: $feel-green; &:hover { background-color: rgba( 125, 255, 161, 0.14 ); } }
+	&.danger { border-color: rgba( 255, 74, 61, 0.55 ); color: $feel-red; &:hover { background-color: rgba( 255, 74, 61, 0.14 ); } }
+	&.armed { background-color: rgba( 255, 74, 61, 0.25 ); color: white; }
+	&.small { padding: 5px 10px; font-size: $feel-size-xs; }
+	&.tiny { padding: 3px 7px; font-size: 8px; letter-spacing: 1px; }
+}
+
+.field {
+	flex-grow: 1;
+	min-width: 180px;
+	padding: 6px 10px;
+	font-family: $feel-font-body;
+	font-size: $feel-size-m;
+	color: white;
+	border: 1px solid $feel-holo-dim;
+	border-radius: $feel-radius;
+	background-color: rgba( 0, 0, 0, 0.35 );
+}
+
+.swatches {
+	flex-direction: row;
+	gap: 5px;
+
+	.swatch {
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		border: 2px solid rgba( 0, 0, 0, 0.4 );
+		cursor: pointer;
+		transition: all 0.12s ease-out;
+
+		&:hover { transform: scale( 1.15 ); sound-in: "sounds/ui/ui_hover.sound"; }
+		&.on { border-color: white; transform: scale( 1.2 ); }
+	}
+}
+
+.form {
+	flex-direction: column;
+	gap: $feel-space-2;
+	padding: $feel-space-3;
+	border: 1px solid $feel-holo-faint;
+	border-radius: $feel-radius;
+}
+
+.invite, .other {
+	flex-direction: row;
+	align-items: center;
+	gap: $feel-space-2;
+	padding: $feel-space-2 $feel-space-3;
+	margin-bottom: 6px;
+	border-left: 3px solid $feel-holo;
+	background-color: rgba( 111, 211, 255, 0.05 );
+	@include feel-panel-in;
+
+	.inv-text { flex-direction: column; flex-grow: 1; }
+	.inv-name, .o-name { font-size: $feel-size-m; letter-spacing: 2px; color: white; }
+	.inv-sub, .o-sub { font-family: $feel-font-body; font-size: 12px; color: $feel-muted; }
+}
+
+.invite { animation: squad-glow 1.6s ease-in-out infinite; }
+
+@keyframes squad-glow {
+	0% { background-color: rgba( 111, 211, 255, 0.04 ); }
+	50% { background-color: rgba( 111, 211, 255, 0.16 ); }
+	100% { background-color: rgba( 111, 211, 255, 0.04 ); }
+}
+
+.other {
+	.o-name { width: 150px; }
+	.o-sub { flex-grow: 1; }
+	.o-pips { flex-direction: row; gap: 3px; }
+	.pip { width: 8px; height: 8px; border-radius: 50%; background-color: rgba( 255, 255, 255, 0.1 ); }
+}
+
+// ----- radar -----
+
+.radar {
+	position: relative;
+	width: 300px;
+	height: 300px;
+	border: 2px solid $feel-holo;
+	border-radius: 50%;
+	background-color: rgba( 111, 211, 255, 0.04 );
+	overflow: hidden;
+
+	.ring {
+		position: absolute;
+		border: 1px solid $feel-holo-faint;
+		border-radius: 50%;
+
+		&.r1 { left: 50px; top: 50px; width: 200px; height: 200px; }
+		&.r2 { left: 100px; top: 100px; width: 100px; height: 100px; }
+	}
+
+	.cross {
+		position: absolute;
+		background-color: $feel-holo-faint;
+
+		&.h { left: 0; right: 0; top: 150px; height: 1px; }
+		&.v { top: 0; bottom: 0; left: 150px; width: 1px; }
+	}
+
+	// the sweep: a soft wedge turning round the centre
+	.sweep {
+		position: absolute;
+		left: 150px;
+		top: 0;
+		width: 150px;
+		height: 150px;
+		transform-origin: 0% 100%;
+		background: linear-gradient( to right, rgba( 111, 211, 255, 0.22 ), rgba( 111, 211, 255, 0 ) );
+		animation: squad-spin 3.2s linear infinite;
+	}
+
+	.me {
+		position: absolute;
+		left: 144px;
+		top: 142px;
+		width: 12px;
+		height: 14px;
+		background-color: white;
+		border-radius: 2px 2px 6px 6px;
+		box-shadow: 0 0 8px white;
+	}
+
+	.blip {
+		position: absolute;
+		width: 12px;
+		height: 12px;
+		margin-left: -6px;
+		margin-top: -6px;
+		border-radius: 50%;
+		border: 1px solid rgba( 0, 0, 0, 0.5 );
+		transition: left 0.15s linear, top 0.15s linear;
+		animation: squad-ping 2s ease-out infinite;
+
+		.b-name {
+			position: absolute;
+			left: 14px;
+			top: -3px;
+			font-size: 8px;
+			letter-spacing: 1px;
+			color: white;
+			white-space: nowrap;
+			text-shadow: 0 0 3px black;
+		}
+
+		&.leader { width: 15px; height: 15px; margin-left: -7px; margin-top: -7px; border: 2px solid white; }
+		&.talking { box-shadow: 0 0 14px white; }
+		&.down { background-color: $feel-red !important; animation: squad-blink 0.6s step-end infinite; }
+		&.edge { opacity: 0.55; }
+	}
+
+	.rally {
+		position: absolute;
+		width: 14px;
+		height: 14px;
+		margin-left: -7px;
+		margin-top: -7px;
+		border: 2px solid white;
+		transform: rotate( 45deg );
+	}
+}
+
+@keyframes squad-ping {
+	0% { box-shadow: 0 0 0 0 rgba( 111, 211, 255, 0.6 ); }
+	100% { box-shadow: 0 0 0 10px rgba( 111, 211, 255, 0 ); }
+}
+
+@keyframes squad-blink {
+	0% { opacity: 1; }
+	50% { opacity: 0.25; }
+}
+
+// ----- comms -----
+
+.comms {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 6px;
+
+	.btn { font-size: $feel-size-xs; padding: 6px 9px; }
+}
+
+.log {
+	flex-direction: column;
+	margin-top: $feel-space-2;
+	padding: $feel-space-2;
+	min-height: 110px;
+	border: 1px solid $feel-holo-faint;
+	border-radius: $feel-radius;
+	background-color: rgba( 0, 0, 0, 0.3 );
+
+	.logline {
+		font-family: $feel-font-body;
+		font-size: 12px;
+		color: $feel-text;
+		margin-bottom: 2px;
+		@include feel-pop-in;
+	}
+}
+
+.say {
+	flex-direction: row;
+	gap: 6px;
+	margin-top: 6px;
+}
+
+// ----- member cards -----
+
+.cards {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: $feel-space-2;
+}
+
+.card {
+	width: 49%;
+	flex-direction: column;
+	padding: $feel-space-2 $feel-space-3;
+	border-left: 3px solid $feel-holo;
+	border-radius: $feel-radius;
+	background-color: rgba( 111, 211, 255, 0.06 );
+
+	&:intro {
+		opacity: 0;
+		transform: translateX( -28px );
+	}
+
+	.c-top { flex-direction: row; align-items: center; }
+	.crown { font-size: $feel-size-m; margin-right: 6px; }
+	.c-name { font-size: 12px; letter-spacing: 1px; color: white; }
+	.c-status { font-size: 8px; letter-spacing: 2px; color: $feel-green; margin-left: 6px; }
+	.c-meta { font-family: $feel-font-body; font-size: 11px; color: $feel-muted; margin: 3px 0 5px 0; }
+
+	.hp {
+		height: 4px;
+		background-color: rgba( 255, 255, 255, 0.08 );
+		border-radius: 2px;
+		overflow: hidden;
+
+		.fill { height: 100%; transition: width 0.4s ease-out; }
+	}
+
+	.c-actions { flex-direction: row; gap: 5px; margin-top: 6px; }
+
+	.mic {
+		flex-direction: row;
+		align-items: flex-end;
+		height: 12px;
+		gap: 2px;
+
+		.w {
+			width: 3px;
+			height: 4px;
+			background-color: white;
+			animation: squad-talk 0.5s ease-in-out infinite;
+		}
+		.w:nth-child( 2 ) { animation-delay: 0.15s; }
+		.w:nth-child( 3 ) { animation-delay: 0.3s; }
+	}
+
+	&.self { background-color: rgba( 111, 211, 255, 0.12 ); }
+	&.speaking { box-shadow: 0 0 16px rgba( 111, 211, 255, 0.4 ); }
+	&.down, &.kia { background-color: rgba( 255, 74, 61, 0.1 ); .c-status { color: $feel-red; } }
+	&.bleeding .c-status { color: $feel-amber; }
+	&.offline { opacity: 0.5; .c-status { color: $feel-muted; } }
+	&.slot { opacity: 0.3; border-left-color: rgba( 255, 255, 255, 0.15 ); border-left-style: dashed; justify-content: center; min-height: 52px; }
+}
+
+@keyframes squad-talk {
+	0% { height: 3px; }
+	50% { height: 12px; }
+	100% { height: 3px; }
+}
+
+// ----- leader tools -----
+
+.lead-tools {
+	flex-direction: column;
+	padding: $feel-space-3;
+	border: 1px solid $feel-holo-faint;
+	border-radius: $feel-radius;
+}
+
+.invitees {
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 6px;
+
+	.invitee {
+		flex-direction: column;
+		padding: 5px 10px;
+		border: 1px solid $feel-holo-dim;
+		border-radius: $feel-radius;
+		cursor: pointer;
+		@include feel-button;
+		@include feel-pop-in;
+
+		.i-name { font-size: $feel-size-xs; letter-spacing: 1px; color: white; }
+		.i-sub { font-family: $feel-font-body; font-size: 10px; color: $feel-muted; }
+
+		&.sent { opacity: 0.5; border-style: dashed; cursor: default; }
+	}
+}
+
+.foot {
+	margin-top: $feel-space-3;
+	font-size: 8px;
+	letter-spacing: 3px;
+	color: $feel-muted;
+	text-align: center;
+}

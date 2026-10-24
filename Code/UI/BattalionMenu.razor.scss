@@ -1,0 +1,146 @@
+@import "../Feel/_feel.scss";
+$accent: $feel-holo;
+$text: $feel-text;
+$muted: $feel-muted;
+
+BattalionMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 57;
+	pointer-events: none;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.35 );
+	}
+}
+
+.bat {
+	width: 1180px;
+	height: 720px;
+	flex-direction: column;
+	padding: 16px 20px;
+	background-color: rgba( 10, 16, 26, 0.96 );
+	border: 1px solid rgba( 111, 211, 255, 0.3 );
+	border-top: 3px solid $accent;
+	@include feel-panel-in;
+}
+
+.bhead {
+	flex-direction: row;
+	align-items: center;
+
+	.btitle { font-size: 20px; font-weight: 700; letter-spacing: 5px; margin-right: 14px; }
+	.bsub { font-size: 10px; letter-spacing: 2px; color: $muted; }
+	.close { font-size: 18px; padding: 2px 10px; cursor: pointer; }
+}
+
+.grow { flex-grow: 1; }
+
+.posts {
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin: 8px 0;
+
+	.post { font-size: 10px; letter-spacing: 2px; color: $muted; margin-right: 22px; }
+	.mine { color: #ffb547; }
+}
+
+.body {
+	flex-direction: row;
+	flex-grow: 1;
+	overflow: hidden;
+}
+
+.roster {
+	flex-grow: 1;
+	flex-direction: column;
+	overflow: scroll;
+	margin-right: 16px;
+}
+
+.mrow {
+	flex-direction: row;
+	align-items: center;
+	padding: 5px 8px;
+	margin-bottom: 2px;
+	background-color: rgba( 255, 255, 255, 0.035 );
+	cursor: pointer;
+
+	&:hover { background-color: rgba( 111, 211, 255, 0.1 ); }
+	&.sel { background-color: rgba( 111, 211, 255, 0.22 ); }
+	&.head { background-color: transparent; cursor: default; font-size: 9px; letter-spacing: 2px; color: $muted; }
+
+	.c-dot { width: 18px; font-size: 10px; color: rgba( 255, 255, 255, 0.2 ); &.on { color: #7dffa1; } }
+	.c-rank { width: 150px; font-size: 11px; }
+	.c-name { flex-grow: 1; flex-direction: column; }
+	.nm { font-size: 12px; color: white; }
+	.pl { font-size: 9px; color: $muted; }
+	.c-role { width: 150px; font-size: 11px; color: #ffb547; }
+	.c-seen { width: 100px; font-size: 10px; color: $muted; text-align: right; }
+}
+
+.side {
+	width: 420px;
+	flex-direction: column;
+	overflow: scroll;
+
+	.sname { font-size: 15px; font-weight: 700; color: white; }
+	.sline { font-size: 11px; margin-top: 2px; &.dim { color: $muted; } &.post { color: #ffb547; } }
+}
+
+.section {
+	font-size: 10px;
+	letter-spacing: 3px;
+	color: $accent;
+	margin: 12px 0 4px 0;
+}
+
+.row {
+	flex-direction: row;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-top: 6px;
+
+	&.tight { margin-top: 1px; flex-wrap: nowrap; }
+}
+
+.logline {
+	font-size: 10px;
+	color: $muted;
+	flex-grow: 1;
+}
+
+.btn {
+	font-size: 11px;
+	letter-spacing: 1px;
+	padding: 6px 11px;
+	margin: 0 6px 4px 0;
+	background-color: rgba( 255, 255, 255, 0.08 );
+	cursor: pointer;
+
+	&:hover { background-color: rgba( 255, 255, 255, 0.18 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	&:active { sound-in: "sounds/ui/ui_click.sound"; }
+	&.on { background-color: rgba( 111, 211, 255, 0.35 ); color: white; }
+	&.danger { background-color: rgba( 255, 74, 61, 0.3 ); }
+	&.small { padding: 4px 8px; font-size: 9px; }
+	&.tiny { padding: 2px 6px; font-size: 8px; margin: 0 0 0 6px; }
+}
+
+.field {
+	width: 300px;
+	height: 28px;
+	padding: 4px 8px;
+	margin-right: 6px;
+	font-size: 11px;
+	background-color: rgba( 255, 255, 255, 0.06 );
+	border: 1px solid rgba( 255, 255, 255, 0.12 );
+	color: white;
+}

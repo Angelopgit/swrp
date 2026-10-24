@@ -1,0 +1,16 @@
+{
+  "AlbedoImage": "materials/tatooine/rock_color.png",
+  "RoughnessImage": "materials/tatooine/rock_rough.png",
+  "NormalImage": "materials/tatooine/rock_normal.png",
+  "HeightImage": "materials/tatooine/rock_height.png",
+  "AOImage": "materials/tatooine/rock_ao.png",
+  "UVScale": 0.6,
+  "Metalness": 0,
+  "NormalStrength": 1,
+  "HeightBlendStrength": 1,
+  "DisplacementScale": 1,
+  "NoTiling": true,
+  "Surface": "surfaces/dirt.surface",
+  "__references": [],
+  "__version": 0
+}

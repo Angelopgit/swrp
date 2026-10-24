@@ -1,0 +1,11 @@
+.saber-editor {
+	flex-direction: column;
+	flex-shrink: 0;
+
+	.saber-save {
+		flex-direction: row;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 8px;
+	}
+}

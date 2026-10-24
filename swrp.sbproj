@@ -1,0 +1,41 @@
+{
+  "Title": "Star Wars RP - Fan Project",
+  "Type": "game",
+  "Org": "squadgaming",
+  "Ident": "swrp",
+  "Schema": 1,
+  "IncludeSourceFiles": false,
+  "Resources": "data/*.json\ndata/tatooine/*",
+  "PackageReferences": [
+    "haluca.monobdwhite",
+    "haluca.monopticonhead",
+    "bdne.mediumcrate",
+    "bdne.smallcrate",
+    "bdne.starwarscontainer"
+  ],
+  "EditorReferences": null,
+  "Mounts": null,
+  "IsStandaloneOnly": false,
+  "AI": {
+    "EnableMcpCommunication": true
+  },
+  "Metadata": {
+    "MaxPlayers": 64,
+    "MinPlayers": 1,
+    "TickRate": 50,
+    "GameNetworkType": "Multiplayer",
+    "MapSelect": "Unrestricted",
+    "MapList": [
+      "facepunch.flatgrass"
+    ],
+    "RankType": "None",
+    "PerMapRanking": false,
+    "LeaderboardType": "None",
+    "CsProjName": "",
+    "StartupScene": "scenes/notorious.scene",
+    "RecommendedMinPlayers": 0,
+    "RecommendedMaxPlayers": 0,
+    "Coop": true,
+    "Versus": false
+  }
+}

@@ -1,0 +1,54 @@
+@import "_feel.scss";
+
+FeelHitOverlay {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+}
+
+.blur {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+// four soft gradients round the edges (UI background images come out too faint here, gradients don't)
+.edges {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+
+	.e { position: absolute; }
+	.t { left: 0; right: 0; top: 0; height: 22%; }
+	.b { left: 0; right: 0; bottom: 0; height: 22%; }
+	.l { left: 0; top: 0; bottom: 0; width: 16%; }
+	.r { right: 0; top: 0; bottom: 0; width: 16%; }
+
+	&.hit {
+		.t { background: linear-gradient( to bottom, $feel-hit, rgba( 200, 20, 16, 0 ) ); }
+		.b { background: linear-gradient( to top, $feel-hit, rgba( 200, 20, 16, 0 ) ); }
+		.l { background: linear-gradient( to right, $feel-hit, rgba( 200, 20, 16, 0 ) ); }
+		.r { background: linear-gradient( to left, $feel-hit, rgba( 200, 20, 16, 0 ) ); }
+	}
+
+	&.stun {
+		.t { background: linear-gradient( to bottom, $feel-stun, rgba( 150, 205, 255, 0 ) ); }
+		.b { background: linear-gradient( to top, $feel-stun, rgba( 150, 205, 255, 0 ) ); }
+		.l { background: linear-gradient( to right, $feel-stun, rgba( 150, 205, 255, 0 ) ); }
+		.r { background: linear-gradient( to left, $feel-stun, rgba( 150, 205, 255, 0 ) ); }
+	}
+
+	&.low {
+		.t { background: linear-gradient( to bottom, $feel-lowhp, rgba( 120, 0, 0, 0 ) ); }
+		.b { background: linear-gradient( to top, $feel-lowhp, rgba( 120, 0, 0, 0 ) ); }
+		.l { background: linear-gradient( to right, $feel-lowhp, rgba( 120, 0, 0, 0 ) ); }
+		.r { background: linear-gradient( to left, $feel-lowhp, rgba( 120, 0, 0, 0 ) ); }
+	}
+}

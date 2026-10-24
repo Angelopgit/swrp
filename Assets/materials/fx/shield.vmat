@@ -1,0 +1,23 @@
+// A droideka's deflector bubble (SwrpNpc); colour and strength come from the renderer tint.
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_SELF_ILLUM 1
+	F_TRANSLUCENT 1
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureColor "[1.000000 1.000000 1.000000 0.000000]"
+	TextureNormal "materials/default/default_normal.tga"
+	TextureRoughness "materials/default/default_rough.tga"
+	g_flMetalness "0.000"
+	g_flSelfIllumAlbedoFactor "1.000"
+	g_flSelfIllumBrightness "1.500"
+	g_flSelfIllumScale "1.000"
+	g_vSelfIllumTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureSelfIllumMask "[1.000000 1.000000 1.000000 0.000000]"
+	g_flOpacityScale "0.220"
+	TextureTranslucency "[1.000000 1.000000 1.000000 0.000000]"
+}

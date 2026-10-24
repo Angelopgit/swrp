@@ -1,0 +1,267 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Flight
+@inherits PanelComponent
+
+@*
+	The cockpit HUD while you sit in a craft. For the pilot: a pitch ladder that rolls with the craft, the flight path marker
+	(where it is really going), a heading tape, speed and altitude tapes either side of the sight, the afterburner's heat, a
+	lock box round a locked target with its lead pip, and the pipper where the guns point. For everyone: the hull, the seat's
+	weapons and rounds, the crew, and the keys (Angelo, 2026-10-21: "an impressive first person hud"). Made at runtime by
+	SwrpFlightShip (its own screen panel), shown only while the local trooper is aboard.
+*@
+
+<root class="@(Ship is null ? "hidden" : "") @(Wrecked ? "wrecked" : "") @(FirstPerson ? "fp" : "chase")">
+	@if ( Ship is { } s && s.Def is { } def )
+	{
+		@if ( Pilot && FirstPerson )
+		{
+			<div class="ladder">
+				@foreach ( var r in Rungs )
+				{
+					<div class="rung @(r.Deg == 0 ? "horizon" : r.Deg < 0 ? "below" : "")" style="left: @(r.X)px; top: @(r.Y)px;">
+						<div class="arm l"></div><label class="n l">@Math.Abs( r.Deg )</label>
+						<div class="gap"></div>
+						<label class="n r">@Math.Abs( r.Deg )</label><div class="arm r"></div>
+					</div>
+				}
+			</div>
+			@if ( ShowFpm )
+			{
+				<div class="fpm" style="left: @(FpmX)px; top: @(FpmY)px; transform: rotate( @(Roll)deg );"><div class="ring"></div><div class="wing l"></div><div class="wing r"></div><div class="fin"></div></div>
+			}
+		}
+		@if ( Pilot && !FirstPerson )
+		{
+			@if ( ShowFpm )
+			{
+				<div class="fpm" style="left: @(FpmX)px; top: @(FpmY)px; transform: rotate( @(Roll)deg );"><div class="ring"></div><div class="wing l"></div><div class="wing r"></div><div class="fin"></div></div>
+			}
+			<div class="compact">
+				<label class="v">@Speed</label><label class="u">KM/H</label>
+				<label class="v">@AltValue</label><label class="u">@AltLabel</label>
+				<div class="heat @(s.Overheated ? "hot" : s.Boosting ? "lit" : "")"><div class="fill" style="width: @(100 - HeatPct)%"></div></div>
+			</div>
+		}
+		@if ( Pilot && FirstPerson )
+		{
+
+			<div class="heading">
+				<div class="tape" style="left: @(HdgShift)px;">
+					@foreach ( var h in HeadingTicks )
+					{
+						<div class="tick @(h.Major ? "major" : "")" style="left: @(h.X)px;">@if ( h.Major ) { <label>@h.Label</label> }</div>
+					}
+				</div>
+				<div class="caret"></div>
+				<label class="hdg">@Heading.ToString( "000" )</label>
+			</div>
+
+			<div class="tapebox speed">
+				<label class="k">SPD</label>
+				<label class="big">@Speed</label>
+				<label class="u">KM/H</label>
+				@if ( def.Model == FlightModel.Fighter )
+				{
+					<div class="thr"><div class="fill" style="height: @(Thr)%"></div></div>
+				}
+			</div>
+			<div class="tapebox alt">
+				<label class="k">@AltLabel</label>
+				<label class="big">@AltValue</label>
+				<label class="u">@(ShowAlt ? "M" : "KM")</label>
+				<label class="vs @(Vs < 0 ? "down" : "")">@(Vs >= 0 ? "▲" : "▼") @Math.Abs( Vs )</label>
+			</div>
+
+			<div class="boost @(s.Overheated ? "hot" : s.Boosting ? "lit" : "")">
+				<label class="k">@(s.Overheated ? "OVERHEAT" : s.Boosting ? "AFTERBURNER" : "BOOST")</label>
+				<div class="bar"><div class="fill" style="width: @(100 - HeatPct)%"></div></div>
+			</div>
+		}
+
+		<div class="cross"><div class="h"></div><div class="v"></div></div>
+		@if ( s.OutOfSpace )
+		{
+			<label class="edge">LEAVING THE OPERATIONAL AREA · TURN BACK</label>
+		}
+		@if ( ShowPipper )
+		{
+			<div class="pipper" style="left: @(PipX)px; top: @(PipY)px;"></div>
+		}
+		@if ( ShowLock )
+		{
+			<div class="lock @(s.LockAmount >= 1f ? "locked" : "")" style="left: @(LockX)px; top: @(LockY)px; width: @(LockSize)px; height: @(LockSize)px; margin-left: -@(LockSize / 2)px; margin-top: -@(LockSize / 2)px;">
+				<label class="tag">@(s.LockAmount >= 1f ? "LOCK" : "LOCKING")</label>
+			</div>
+			@if ( ShowLead )
+			{
+				<div class="lead" style="left: @(LeadX)px; top: @(LeadY)px;"></div>
+			}
+		}
+
+		<div class="left">
+			<label class="craft">@def.Name.ToUpper()</label>
+			<label class="seat">@Seat.Name.ToUpper()</label>
+			@if ( Pilot )
+			{
+				<div class="row"><label class="k">ENG</label><label class="v @(s.EngineOn ? "on" : "off")">@EngineText</label></div>
+			}
+			@if ( SwrpPlayer.Local?.GetComponent<SwrpVitals>() is { } me )
+			{
+				<div class="row"><label class="k">HP</label><div class="bar"><div class="fill" style="width: @(Math.Clamp( me.Health / SwrpVitals.MaxHealth * 100f, 0f, 100f ))%"></div></div></div>
+			}
+			<div class="row"><label class="k">HULL</label><div class="bar hull @(HullPct < 35 ? "low" : "")"><div class="fill" style="width: @(HullPct)%"></div></div><label class="pct">@HullPct%</label></div>
+		</div>
+
+		<div class="right">
+			@for ( var i = 0; i < Seat.Weapons.Length && i < 2; i++ )
+			{
+				var w = def.Weapon( Seat.Weapons[i] );
+				if ( w is null ) continue;
+				<div class="weapon">
+					<label class="key">@(i == 0 ? "M1" : "M2")</label>
+					<label class="name">@w.Name.ToUpper()</label>
+					@if ( w.Ammo > 0 )
+					{
+						<label class="ammo @(s.AmmoOf( w ) == 0 ? "empty" : "")">@s.AmmoOf( w )/@w.Ammo</label>
+					}
+				</div>
+			}
+			<div class="crew">
+				@for ( var i = 0; i < def.Seats.Length; i++ )
+				{
+					var p = s.PlayerIn( i );
+					if ( i >= 4 && p is null ) continue;
+					<label class="c @(i == SwrpFlightShip.LocalSeat ? "me" : "")">@(i + 1) @def.Seats[i].Name: @(p.IsValid() ? p.CharacterName : "—")</label>
+				}
+			</div>
+		</div>
+
+		<label class="keys">@Keys</label>
+		@if ( Wrecked )
+		{
+			<label class="warn">HULL FAILURE — BAIL OUT (E)</label>
+		}
+		else if ( Pilot && !s.EngineOn && s.Spool < 0.05f )
+		{
+			<label class="warn soft">ENGINES COLD — PRESS R</label>
+		}
+		else if ( Pilot && Alt < 60 && Vs < -25 && !s.GearDown )
+		{
+			<label class="warn">PULL UP</label>
+		}
+	}
+</root>
+
+@code
+{
+	SwrpFlightShip Ship => SwrpFlightShip.LocalShip;
+	SeatDef Seat => Ship.Def.Seats[Math.Clamp( SwrpFlightShip.LocalSeat, 0, Ship.Def.Seats.Length - 1 )];
+	bool Pilot => Seat.Role == SeatRole.Pilot;
+	bool Wrecked => Ship?.Wrecked ?? false;
+	bool FirstPerson => Ship is { } s && SwrpFlightShip.LocalCockpitView;
+
+	int Speed => (int)( Ship.Velocity.Length * 0.0254f * 3.6f );
+	int Alt => (int)( Ship.AltitudeCached * 0.0254f );
+	int Vs => (int)( Ship.Velocity.z * 0.0254f );
+	// altitude where it means something: on a planet, or near a deck (landing, the hangar); out in space, the Venator's range
+	bool ShowAlt => SwrpFlightShip.FreeFlight?.Invoke( Ship.WorldPosition ) == true || Alt < 300;
+	string AltLabel => ShowAlt ? "ALT" : "VNTR";
+	string AltValue => ShowAlt ? Alt.ToString() : ( Ship.WorldPosition.Distance( new Vector3( 0f, -2500f, -1000f ) ) * 0.0254f / 1000f ).ToString( "0.0" );
+	int Thr => (int)( Ship.Throttle * 100f );
+	int HeatPct => (int)( Ship.Heat * 100f );
+	int HullPct => (int)MathF.Ceiling( Ship.Health / Ship.Def.Health * 100f );
+	int Heading => (int)( ( 90f - Ship.WorldRotation.Yaw() ) % 360f + 360f ) % 360;      // compass: 0 north (+y), clockwise
+	float Roll => -Ship.WorldRotation.Angles().roll;
+	string EngineText => Ship.EngineOn ? ( Ship.Spool < 0.99f ? $"SPOOL {(int)( Ship.Spool * 100 )}%" : Ship.Boosting ? "BOOST" : "ONLINE" ) : Ship.Spool > 0.02f ? "SHUTDOWN" : "OFF";
+
+	string Keys => Pilot
+		? ( Ship.Def.Model == FlightModel.Fighter
+			? "MOUSE AIM · W/S THROTTLE · A/D ROLL · SPACE/CTRL LIFT · SHIFT AFTERBURNER · ALT LOOK · R ENGINES · C VIEW · E EXIT"
+			: "MOUSE AIM · WASD FLY · SPACE/CTRL LIFT · SHIFT BOOST · ALT LOOK · R ENGINES · 0 DOORS · C VIEW · E EXIT" )
+		: Seat.Weapons.Length > 0 ? "MOUSE AIM · M1 FIRE · C VIEW · 1-9 SEAT · E EXIT" : "MOUSE LOOK · C VIEW · 1-9 SEAT · E EXIT";
+
+	// pitch ladder: a rung every 10 degrees, 9 px a degree, centred on the sight
+	const float PxPerDeg = 9f;
+	record struct Rung( int Deg, int X, int Y );
+	List<Rung> Rungs = new();
+	record struct HTick( int X, bool Major, string Label );
+	List<HTick> HeadingTicks = new();
+	int HdgShift;
+
+	bool ShowPipper, ShowFpm, ShowLock, ShowLead;
+	int PipX, PipY, FpmX, FpmY, LockX, LockY, LockSize = 60, LeadX, LeadY;
+
+	(bool On, int X, int Y) Screen( Vector3 world )
+	{
+		var cam = Scene.Camera;
+		if ( !cam.IsValid() || Vector3.Dot( world - cam.WorldPosition, cam.WorldRotation.Forward ) <= 0f ) return (false, 0, 0);
+		var sp = cam.PointToScreenPixels( world );
+		var sc = Panel?.ScaleFromScreen ?? 1f;
+		return (true, (int)( sp.x * sc ), (int)( sp.y * sc ));
+	}
+
+	protected override void OnUpdate()
+	{
+		ShowPipper = ShowFpm = ShowLock = ShowLead = false;
+		Rungs.Clear();
+		HeadingTicks.Clear();
+		if ( Ship is not { } s || s.Def is null ) return;
+
+		if ( Pilot )
+		{
+			// the ladder is drawn on the world: each rung where that many degrees above or below the horizon lies straight ahead
+			// of the view (the view doesn't roll, so the rungs stay level; the flight path marker banks with the craft)
+			var cam = Scene.Camera;
+			var center = Screen( cam.WorldPosition + cam.WorldRotation.Forward * 10000f );
+			var camPitch = -cam.WorldRotation.Angles().pitch;
+			for ( var d = (int)MathF.Floor( ( camPitch - 40f ) / 10f ) * 10; d <= camPitch + 40f; d += 10 )
+				if ( d >= -85 && d <= 85 && Screen( cam.WorldPosition + Rotation.From( -d, cam.WorldRotation.Yaw(), 0f ).Forward * 10000f ) is { On: true } rp && center.On )
+					Rungs.Add( new Rung( d, 0, rp.Y - center.Y ) );
+
+			// the heading tape: a tick every 5 degrees, labels every 30, 4 px a degree, 120 degrees across
+			var hdg = ( 90f - s.WorldRotation.Yaw() ) % 360f;
+			if ( hdg < 0 ) hdg += 360f;
+			HdgShift = 0;
+			for ( var d = (int)MathF.Floor( ( hdg - 60f ) / 5f ) * 5; d <= hdg + 60f; d += 5 )
+			{
+				var deg = ( d % 360 + 360 ) % 360;
+				var major = deg % 30 == 0;
+				var label = deg switch { 0 => "N", 90 => "E", 180 => "S", 270 => "W", _ => ( deg / 10 ).ToString( "00" ) };
+				HeadingTicks.Add( new HTick( (int)( ( d - hdg ) * 4f ) + 240, major, label ) );
+			}
+
+			// the flight path marker: where the craft is actually travelling
+			if ( s.Velocity.Length > 120f && Screen( Scene.Camera.WorldPosition + s.Velocity.Normal * 5000f ) is { On: true } f )
+			{
+				ShowFpm = true; FpmX = f.X; FpmY = f.Y;
+			}
+
+			// a lock: a box round the target that closes as the lock builds, and the lead pip where to put a torpedo
+			if ( s.LockTarget is { } t && t.IsValid() && Screen( t.WorldPosition + Vector3.Up * 40f ) is { On: true } l )
+			{
+				ShowLock = true; LockX = l.X; LockY = l.Y;
+				LockSize = (int)MathX.Lerp( 140f, 54f, Math.Clamp( s.LockAmount, 0f, 1f ) );
+				if ( s.LeadPoint is { } lp && Screen( lp ) is { On: true } ld ) { ShowLead = true; LeadX = ld.X; LeadY = ld.Y; }
+			}
+		}
+
+		if ( Seat.Weapons.Length == 0 || s.Def.Weapon( Seat.Weapons[0] ) is not { } w || w.Arc > 0f ) return;
+		if ( Screen( s.WorldPosition + s.WorldRotation.Forward * 3000f + s.WorldRotation.Up * 110f ) is { On: true } p )
+		{
+			ShowPipper = true; PipX = p.X; PipY = p.Y;
+		}
+	}
+
+	protected override int BuildHash()
+	{
+		var s = Ship;
+		if ( s is null ) return 0;
+		var rot = s.WorldRotation.Angles();
+		return HashCode.Combine( HashCode.Combine( Speed, Alt, Thr, HullPct, EngineText, s.SeatList, s.AmmoList, HeatPct ),
+			HashCode.Combine( SwrpFlightShip.LocalSeat, PipX / 2, PipY / 2, ShowPipper, Wrecked, s.OutOfSpace, (int)( SwrpPlayer.Local?.GetComponent<SwrpVitals>()?.Health ?? 0f ) ),
+			HashCode.Combine( (int)( rot.pitch * 4 ), (int)( rot.roll * 2 ), (int)( rot.yaw * 4 ), FpmX / 2, FpmY / 2, LockX / 2, LockY / 2, LockSize ),
+			HashCode.Combine( LeadX / 2, LeadY / 2, ShowLock, ShowLead, s.Boosting, s.Overheated, FirstPerson, Vs ) );
+	}
+}

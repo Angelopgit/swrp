@@ -1,0 +1,173 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The helmet comlink, right of centre, shown only while opened with /coms: your radio net and frequency, your comm receiver (N), whether your voice is on
+	the radio or just your helmet (Y) and its range (B), who is transmitting right now with a live waveform, and the
+	recent radio and dispatch text traffic (which no longer clutters the chat). It shrinks to its header when the net is
+	quiet. Voice routing itself is SwrpComms.
+*@
+
+<root class="@(Show ? "" : "hidden") @(Busy ? "busy" : "quiet")">
+	@if ( Show )
+	{
+		<div class="frame">
+			<div class="head">
+				<div class="glyphs">
+					@for ( var i = 0; i < 4; i++ )
+					{
+						<div class="g" style="width: @(Glyph( i ))px"></div>
+					}
+				</div>
+				<label class="title">COMLINK</label>
+				<label class="freq">@Freq</label>
+			</div>
+
+			<div class="net">
+				<div class="signal @(Rx ? "rx" : "")">
+					@for ( var i = 0; i < 5; i++ )
+					{
+						<div class="bar" style="height: @(SignalBar( i ))%"></div>
+					}
+				</div>
+				<label class="netname">@Net</label>
+			</div>
+
+			<div class="chips">
+				<div class="chip @(CommsOn ? "on" : "off")"><label class="v">@( CommsOn ? "COMMS ON" : "COMMS OFF" )</label><label class="key">N</label></div>
+				<div class="chip @(RadioTx ? "tx" : "")"><label class="v">@( RadioTx ? "VOICE · RADIO" : "VOICE · HELMET" )</label><label class="key">Y</label></div>
+				<div class="chip"><label class="v">@Range</label><label class="key">B</label></div>
+			</div>
+
+			@foreach ( var t in Talkers )
+			{
+				<div class="live @(t.Me ? "me" : "")">
+					<div class="wave">
+						@for ( var i = 0; i < 14; i++ )
+						{
+							<div class="w" style="height: @(Wave( t.Amp, i ))%"></div>
+						}
+					</div>
+					<div class="who">
+						<label class="callsign">@t.Callsign</label>
+						<label class="state">@t.State</label>
+					</div>
+				</div>
+			}
+
+			@if ( Busy )
+			{
+				<div class="log">
+					@foreach ( var m in Traffic )
+					{
+						<div class="msg @m.Kind @(m.Fresh ? "fresh" : "")">
+							<div class="meta">
+								<label class="tag">@m.Tag</label>
+								<label class="from">@m.From</label>
+							</div>
+							<label class="text">@m.Text</label>
+						</div>
+					}
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	SwrpPlayer Me => SwrpPlayer.Local;
+
+	/// <summary> Dev: show the comlink with sample traffic before deploying (for screenshots with swrp_cam). </summary>
+	[ConVar( "swrp_comlink_preview", Help = "Show the comlink with sample traffic before you deploy (screenshots)" )]
+	public static bool Preview { get; set; }
+
+	/// <summary> The comlink only shows when you open it with /coms (remembered between sessions). </summary>
+	[ConVar( "swrp_comlink", Help = "Show the comlink panel (the /coms chat command toggles it)", Saved = true )]
+	public static bool Open { get; set; }
+
+	bool Previewing => Me is null && Preview;
+	bool Show => Me is not null && Open && SwrpPlayer.Local?.InVehicle != true || Previewing;      // (not over a cockpit, 2026-10-21)
+
+	record Line( string Kind, string Tag, string From, string Text, bool Fresh );
+	record Talker( string Callsign, string State, bool Me, float Amp );
+
+	string Net => Previewing ? "501ST NET" : SwrpComms.NetName( Me );
+	string Freq => Previewing ? "347.2 MHz" : SwrpComms.Frequency( Me );
+	bool CommsOn => Previewing || Me.CommsOn;
+	bool RadioTx => Previewing || Me.RadioTx;
+	string Range => SwrpChat.VoiceNames[Math.Clamp( Me?.VoiceMode ?? 1, 0, 2 )].ToUpperInvariant();
+
+	List<Talker> Talkers
+	{
+		get
+		{
+			if ( Previewing ) return new() { new( "CPT CT-7567 REX", "ON COMMS", false, 0.9f ) };
+			var me = Me;
+			return SwrpComms.Live.Values.Where( p => p.IsValid() ).Take( 3 )
+				.Select( p => new Talker( $"{p.Rank.Abbreviation} {p.CharacterName}".ToUpperInvariant(), p == me ? $"TRANSMITTING · {SwrpComms.NetName( me )}" : "ON COMMS", p == me,
+					p.IsProxy && p.GetComponent<Voice>() is { } v ? Math.Clamp( v.Amplitude * 6f, 0.25f, 1f ) : 0.8f ) ).ToList();
+		}
+	}
+
+	/// <summary> Radio and dispatch lines from the chat log, split into channel, callsign and message. </summary>
+	List<Line> Traffic
+	{
+		get
+		{
+			var list = new List<Line>();
+			if ( Previewing )
+			{
+				list.Add( new Line( "dispatch", "COMMAND", "CC-2224 CODY", "All companies, form up in the main hangar. Gunships in five.", false ) );
+				list.Add( new Line( "radio", "501ST", "SGT CT-5385 TUP", "Copy that, Torrent moving to the hangar.", false ) );
+				list.Add( new Line( "radio", "501ST", "CPT CT-7567 REX", "Keep it tight, boys. Check your cells.", true ) );
+				return list;
+			}
+			foreach ( var l in SwrpChat.Lines.Where( l => l.Kind is ChatKind.Radio or ChatKind.Dispatch && ( SwrpUiState.ChatOpen || l.Age < 25f ) ).TakeLast( 6 ) )
+			{
+				var t = l.Text;
+				var close = t.IndexOf( ']' );
+				var tag = t.StartsWith( '[' ) && close > 1 ? t[1..close] : "RADIO";
+				var rest = close > 0 ? t[( close + 1 )..].Trim() : t;
+				var colon = rest.IndexOf( ':' );
+				var from = colon > 0 ? rest[..colon] : "";
+				var text = colon > 0 ? rest[( colon + 1 )..].Trim() : rest;
+				var bar = tag.IndexOf( '|' );
+				var kind = l.Kind == ChatKind.Dispatch ? "dispatch" : "radio";
+				list.Add( new Line( kind, bar > 0 ? tag[( bar + 1 )..].Trim() : tag, from.ToUpperInvariant(), text, l.Age < 1.2f ) );
+			}
+			return list;
+		}
+	}
+
+	bool Rx => Previewing || SwrpChat.SinceRadio < 1.5f || Talkers.Count > 0;
+	bool Busy => Previewing || Talkers.Count > 0 || SwrpUiState.ChatOpen || SwrpChat.SinceRadio < 25f || Input.Down( "Score" );
+
+	int Frame => (int)( Time.Now * 10f );
+
+	int Glyph( int i ) => 10 + ( ( i * 37 + 11 ) % 23 );
+
+	int SignalBar( int i )
+	{
+		var basis = 30 + i * 14;
+		if ( !Rx ) return Math.Min( 100, basis );
+		return Math.Clamp( basis + (int)( 18f * MathF.Sin( Time.Now * 9f + i * 1.7f ) ), 10, 100 );
+	}
+
+	/// <summary> A lively waveform for whoever is transmitting (scaled by their voice level when we can hear it). </summary>
+	int Wave( float amp, int i )
+	{
+		var x = MathF.Abs( MathF.Sin( Time.Now * ( 11f + i * 1.3f ) + i * 2.1f ) ) * 0.7f + MathF.Abs( MathF.Sin( Time.Now * 23f + i ) ) * 0.3f;
+		return (int)Math.Clamp( 12f + x * 88f * amp, 8f, 100f );
+	}
+
+	protected override int BuildHash()
+	{
+		var me = Me;
+		return HashCode.Combine( me?.CommsOn, me?.RadioTx, me?.VoiceMode, me?.RadioChannel, Busy, Rx ? Frame : 0, SwrpChat.Version,
+			HashCode.Combine( Talkers.Count, SwrpUiState.ChatOpen, me?.CharacterId, Previewing, Open, SwrpPlayer.Local?.InVehicle ) );
+	}
+}

@@ -1,0 +1,88 @@
+@import "../Feel/_feel.scss";
+$red: $feel-red;
+$blue: $feel-holo;
+$text: $feel-text;
+$muted: $feel-muted;
+
+BrigMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 56;
+	pointer-events: none;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.3 );
+	}
+}
+
+.brig {
+	width: 760px;
+	flex-direction: column;
+	padding: 16px 20px;
+	background-color: rgba( 14, 8, 10, 0.96 );
+	border: 1px solid rgba( 255, 74, 61, 0.35 );
+	border-top: 3px solid $red;
+	@include feel-panel-in;
+}
+
+.ghead {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 10px;
+
+	.gtitle { font-size: 18px; font-weight: 700; letter-spacing: 5px; color: white; margin-right: 14px; }
+	.gsub { font-size: 10px; letter-spacing: 2px; color: $muted; }
+	.close { font-size: 16px; padding: 2px 8px; cursor: pointer; }
+}
+
+.grow { flex-grow: 1; }
+
+.row {
+	flex-direction: row;
+	margin-bottom: 10px;
+}
+
+.btn {
+	font-size: 11px;
+	letter-spacing: 2px;
+	padding: 8px 14px;
+	margin-right: 8px;
+	cursor: pointer;
+	background-color: rgba( 255, 255, 255, 0.08 );
+
+	&:hover { background-color: rgba( 255, 255, 255, 0.18 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	&:active { sound-in: "sounds/ui/ui_click.sound"; }
+	&.up { border-bottom: 2px solid $blue; }
+	&.down { border-bottom: 2px solid $red; }
+}
+
+.grid {
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+.shield {
+	width: 170px;
+	flex-direction: column;
+	padding: 8px 10px;
+	margin: 0 8px 8px 0;
+	cursor: pointer;
+	background-color: rgba( 255, 255, 255, 0.05 );
+	border-left: 3px solid $muted;
+
+	&:hover { background-color: rgba( 255, 255, 255, 0.14 ); sound-in: "sounds/ui/ui_hover.sound"; }
+	&:active { sound-in: "sounds/ui/ui_click.sound"; }
+	&.on { border-left-color: $blue; .sstate { color: $blue; } }
+	&.off { border-left-color: $red; .sstate { color: $red; } }
+
+	.sname { font-size: 10px; letter-spacing: 1px; color: white; }
+	.sstate { font-size: 9px; letter-spacing: 2px; margin-top: 2px; }
+}

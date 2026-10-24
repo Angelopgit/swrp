@@ -1,0 +1,189 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$force: #a9b8ff;
+$amber: #ffb547;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+JediSkillsPanel {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	font-family: Poppins;
+	color: $text;
+	justify-content: center;
+	align-items: center;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 2, 6, 14, 0.55 );
+	}
+}
+
+.panel {
+	width: 1060px;
+	flex-direction: column;
+	padding: 22px 26px;
+	background-color: rgba( 6, 12, 22, 0.92 );
+	border-left: 2px solid $holo-dim;
+	border-top: 1px solid $holo-dim;
+}
+
+.top {
+	flex-direction: row;
+	align-items: center;
+
+	.title {
+		flex-direction: column;
+		flex-grow: 1;
+
+		.t {
+			font-family: Orbitron;
+			font-size: 18px;
+			font-weight: 800;
+			letter-spacing: 6px;
+			color: $holo;
+		}
+
+		.s {
+			font-size: 11px;
+			letter-spacing: 2px;
+			color: $muted;
+			margin-top: 4px;
+		}
+	}
+
+	.pts {
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 3px;
+		color: $muted;
+		margin-right: 20px;
+
+		&.some {
+			color: $amber;
+		}
+	}
+
+	.close {
+		width: 30px;
+		height: 30px;
+		justify-content: center;
+		align-items: center;
+		font-size: 16px;
+		color: $muted;
+		cursor: pointer;
+
+		&:hover {
+			color: $text;
+		}
+	}
+}
+
+.xpbar {
+	height: 3px;
+	margin: 12px 0 16px 0;
+	background-color: rgba( 255, 255, 255, 0.08 );
+
+	.fill {
+		height: 100%;
+		background-color: $holo;
+	}
+}
+
+.cols {
+	flex-direction: row;
+}
+
+.col {
+	flex-direction: column;
+	width: 33.3%;
+	padding-right: 14px;
+
+	.branch {
+		font-size: 10px;
+		letter-spacing: 4px;
+		color: $holo;
+		margin-bottom: 8px;
+	}
+}
+
+.skill {
+	flex-direction: column;
+	padding: 7px 10px;
+	margin-bottom: 6px;
+	border-left: 2px solid rgba( 255, 255, 255, 0.1 );
+	background-color: rgba( 255, 255, 255, 0.03 );
+	cursor: pointer;
+
+	.row {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+
+	.name {
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 2px;
+	}
+
+	.req {
+		font-size: 9px;
+		letter-spacing: 1px;
+		color: $muted;
+	}
+
+	.desc {
+		font-size: 10px;
+		color: $muted;
+		margin-top: 3px;
+	}
+
+	.why {
+		font-size: 9px;
+		color: $amber;
+		margin-top: 3px;
+	}
+
+	.active {
+		font-size: 8px;
+		letter-spacing: 2px;
+		color: $holo;
+		margin-top: 3px;
+	}
+
+	&.known {
+		border-left: 2px solid $holo;
+
+		.req {
+			color: $holo;
+		}
+	}
+
+	&.open {
+		border-left: 2px solid $amber;
+		background-color: rgba( 255, 181, 71, 0.07 );
+
+		.req {
+			color: $amber;
+		}
+
+		&:hover {
+			background-color: rgba( 255, 181, 71, 0.16 );
+		}
+	}
+
+	&.locked {
+		opacity: 0.55;
+	}
+}
+
+.foot {
+	margin-top: 10px;
+	font-size: 9px;
+	letter-spacing: 1px;
+	color: $muted;
+}

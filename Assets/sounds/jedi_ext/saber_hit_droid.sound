@@ -1,0 +1,1 @@
+{"volume": 0.85, "sounds": ["sounds/jedi_ext/gc_impact1.wav", "sounds/jedi_ext/gc_impact2.wav", "sounds/jedi_ext/gc_impact3.wav"], "VolumeRandom": 0.05, "Pitch": 0.9, "PitchRandom": 0.05, "DistanceMax": 1800, "UI": false}

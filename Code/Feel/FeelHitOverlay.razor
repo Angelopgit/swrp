@@ -1,0 +1,40 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp.Feel
+@inherits PanelComponent
+
+@*
+	The hit layer (made by FeelSystem, just above the colour grade and under the HUD): the red edge flash of a hit (pale blue
+	for a stun), the short blur of a heavy hit and the low-health pulse. Never takes the mouse.
+*@
+
+<root>
+	@if ( Blur > 0.01f )
+	{
+		<div class="blur" style="backdrop-filter: blur( @Num( Blur * 6f )px );"></div>
+	}
+	@if ( Low > 0.01f )
+	{
+		<div class="edges low" style="opacity: @Num( Low )">
+			<div class="e t"></div><div class="e b"></div><div class="e l"></div><div class="e r"></div>
+		</div>
+	}
+	@if ( Flash > 0.01f )
+	{
+		<div class="edges @( FeelHits.FlashStun ? "stun" : "hit" )" style="opacity: @Num( Flash )">
+			<div class="e t"></div><div class="e b"></div><div class="e l"></div><div class="e r"></div>
+		</div>
+	}
+</root>
+
+@code
+{
+	static float Flash => FeelHits.Flash * FeelHits.Flash;
+	static float Blur => FeelHits.Blur;
+	static float Low => FeelHits.LowHealth * 0.55f;
+
+	static string Num( float v ) => v.ToString( "0.000", System.Globalization.CultureInfo.InvariantCulture );
+
+	protected override int BuildHash() => HashCode.Combine( (int)( Flash * 60 ), (int)( Blur * 40 ), (int)( Low * 60 ), FeelHits.FlashStun );
+}

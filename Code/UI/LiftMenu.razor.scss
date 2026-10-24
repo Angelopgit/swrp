@@ -1,0 +1,71 @@
+@import "../Feel/_feel.scss";
+$accent: $feel-holo;
+$amber: #ffb547;
+$text: $feel-text;
+$muted: $feel-muted;
+
+LiftMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 55;
+	pointer-events: none;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.25 );
+	}
+}
+
+.lift {
+	width: 380px;
+	flex-direction: column;
+	padding: 14px 16px;
+	background-color: rgba( 10, 16, 26, 0.95 );
+	border: 1px solid rgba( 111, 211, 255, 0.35 );
+	border-top: 3px solid $accent;
+	@include feel-panel-in;
+}
+
+.lhead {
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 10px;
+
+	.ltitle { font-size: 16px; font-weight: 700; letter-spacing: 4px; color: white; margin-right: 10px; }
+	.lsub { font-size: 9px; letter-spacing: 2px; color: $muted; }
+	.close { font-size: 16px; padding: 2px 8px; cursor: pointer; }
+}
+
+.grow { flex-grow: 1; }
+
+.deck {
+	flex-direction: row;
+	align-items: center;
+	padding: 9px 10px;
+	margin-bottom: 4px;
+	background-color: rgba( 255, 255, 255, 0.04 );
+	border-left: 3px solid rgba( 111, 211, 255, 0.4 );
+	cursor: pointer;
+
+	&:hover { background-color: rgba( 111, 211, 255, 0.16 ); }
+	&.here { border-left-color: $amber; background-color: rgba( 255, 181, 71, 0.08 ); cursor: default; }
+	&.busy { opacity: 0.5; cursor: default; }
+
+	.num { font-size: 14px; font-weight: 700; width: 28px; color: $accent; }
+	.dname { font-size: 12px; letter-spacing: 1px; color: white; flex-grow: 1; }
+	.tag { font-size: 8px; letter-spacing: 2px; color: $amber; }
+}
+
+.hint {
+	font-size: 9px;
+	letter-spacing: 1px;
+	color: $muted;
+	margin-top: 6px;
+}

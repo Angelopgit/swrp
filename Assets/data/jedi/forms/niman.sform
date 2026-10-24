@@ -1,0 +1,59 @@
+{
+  "Id": "niman",
+  "Title": "Niman",
+  "Numeral": "VI",
+  "FormId": 5,
+  "AnimationSet": "saber_niman",
+  "RequiredLevel": 5,
+  "Requires": "shiicho",
+  "Description": "The way of the rancor. The diplomat's form: moderate in everything, the blade and the Force woven together. Tight cuts and a thrust, a forgiving rhythm to weave powers in; Force powers cost 30% less. Suits a shoto or a staff.",
+  "Tempo": 1.0,
+  "Damage": 0.9,
+  "FocusCost": 7.0,
+  "BlockCost": 0.85,
+  "ParryWindow": 0.18,
+  "DeflectSkill": 0.65,
+  "Riposte": 1.2,
+  "BlockMove": 0.85,
+  "LockStrength": 0.95,
+  "GuardPitch": 40.0,
+  "GuardYaw": 0.0,
+  "Crouch": 0.15,
+  "Reach": 0.95,
+  "ForceCost": 0.7,
+  "ChainWindow": 0.6,
+  "StanceWidth": 9.0,
+  "StanceDepth": 7.0,
+  "StanceTurn": 10.0,
+  "StanceShift": 0.0,
+  "StanceBend": 1.0,
+  "CutTilt": 0.42,
+  "WristLead": 0.78,
+  "BodyDrive": 1.0,
+  "BlockOut": 12.0,
+  "BlockLean": 5.0,
+  "BlockHeight": 1.0,
+  "GuardHand": "12,-5,0",
+  "Combo": [
+    {
+      "Direction": "Any",
+      "Speed": 1.0,
+      "Damage": 1.0,
+      "Arc": 120.0
+    },
+    {
+      "Direction": "Thrust",
+      "Speed": 1.1,
+      "Damage": 1.1,
+      "Arc": 60.0
+    },
+    {
+      "Direction": "Rising",
+      "Speed": 1.0,
+      "Damage": 1.2,
+      "Arc": 130.0
+    }
+  ],
+  "Version": 6,
+  "OneHanded": false
+}

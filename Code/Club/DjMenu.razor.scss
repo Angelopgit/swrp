@@ -1,0 +1,207 @@
+@import "../Feel/_feel.scss";
+$accent: #b48cff;
+$live: #5ff2ff;
+$text: $feel-text;
+$muted: $feel-muted;
+
+DjMenu {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 56;
+	pointer-events: none;
+
+	&.open {
+		pointer-events: all;
+		background-color: rgba( 0, 0, 0, 0.35 );
+	}
+}
+
+.dj {
+	width: 1040px;
+	flex-direction: column;
+	padding: 16px 20px;
+	background-color: rgba( 12, 10, 24, 0.96 );
+	border: 1px solid rgba( 180, 140, 255, 0.35 );
+	border-top: 3px solid $accent;
+	@include feel-panel-in;
+
+	.grow { flex-grow: 1; }
+
+	.dhead {
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 12px;
+
+		.dtitle { font-size: 18px; font-weight: 700; letter-spacing: 5px; color: white; margin-right: 14px; }
+		.dsub { font-size: 10px; letter-spacing: 2px; color: $muted; }
+		.close { font-size: 16px; padding: 2px 8px; cursor: pointer; }
+	}
+
+	.section { font-size: 10px; letter-spacing: 3px; color: $accent; margin: 10px 0 6px 0; }
+	.note { font-size: 9px; color: $muted; margin-top: 6px; }
+	.note.error { color: #ff7a7a; }
+	.note.ok { color: #7affc4; }
+	.drow { flex-direction: row; align-items: center; }
+	.buttons { flex-direction: row; align-items: center; margin-top: 6px; }
+
+	.btn {
+		font-size: 10px;
+		letter-spacing: 2px;
+		padding: 7px 12px;
+		margin-right: 6px;
+		background-color: rgba( 180, 140, 255, 0.2 );
+		cursor: pointer;
+		white-space: nowrap;
+
+		&:hover { background-color: rgba( 180, 140, 255, 0.4 ); sound-in: "sounds/ui/ui_hover.sound"; }
+		&:active { sound-in: "sounds/ui/ui_click.sound"; }
+		&.small { padding: 5px 10px; }
+		&.tiny { padding: 3px 8px; margin-right: 4px; font-size: 9px; }
+		&.toggle { margin-top: 6px; }
+		&.on { background-color: rgba( 95, 242, 255, 0.4 ); color: white; }
+		&.staff { border: 1px solid rgba( 255, 200, 90, 0.5 ); }
+	}
+
+	.decks {
+		flex-direction: row;
+	}
+
+	.deck {
+		width: 360px;
+		flex-direction: column;
+		padding: 10px 12px;
+		background-color: rgba( 255, 255, 255, 0.04 );
+		border: 1px solid rgba( 255, 255, 255, 0.08 );
+
+		&.live { border: 1px solid rgba( 95, 242, 255, 0.6 ); }
+
+		.dname { font-size: 13px; font-weight: 700; letter-spacing: 4px; color: white; }
+		.kind { font-size: 8px; letter-spacing: 2px; color: $muted; margin-left: 10px; }
+		.track { font-size: 12px; margin: 8px 0; height: 18px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+		.time, .state { font-size: 9px; letter-spacing: 1px; color: $muted; margin-top: 4px; }
+
+		.progress {
+			height: 6px;
+			background-color: rgba( 255, 255, 255, 0.08 );
+
+			.fill { height: 100%; background-color: $live; }
+		}
+	}
+
+	.mixer {
+		flex-grow: 1;
+		flex-direction: column;
+		align-items: center;
+		margin: 0 12px;
+
+		.fader {
+			flex-direction: row;
+			width: 100%;
+			height: 26px;
+			background-color: rgba( 255, 255, 255, 0.05 );
+
+			.notch {
+				flex-grow: 1;
+				margin: 3px 2px;
+				background-color: rgba( 255, 255, 255, 0.08 );
+				cursor: pointer;
+
+				&:hover { background-color: rgba( 255, 255, 255, 0.2 ); sound-in: "sounds/ui/ui_hover.sound"; }
+				&.on { background-color: $live; }
+			}
+		}
+
+		.ab { font-size: 9px; color: $muted; }
+		.level { font-size: 11px; margin: 0 8px 0 2px; width: 40px; text-align: center; }
+	}
+
+	.lower {
+		flex-direction: row;
+		margin-top: 12px;
+		height: 250px;
+	}
+
+	.library, .queue {
+		flex-direction: column;
+		padding: 8px 10px;
+		background-color: rgba( 255, 255, 255, 0.03 );
+		border: 1px solid rgba( 255, 255, 255, 0.06 );
+	}
+
+	.library { width: 600px; margin-right: 12px; }
+	.queue { flex-grow: 1; }
+
+	.tabs {
+		flex-direction: row;
+		margin-bottom: 8px;
+
+		.tab {
+			font-size: 10px;
+			letter-spacing: 2px;
+			padding: 6px 12px;
+			margin-right: 4px;
+			color: $muted;
+			cursor: pointer;
+			border-bottom: 2px solid transparent;
+
+			&:hover { color: white; sound-in: "sounds/ui/ui_hover.sound"; }
+			&.on { color: white; border-bottom: 2px solid $accent; }
+		}
+	}
+
+	.list {
+		flex-direction: column;
+		flex-grow: 1;
+		overflow-y: scroll;
+	}
+
+	.item {
+		flex-direction: row;
+		align-items: center;
+		padding: 4px 6px;
+		flex-shrink: 0;
+
+		&:hover { background-color: rgba( 255, 255, 255, 0.05 ); }
+
+		.iname { flex-grow: 1; font-size: 11px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+		.ibuttons { flex-direction: row; }
+	}
+
+	.field {
+		height: 30px;
+		padding: 4px 8px;
+		margin-bottom: 6px;
+		font-size: 12px;
+		background-color: rgba( 255, 255, 255, 0.06 );
+		border: 1px solid rgba( 255, 255, 255, 0.12 );
+		color: white;
+	}
+
+	.fx {
+		flex-direction: row;
+		align-items: center;
+		flex-wrap: wrap;
+
+		.swatch {
+			width: 70px;
+			height: 28px;
+			margin: 6px 4px 0 0;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			opacity: 0.6;
+			border: 2px solid transparent;
+
+			label { font-size: 7px; letter-spacing: 1px; color: white; }
+			&:hover { opacity: 0.9; sound-in: "sounds/ui/ui_hover.sound"; }
+			&.on { opacity: 1; border: 2px solid white; }
+		}
+	}
+}

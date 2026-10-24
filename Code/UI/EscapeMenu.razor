@@ -1,0 +1,449 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+
+@inherits PanelComponent
+
+@*
+	The Escape menu: Esc opens a holo-table display that floats in front of you, tilted in space and turning a little with the
+	mouse, over the dimmed and blurred game. Resume, the scoreboard (everyone on the server, by unit), your characters (the F4
+	screen), settings (this machine's saved swrp_ settings) and leaving. Esc again (or Resume) closes it; it only opens when no
+	other menu is up, so Esc still backs out of those first. Local only.
+*@
+
+<root class="@(Open ? "open" : "")">
+	@if ( Open )
+	{
+		<div class="backdrop"></div>
+		<div class="stage" style="transform: perspective( 1600px ) rotateY( @Deg( TiltX ) ) rotateX( @Deg( TiltY ) )">
+			<div class="holo">
+				<div class="scan"></div>
+				<div class="rail">
+					<div class="brand">
+						<div class="seal"></div>
+						<div class="brand-text">
+							<label class="brand-title">GAR-NET</label>
+							<label class="brand-sub">FIELD TERMINAL // @Ship</label>
+						</div>
+					</div>
+					@foreach ( var (id, name, sub) in Pages )
+					{
+						var page = id;
+						<div class="option @(Page == page ? "on" : "") @(page == "exit" ? "danger" : "")" onclick=@(() => Choose( page ))>
+							<label class="opt-name">@name</label>
+							<label class="opt-sub">@sub</label>
+						</div>
+					}
+					<div class="grow"></div>
+					<label class="who">@(SwrpPlayer.Local?.FullTitle ?? "Not deployed")</label>
+					<label class="hint">ESC TO RESUME</label>
+				</div>
+
+				<div class="pane">
+					@if ( Page == "rules" )
+					{
+						<label class="pane-title">@SwrpGuide.RulesTitle</label>
+						<label class="pane-sub">@(SwrpGuide.MustAccept ? "READ AND ACCEPT TO CONTINUE" : "ACCEPTED · /rules SHOWS THEM AGAIN")</label>
+						@if ( !string.IsNullOrWhiteSpace( SwrpGuide.RulesWelcome ) )
+						{
+							<label class="pane-note first">@SwrpGuide.RulesWelcome</label>
+						}
+						<div class="settings">
+							@for ( var i = 0; i < SwrpGuide.RulesLines.Count; i++ )
+							{
+								<div class="setting">
+									<label class="num">@(i + 1)</label>
+									<div class="s-text"><label class="s-help rule">@SwrpGuide.RulesLines[i]</label></div>
+								</div>
+							}
+						</div>
+						@if ( SwrpGuide.MustAccept )
+						{
+							<div class="leave row-buttons">
+								<div class="big-button" onclick=@(() => { SwrpGuide.AcceptLocal(); Page = "guide"; })>
+									<label class="b-name">I ACCEPT</label>
+									<label class="b-sub">Then the guide: first steps and every key</label>
+								</div>
+								<div class="big-button ghost" onclick=@(() => Choose( "exit" ))>
+									<label class="b-name">LEAVE</label>
+									<label class="b-sub">Disconnect</label>
+								</div>
+							</div>
+						}
+					}
+					else if ( Page == "guide" )
+					{
+						<label class="pane-title">GUIDE</label>
+						<label class="pane-sub">FIRST STEPS · F2 OPENS THIS PAGE</label>
+						<div class="settings">
+							@foreach ( var step in FirstSteps )
+							{
+								<div class="setting">
+									<div class="s-text"><label class="s-name">@step.Title</label><label class="s-help">@step.Text</label></div>
+								</div>
+							}
+						</div>
+						<label class="pane-sub where">DIRECTIONS · A MARKER WALKS YOU THERE</label>
+						<div class="places">
+							<div class="place tour" onclick=@(() => { Open = false; SwrpGuide.StartTour(); })><label>SHIP TOUR</label></div>
+							@foreach ( var place in SwrpGuide.Places )
+							{
+								var id = place.Id;
+								<div class="place" onclick=@(() => { Open = false; SwrpGuide.SetDestination( id ); })><label>@place.Name.ToUpperInvariant()</label></div>
+							}
+							<div class="place" onclick=@(() => Choose( "keys" ))><label>EVERY KEY</label></div>
+						</div>
+						@if ( SwrpGuide.BoardTotw is { } totw )
+						{
+							<label class="pane-note">@($"Trooper of the Week: {totw}")</label>
+						}
+					}
+					else if ( Page == "keys" )
+					{
+						<label class="pane-title">KEYS</label>
+						<label class="pane-sub">EVERY KEY AND WHAT IT DOES (DEFAULTS) · /help FOR CHAT COMMANDS</label>
+						<div class="option" onclick=@(() => Game.Overlay.ShowBinds())>CHANGE KEYS</div>
+						<div class="settings">
+							@foreach ( var group in SwrpGuide.KeyList )
+							{
+								<div class="unit"><label class="unit-name">@group.Group</label></div>
+								@foreach ( var k in group.Keys )
+								{
+									<div class="setting key">
+										<label class="keycap">@k.Key</label>
+										<div class="s-text"><label class="s-help">@k.What</label></div>
+									</div>
+								}
+							}
+						</div>
+					}
+					else if ( Page == "scoreboard" )
+					{
+						<label class="pane-title">SCOREBOARD</label>
+						<label class="pane-sub">@($"{Roster.Sum( g => g.Players.Count ) + Undeployed.Count} ON THE SERVER  ·  {SwrpSpace.Here.Name.ToUpperInvariant()}")</label>
+						<div class="table">
+							<div class="row head">
+								<label class="c-name">TROOPER</label>
+								<label class="c-rank">RANK</label>
+								<label class="c-class">CLASS</label>
+								<label class="c-ping">PING</label>
+							</div>
+							@foreach ( var g in Roster )
+							{
+								<div class="unit" style="border-left-color: @g.Color">
+									<label class="unit-name">@g.Name.ToUpperInvariant()</label>
+									<label class="unit-count">@g.Players.Count</label>
+								</div>
+								@foreach ( var p in g.Players )
+								{
+									<div class="row @(p == SwrpPlayer.Local ? "me" : "")">
+										<label class="c-name">@p.FullTitle</label>
+										<label class="c-rank">@p.Rank.Name</label>
+										<label class="c-class">@p.Class.Name</label>
+										<label class="c-ping">@Ping( p )</label>
+									</div>
+								}
+							}
+							@if ( Undeployed.Count > 0 )
+							{
+								<div class="unit">
+									<label class="unit-name">ON THE CHARACTER SCREEN</label>
+									<label class="unit-count">@Undeployed.Count</label>
+								</div>
+								@foreach ( var c in Undeployed )
+								{
+									<div class="row dim">
+										<label class="c-name">@c.DisplayName</label>
+										<label class="c-rank">-</label>
+										<label class="c-class">-</label>
+										<label class="c-ping">@($"{c.Ping} ms")</label>
+									</div>
+								}
+							}
+						</div>
+					}
+					else if ( Page == "settings" )
+					{
+						<label class="pane-title">SETTINGS</label>
+						<label class="pane-sub">SAVED ON THIS MACHINE</label>
+						<div class="settings">
+							@foreach ( var s in Settings )
+							{
+								var setting = s;
+								<div class="setting">
+									<div class="s-text">
+										<label class="s-name">@setting.Name</label>
+										<label class="s-help">@setting.Help</label>
+									</div>
+									@if ( setting.Step <= 0 )
+									{
+										var on = GetBool( setting.Var );
+										<div class="toggle @(on ? "on" : "")" onclick=@(() => Set( setting.Var, !on ))>
+											<label>@(on ? "ON" : "OFF")</label>
+										</div>
+									}
+									else
+									{
+										var v = GetFloat( setting.Var );
+										<div class="stepper">
+											<div class="step" onclick=@(() => Set( setting.Var, Math.Clamp( v - setting.Step, setting.Min, setting.Max ) ))>−</div>
+											<div class="bar"><div class="fill" style="width: @(Pct( v, setting ))%"></div></div>
+											<label class="value">@Format( v, setting )</label>
+											<div class="step" onclick=@(() => Set( setting.Var, Math.Clamp( v + setting.Step, setting.Min, setting.Max ) ))>+</div>
+										</div>
+									}
+								</div>
+							}
+						</div>
+					}
+					else if ( Page == "exit" )
+					{
+						<label class="pane-title">LEAVE</label>
+						<label class="pane-sub">YOUR CHARACTERS AND KIT ARE SAVED ON THE HOST</label>
+						<div class="leave">
+							<div class="big-button" onclick=@(() => { Open = false; Game.Disconnect(); })>
+								<label class="b-name">DISCONNECT</label>
+								<label class="b-sub">Leave this server</label>
+							</div>
+							<div class="big-button danger" onclick=@(() => { Open = false; Game.Close(); })>
+								<label class="b-name">QUIT GAME</label>
+								<label class="b-sub">Close Star Wars RP</label>
+							</div>
+							<div class="big-button ghost" onclick=@(() => Choose( "resume" ))>
+								<label class="b-name">STAY</label>
+								<label class="b-sub">Back to the ship</label>
+							</div>
+						</div>
+					}
+					else
+					{
+						<label class="pane-title">@Ship</label>
+						<label class="pane-sub">@(SwrpSpace.Current is { InHyperspace: true } ? "IN HYPERSPACE" : $"HOLDING AT {SwrpSpace.Here.Name.ToUpperInvariant()}")</label>
+						<div class="status">
+							<div class="stat"><label class="k">ON BOARD</label><label class="v">@Roster.Sum( g => g.Players.Count )</label></div>
+							<div class="stat"><label class="k">UNIT</label><label class="v">@(SwrpPlayer.Local?.Faction.ShortName ?? "-")</label></div>
+							<div class="stat"><label class="k">RANK</label><label class="v">@(SwrpPlayer.Local?.Rank.Name ?? "-")</label></div>
+						</div>
+						<label class="pane-note">Pick an option on the left. Esc returns you to the ship.</label>
+					}
+				</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary> Open on this machine (counts as a menu: your trooper stops while it's up). </summary>
+	public static bool Open { get; set; }
+
+	static string _showPage;
+
+	/// <summary> Open the menu on a page (the guide's F2, /guide, /rules, /keys). </summary>
+	public static void Show( string page )
+	{
+		if ( SwrpPlayer.Local is null ) return;
+		_showPage = page;
+		Open = true;
+	}
+
+	static readonly (string Title, string Text)[] FirstSteps =
+	{
+		( "1. TAKE THE TOUR", "Directions below, or /guide tour: the armory, the medbay, a turbolift and the simulation rooms." ),
+		( "2. CADET TRAINING", "Cadets pass training to become Privates: /train shows your checklist, and any Training Officer signs it off." ),
+		( "3. TALK", "Hold V to talk, B for range. Y puts your voice on your radio net, /channel picks the net, /r types on it." ),
+		( "4. JOIN A SQUAD", "Ask a squad lead to /squad invite you, or /squad create. Hold Tab for the board: orders, squads, everyone aboard." ),
+		( "5. WHEN YOU GO DOWN", "Press E to call a medic and wait; anyone can hold E on you to revive. Medics are faster, and their defibrillator brings you back at full health." ),
+		( "6. A BATTALION", "Battalion officers whitelist you (L shows the roster). Heavy, Specialist and Officer need a qualification (/qual)." ),
+	};
+
+	static string _previewPage;
+
+	/// <summary> Dev: show the menu without a deployed trooper (for screenshots of the character screen's scene). </summary>
+	[ConCmd( "swrp_escape_preview", Help = "swrp_escape_preview <home|scoreboard|settings|exit|0> - dev: open the Escape menu on a page without being deployed (0 closes it)" )]
+	public static void Preview( string page = "home" )
+	{
+		_previewPage = page == "0" ? null : page;
+		Open = _previewPage is not null;
+	}
+
+	string Page { get; set; } = "home";
+	static RealTimeSince _sinceRulesClosed = 10;
+
+	/// <summary> Any other menu is up (the squad menu isn't in SwrpUiState.AnyOpen). </summary>
+	static bool AnyMenu => SwrpUiState.AnyOpen || SquadMenu.Open;
+	float TiltX, TiltY;
+	RealTimeSince _sinceRoster = 10;
+	List<Group> _roster = new();
+	List<Connection> _undeployed = new();
+
+	static readonly (string Id, string Name, string Sub)[] Pages =
+	{
+		( "resume", "RESUME", "Back to the ship" ),
+		( "guide", "GUIDE", "First steps, keys, directions" ),
+		( "scoreboard", "SCOREBOARD", "Everyone on the server" ),
+		( "characters", "CHARACTERS", "Your roster, deploy or enlist" ),
+		( "settings", "SETTINGS", "Camera, sound, HUD" ),
+		( "rules", "RULES", "The server's rules" ),
+		( "exit", "EXIT", "Disconnect or quit" ),
+	};
+
+	sealed record Setting( string Var, string Name, string Help, float Step = 0f, float Min = 0f, float Max = 1f, bool Percent = true );
+
+	/// <summary> This machine's own saved settings (each is a swrp_ console setting too). </summary>
+	static readonly Setting[] Settings =
+	{
+		new( "swrp_hud_fade", "Fading HUD", "Ammo and vitals show only when you need them (hold Tab for all)" ),
+		new( "swrp_squad_markers", "Squad markers", "Your squad's markers over their heads" ),
+		new( "swrp_visor", "Helmet visor", "The visor's edge and readouts in first person" ),
+		new( "swrp_cinematic", "Cinematic camera", "Head bob, shake, the deploy fly-in and death camera" ),
+		new( "swrp_postfx", "Cinematic look", "Colour grade, bloom and vignette" ),
+		new( "swrp_ship_life", "Living ship", "Crew, steam, sparks and screens around the ship" ),
+		new( "swrp_space_ships", "Passing ships", "Ships flying past the viewports now and then" ),
+		new( "swrp_helmet_voice", "Helmet voice", "Clone voices sound through the helmet" ),
+		new( "swrp_uisounds", "Menu sounds", "Clicks and confirms in menus" ),
+		new( "swrp_ambient_volume", "Ship ambience", "Engine hum and ship sounds", 0.1f ),
+		new( "swrp_radio_volume", "Radio volume", "Voices on the radio", 0.1f ),
+		new( "swrp_menu_music", "Menu music", "Music on the character screen", 0.1f ),
+		new( "swrp_thirdperson_distance", "Third person distance", "How far the camera sits behind you (C)", 10f, 60f, 260f, false ),
+	};
+
+	sealed class Group
+	{
+		public string Name;
+		public string Color;
+		public List<SwrpPlayer> Players = new();
+	}
+
+	List<Group> Roster
+	{
+		get
+		{
+			if ( _sinceRoster > 1f ) Refresh();
+			return _roster;
+		}
+	}
+
+	List<Connection> Undeployed
+	{
+		get
+		{
+			if ( _sinceRoster > 1f ) Refresh();
+			return _undeployed;
+		}
+	}
+
+	void Refresh()
+	{
+		_sinceRoster = 0;
+		var players = Scene.GetAllComponents<SwrpPlayer>().Where( p => p.CharacterId is not null ).ToList();
+		_roster = players.GroupBy( p => p.FactionId )
+			.Select( g => new Group { Name = g.First().Faction.Name, Color = g.First().Faction.ColorHex, Players = g.OrderByDescending( p => p.RankIndex ).ThenBy( p => p.CharacterName ).ToList() } )
+			.OrderByDescending( g => g.Players.Count ).ToList();
+		var deployed = players.Select( p => p.Network.Owner?.Id ).Where( id => id is not null ).ToHashSet();
+		_undeployed = Connection.All.Where( c => !deployed.Contains( c.Id ) ).ToList();
+	}
+
+	static string Ping( SwrpPlayer p ) => p.Network.Owner is { } c ? $"{c.Ping} ms" : "-";
+
+	static string Ship => "VENATOR-CLASS STAR DESTROYER";
+
+	static string Deg( float d ) => d.ToString( "0.00", System.Globalization.CultureInfo.InvariantCulture ) + "deg";
+
+	static bool GetBool( string v ) => ConsoleSystem.GetValue( v, "False" ) is { } s && ( s.Equals( "true", StringComparison.OrdinalIgnoreCase ) || s == "1" );
+
+	static float GetFloat( string v ) => float.TryParse( ConsoleSystem.GetValue( v, "0" ), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var f ) ? f : 0f;
+
+	void Set( string v, object value )
+	{
+		ConsoleSystem.SetValue( v, value is float f ? f.ToString( "0.###", System.Globalization.CultureInfo.InvariantCulture ) : value );
+		SwrpAudio.Ui( SwrpAudio.Click );
+		_settingsVersion++;
+	}
+
+	int _settingsVersion;
+
+	static int Pct( float v, Setting s ) => (int)Math.Clamp( ( v - s.Min ) / ( s.Max - s.Min ) * 100f, 0f, 100f );
+
+	static string Format( float v, Setting s ) => s.Percent ? $"{v * 100f:0}%" : $"{v:0}";
+
+	void Choose( string page )
+	{
+		switch ( page )
+		{
+			case "resume":
+				Open = false;
+				return;
+			case "characters":
+				Open = false;
+				SwrpUiState.CharacterMenuOpen = true;
+				return;
+			default:
+				Page = page;
+				SwrpAudio.Ui( SwrpAudio.Click );
+				return;
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		// Esc opens it when no other menu has Esc to close (they back out first), and closes it again
+		if ( Input.EscapePressed )
+		{
+			if ( Open )
+			{
+				Input.EscapePressed = false;
+				Open = false;
+				if ( SwrpGuide.MustAccept ) _sinceRulesClosed = 0;
+			}
+			else if ( SwrpUiState.InventoryOpen || SwrpUiState.CharacterMenuOpen && SwrpPlayer.Local?.CharacterId is not null )
+			{
+				// the inventory and (once you're deployed) the character screen close on Esc too
+				Input.EscapePressed = false;
+				SwrpUiState.InventoryOpen = false;
+				SwrpUiState.CharacterMenuOpen = false;
+			}
+			else if ( SwrpPlayer.Local is not null && !AnyMenu )
+			{
+				Input.EscapePressed = false;
+				Open = true;
+				Page = "home";
+				_sinceRoster = 10;
+				SwrpAudio.Ui( SwrpAudio.Confirm );
+			}
+		}
+		if ( _previewPage is not null ) { Page = _previewPage; if ( !Open ) _previewPage = null; }
+		else if ( Open && SwrpPlayer.Local is null ) Open = false;
+
+		// the guide key (F2 is free in Input.config; read straight from the keyboard, so no restart is needed), pages asked
+		// for by /guide, /rules and /keys, and the rules until they're accepted
+		if ( SwrpPlayer.Local is not null && !SwrpUiState.ChatOpen && Input.Pressed( "Guide" ) )
+		{
+			if ( Open && Page is "guide" or "keys" ) Open = false;
+			else if ( !AnyMenu || Open ) Show( "guide" );
+		}
+		if ( SwrpGuide.MustAccept && SwrpPlayer.Local is not null && !Open && !AnyMenu && _sinceRulesClosed > 4f )
+			Show( "rules" );
+		if ( _showPage is not null && Open )
+		{
+			Page = SwrpGuide.MustAccept && _showPage != "exit" ? "rules" : _showPage;
+			_showPage = null;
+			_sinceRoster = 10;
+			SwrpAudio.Ui( SwrpAudio.Confirm );
+		}
+		else if ( Open && SwrpGuide.MustAccept && Page is not ( "rules" or "exit" ) ) Page = "rules";
+
+		// the display turns a little toward the mouse, so it reads as a thing hanging in the room
+		var want = Vector2.Zero;
+		if ( Open && Screen.Width > 0 )
+		{
+			var m = Mouse.Position;
+			want = new Vector2( ( m.x / Screen.Width - 0.5f ) * 7f, -( m.y / Screen.Height - 0.5f ) * 5f );
+		}
+		TiltX = TiltX.LerpTo( 3.5f + want.x, Time.Delta * 6f );
+		TiltY = TiltY.LerpTo( 2f + want.y, Time.Delta * 6f );
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Open, Page, (int)( TiltX * 8 ), (int)( TiltY * 8 ), _settingsVersion, Open ? (int)( Time.Now ) : 0, SwrpGuide.MustAccept, SwrpGuide.RulesVersion );
+}

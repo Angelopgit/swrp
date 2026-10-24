@@ -1,0 +1,121 @@
+// SWRP shared look and motion tokens (Code/Feel). STYLE_GUIDE.md explains them; FeelMotion.cs holds the same timings.
+// Import from a panel's stylesheet:   @import "../Feel/_feel.scss";   (from Code/UI, Code/Jedi, Code/Flight)
+// Only variables and mixins live here, so importing it adds no rules by itself.
+
+// ----- palette: UI -----
+$feel-holo: #6fd3ff;                          // primary accent: holo blue (titles, selection, focus)
+$feel-holo-dim: rgba( 111, 211, 255, 0.35 );  // borders, inactive accent
+$feel-holo-faint: rgba( 111, 211, 255, 0.12 );// fills, hover wash
+$feel-text: #e6f2fb;                          // body text
+$feel-muted: rgba( 230, 242, 251, 0.55 );     // secondary text
+$feel-panel: rgba( 8, 16, 28, 0.9 );          // panel background
+$feel-panel-deep: rgba( 3, 6, 12, 0.94 );     // modal / window background
+$feel-amber: #ffb547;                         // warning, attention, held item
+$feel-red: #ff4a3d;                           // danger, damage, deny
+$feel-green: #7dffa1;                         // ok, online, healed
+$feel-staff: #ff7a2f;                         // staff and GM tools only
+
+// ----- palette: sides (match Data/Allegiances.cs) -----
+$feel-gar: #d8dde3;
+$feel-navy: #5b7fb8;
+$feel-jedi: #7fc4ff;
+$feel-cis: #c8742a;
+
+// ----- palette: hit feedback -----
+$feel-hit: rgba( 200, 20, 16, 0.75 );
+$feel-stun: rgba( 150, 205, 255, 0.6 );
+$feel-lowhp: rgba( 120, 0, 0, 0.8 );
+
+// ----- type -----
+$feel-font-title: Orbitron;                   // headings, labels, buttons, numbers
+$feel-font-body: Poppins;                     // chat, descriptions, long text
+$feel-size-xs: 9px;
+$feel-size-s: 11px;
+$feel-size-m: 13px;
+$feel-size-l: 16px;
+$feel-size-xl: 22px;
+$feel-size-hero: 48px;
+
+// ----- spacing (4 px grid) and shape -----
+$feel-space-1: 4px;
+$feel-space-2: 8px;
+$feel-space-3: 12px;
+$feel-space-4: 16px;
+$feel-space-6: 24px;
+$feel-space-8: 32px;
+$feel-radius: 3px;                            // buttons, rows, chips
+$feel-radius-panel: 5px;                      // windows and holo panels
+
+// ----- motion (FeelMotion.Fast / Med / Slow) -----
+$feel-fast: 0.12s;
+$feel-med: 0.25s;
+$feel-slow: 0.35s;
+
+// A small window or console menu: fades in and rises a little; fades out quicker.
+@mixin feel-panel-in {
+	transition: all 0.25s ease-out;
+
+	&:intro {
+		opacity: 0;
+		transform: translateY( 12px );
+	}
+
+	&:outro {
+		opacity: 0;
+		transform: translateY( 6px );
+		transition: all 0.12s ease-in;
+	}
+}
+
+// A pop-up or tooltip: fades in from slightly smaller.
+@mixin feel-pop-in {
+	transition: all 0.12s ease-out;
+
+	&:intro {
+		opacity: 0;
+		transform: scale( 0.97 );
+	}
+
+	&:outro {
+		opacity: 0;
+		transition: all 0.12s ease-in;
+	}
+}
+
+// A big holo display (Escape menu, character screen): rises, unfolds and grows into place.
+@mixin feel-holo-in {
+	transition: all 0.35s ease-out;
+
+	&:intro {
+		opacity: 0;
+		transform: translateY( 40px ) scale( 0.92 );
+	}
+
+	&:outro {
+		opacity: 0;
+		transform: scale( 0.97 );
+		transition: all 0.12s ease-in;
+	}
+}
+
+// A backdrop or full-screen wash: plain fade.
+@mixin feel-fade-in {
+	transition: opacity 0.25s ease-out;
+
+	&:intro { opacity: 0; }
+	&:outro { opacity: 0; transition: opacity 0.12s ease-in; }
+}
+
+// A button or row: hover wash and the shared UI sounds.
+@mixin feel-button {
+	transition: all 0.12s ease-out;
+
+	&:hover {
+		background-color: rgba( 111, 211, 255, 0.12 );
+		sound-in: "sounds/ui/ui_hover.sound";
+	}
+
+	&:active {
+		sound-in: "sounds/ui/ui_click.sound";
+	}
+}

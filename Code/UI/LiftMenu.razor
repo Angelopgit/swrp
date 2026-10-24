@@ -1,0 +1,76 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+@*
+	The turbolift deck selector, opened with E on the panel inside a lift car. Lists the shaft's decks top to bottom; picking
+	one asks the host for the ride. Closes on Escape, after picking, or when you step out of the car.
+*@
+
+<root class="@(Lift is not null ? "open" : "")">
+	@if ( Lift is { } lift )
+	{
+		<div class="lift">
+			<div class="lhead">
+				<label class="ltitle">TURBOLIFT</label>
+				<label class="lsub">@lift.LiftName.ToUpperInvariant()</label>
+				<div class="grow"></div>
+				<div class="close" onclick=@(() => SwrpUiState.LiftMenu = null)>✕</div>
+			</div>
+			@for ( var i = lift.Decks.Count - 1; i >= 0; i-- )
+			{
+				var deck = i;
+				var here = deck == Here;
+				<div class="deck @(here ? "here" : "") @(lift.Moving ? "busy" : "")" onclick=@(() => Pick( deck ))>
+					<label class="num">@(deck + 1)</label>
+					<label class="dname">@lift.Decks[deck].Name</label>
+					<label class="tag">@(here ? "YOU ARE HERE" : lift.MovingTo == deck ? "IN TRANSIT" : "")</label>
+				</div>
+			}
+			<label class="hint">@(lift.Moving ? "The turbolift is in motion." : "Pick a deck, or press a number key.")</label>
+		</div>
+	}
+</root>
+
+@code
+{
+	SwrpTurbolift Lift => SwrpUiState.LiftMenu.IsValid() ? SwrpUiState.LiftMenu : null;
+	int Here = -1;
+
+	void Pick( int deck )
+	{
+		var lift = Lift;
+		if ( lift is null || lift.Moving || deck == Here ) return;
+		lift.RequestRide( deck );
+		SwrpUiState.LiftMenu = null;
+	}
+
+	protected override void OnUpdate()
+	{
+		var lift = Lift;
+		if ( SwrpUiState.LiftMenu is not null && lift is null ) SwrpUiState.LiftMenu = null;
+		if ( lift is null ) return;
+
+		var me = SwrpPlayer.Local;
+		Here = me.IsValid() ? lift.DeckAt( me.WorldPosition ) : -1;
+		if ( Here < 0 || SwrpUiState.ChatOpen )
+		{
+			SwrpUiState.LiftMenu = null;
+			return;
+		}
+
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			SwrpUiState.LiftMenu = null;
+			return;
+		}
+
+		for ( var i = 0; i < Math.Min( 9, lift.Decks.Count ); i++ )
+			if ( Input.Pressed( $"Slot{i + 1}" ) ) Pick( i );
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Lift, Here, Lift?.Moving, Lift?.MovingTo );
+}

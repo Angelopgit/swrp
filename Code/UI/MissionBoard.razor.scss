@@ -1,0 +1,154 @@
+$holo: #6fd3ff;
+$holo-dim: rgba( 111, 211, 255, 0.35 );
+$amber: #ffb547;
+$red: #ff4a3d;
+$green: #7dffa1;
+$text: #e6f2fb;
+$muted: rgba( 230, 242, 251, 0.55 );
+
+MissionBoard {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	justify-content: center;
+	align-items: center;
+	font-family: Orbitron;
+	color: $text;
+	z-index: 40;
+
+	&.open {
+		background-color: rgba( 0, 4, 10, 0.45 );
+	}
+}
+
+.board {
+	width: 1320px;
+	flex-direction: column;
+	padding: 20px 26px;
+	background-color: rgba( 8, 14, 24, 0.94 );
+	border: 1px solid rgba( 95, 180, 255, 0.35 );
+	border-top: 3px solid $holo;
+}
+
+.header {
+	flex-direction: row;
+	align-items: flex-end;
+	margin-bottom: 14px;
+
+	.title {
+		font-size: 22px;
+		font-weight: 700;
+		letter-spacing: 6px;
+		color: white;
+		margin-right: 16px;
+	}
+
+	.sub {
+		font-size: 10px;
+		letter-spacing: 3px;
+		color: $muted;
+		margin-bottom: 4px;
+	}
+}
+
+.cols {
+	flex-direction: row;
+}
+
+.col {
+	flex-direction: column;
+	flex-grow: 1;
+	width: 33%;
+
+	&.orders, &.roster {
+		margin-right: 24px;
+	}
+}
+
+// the scoreboard column
+.roster .scroll {
+	flex-direction: column;
+	max-height: 560px;
+	overflow-y: scroll;
+}
+
+.unitrow {
+	flex-direction: row;
+	justify-content: space-between;
+	margin-top: 8px;
+	padding: 3px 8px;
+	border-left: 3px solid $holo;
+	background-color: rgba( 111, 211, 255, 0.06 );
+	font-size: 11px;
+	letter-spacing: 2px;
+}
+
+.prow {
+	flex-direction: row;
+	padding: 3px 8px;
+	font-family: Poppins;
+	font-size: 12px;
+	border-bottom: 1px solid rgba( 111, 211, 255, 0.06 );
+
+	&.me { background-color: rgba( 111, 211, 255, 0.12 ); color: white; }
+
+	.pname { flex-grow: 1; }
+	.pclass { width: 80px; color: $muted; }
+	.pping { width: 40px; text-align: right; color: $muted; }
+}
+
+.card.event { margin-bottom: 6px; }
+
+.section {
+	font-size: 10px;
+	letter-spacing: 4px;
+	color: $holo;
+	margin: 12px 0 6px 0;
+}
+
+.card {
+	flex-direction: column;
+	padding: 10px 12px;
+	background-color: rgba( 111, 211, 255, 0.07 );
+	border-left: 3px solid $holo;
+
+	&.high { border-left-color: $amber; }
+	&.critical { border-left-color: $red; }
+
+	.prio { font-size: 9px; letter-spacing: 3px; color: $muted; }
+	.otitle { font-size: 17px; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+	.otext { font-size: 12px; color: $muted; margin-top: 4px; }
+	.orally { font-size: 10px; letter-spacing: 2px; color: $amber; margin-top: 4px; }
+	.ometa { font-size: 9px; letter-spacing: 1px; color: $muted; margin-top: 6px; }
+}
+
+.row {
+	flex-direction: column;
+	padding: 5px 10px;
+	margin-bottom: 4px;
+	background-color: rgba( 255, 255, 255, 0.04 );
+	border-left: 2px solid $holo-dim;
+
+	.status { font-size: 9px; letter-spacing: 2px; color: $muted; }
+	.rtitle { font-size: 12px; }
+	.rmeta { font-size: 9px; color: $muted; margin-top: 1px; }
+
+	&.complete { border-left-color: $green; .status { color: $green; } }
+	&.failed { border-left-color: $red; .status { color: $red; } }
+	&.cancelled { .status { color: $muted; } }
+}
+
+.empty {
+	font-size: 11px;
+	color: $muted;
+}
+
+.hint {
+	font-size: 9px;
+	letter-spacing: 2px;
+	color: $muted;
+	margin-top: 14px;
+}

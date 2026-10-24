@@ -1,0 +1,1 @@
+{"volume": 1.0, "sounds": ["sounds/flight/bf2/missile_blast_00.wav", "sounds/flight/bf2/missile_blast_01.wav", "sounds/flight/bf2/missile_blast_02.wav", "sounds/flight/bf2/missile_blast_03.wav"], "VolumeRandom": 0.0, "Pitch": 1.0, "PitchRandom": 0.05, "DistanceMax": 16000.0, "UI": false}

@@ -1,0 +1,2 @@
+Star Wars Battlefront II (EA/DICE) B1 and B2 battle droid voice lines, extracted from Angelo's own copy of the game with the Frosty batch exporter (BF2_Extracted/Tools/BatchExport sound mode, English only) and the GMod workshop addon 2226522244 (death screams).
+LOCAL ONLY: never publish or commit, like the BF2/TFA/GC assets.

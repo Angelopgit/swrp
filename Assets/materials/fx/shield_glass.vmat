@@ -1,0 +1,15 @@
+// Droideka deflector bubble, inner layer (Code/Npc/DroidekaShield.cs): refracts what's behind it, a faint blue tint.
+
+Layer0
+{
+	shader "shaders/glass.shader"
+
+	F_GLASS_QUALITY 0
+
+	TextureColor "[0.780000 0.880000 1.000000 1.000000]"
+	TextureRoughness "[0.050000 0.050000 0.050000 0.000000]"
+	TextureNormal "materials/default/default_normal.tga"
+	g_flRefractionStrength "1.040"
+	g_flBlurAmount "0.000"
+	AlbedoAbsorption "0.000"
+}

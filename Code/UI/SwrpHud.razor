@@ -1,0 +1,380 @@
+@using System
+@using Sandbox
+@using Sandbox.UI
+@namespace Swrp
+@inherits PanelComponent
+
+<root>
+	@if ( Player is { } player )
+	{
+		var vitals = Vitals;
+		var blaster = Blaster;
+
+		<div class="hit @(HitFlash ? "show" : "")"></div>
+		@if ( vitals is not null && !vitals.IsDead && vitals.Health <= 25 )
+		{
+			<div class="critical"></div>
+		}
+
+		<div class="identity @(ShowIdentity ? "" : "faded")" style="@(player.InVehicle ? "display: none;" : "")">
+			<div class="stripe" style="background-color: @player.Faction.ColorHex"></div>
+			<div class="text">
+				<label class="name">@player.FullTitle</label>
+				<label class="unit">@($"{player.Faction.FullName.ToUpperInvariant()}  ·  {player.Rank.Name.ToUpperInvariant()}")</label>
+				<label class="credits">@($"{player.Credits:N0} CR")</label>
+			</div>
+		</div>
+
+		@if ( vitals is not null )
+		{
+			@* in a craft seat the ship HUD carries your health; the infantry block steps aside so the two don't overlap *@
+			<div class="vitals @(ShowVitals ? "" : "faded")" style="@(player.InVehicle ? "display: none;" : "")">
+				<label class="tag">VITALS // @player.Class.Name.ToUpperInvariant()</label>
+				<div class="meter health @(vitals.Health <= 25 ? "low" : "")">
+					<label class="key">HP</label>
+					<div class="track"><div class="fill" style="width: @(Pct( vitals.Health, SwrpVitals.MaxHealth ))%"></div></div>
+					<label class="num">@vitals.Health.CeilToInt()</label>
+				</div>
+				@if ( vitals.MaxArmor > 0 )
+				{
+					<div class="meter armor">
+						<label class="key">ARM</label>
+						<div class="track"><div class="fill" style="width: @(Pct( vitals.Armor, vitals.MaxArmor ))%"></div></div>
+						<label class="num">@vitals.Armor.CeilToInt()</label>
+					</div>
+				}
+				<div class="meter stamina @(vitals.Exhausted ? "out" : "")">
+					<label class="key">STA</label>
+					<div class="track thin"><div class="fill" style="width: @(Pct( vitals.Stamina, SwrpVitals.MaxStamina ))%"></div></div>
+					<label class="num">@(vitals.Exhausted ? "!" : vitals.Stamina.FloorToInt().ToString())</label>
+				</div>
+			</div>
+		}
+
+		@* in a craft seat the ship HUD (Flight/FlightHud) replaces the weapon panel *@
+		<div class="ammo @(blaster?.Drawn == true ? "drawn" : "") @(ShowAmmo && Player?.InVehicle != true ? "" : "faded")" style="@(Player?.InVehicle == true ? "display: none;" : "")">
+			@if ( blaster?.Stats is { } stats )
+			{
+				<label class="weapon">@blaster.Weapon.Name.ToUpperInvariant()</label>
+				@if ( blaster.Drawn )
+				{
+					<div class="count">
+						<label class="clip @(blaster.Clip <= stats.MagazineSize / 5 ? "low" : "")">@blaster.Clip</label>
+						<label class="reserve">@($"/ {blaster.ReserveRounds}")</label>
+					</div>
+					<label class="cells">@($"{blaster.ReserveCells} CELL{(blaster.ReserveCells == 1 ? "" : "S")}")</label>
+					@if ( blaster.Stunning )
+					{
+						<label class="stun">STUN  ·  [X]</label>
+					}
+					<div class="mag">
+						<div class="fill" style="width: @(Pct( blaster.Clip, stats.MagazineSize ))%"></div>
+					</div>
+					@if ( blaster.Reloading )
+					{
+						<label class="status blink">RECHARGING</label>
+					}
+					else if ( blaster.Clip == 0 )
+					{
+						<label class="status warn">EMPTY  ·  [R] RELOAD</label>
+					}
+				}
+				else
+				{
+					<label class="status">HOLSTERED  ·  [H] DRAW</label>
+				}
+			}
+			else
+			{
+				<label class="weapon dim">UNARMED</label>
+			}
+			@if ( Player?.GetComponent<SwrpHands>() is { } hands && hands.QuickBar is { Count: > 0 } bar )
+			{
+				@* the quick bar: 1-5 take these out, the wheel goes through all of them *@
+				var inHand = hands.InHand;
+				<div class="loadout">
+					@for ( var i = 0; i < bar.Count; i++ )
+					{
+						var item = ItemRegistry.Get( bar[i] );
+						<label class="gun @(inHand == bar[i] ? "on" : "")">@($"{( i < SwrpHands.QuickSlots ? ( i + 1 ).ToString() : "·" )}  {item?.Name?.ToUpperInvariant() ?? bar[i]}")</label>
+					}
+				</div>
+			}
+		</div>
+
+		@if ( blaster?.ScopeView == true && vitals?.IsDead != true )
+		{
+			@* aimed through a long scope (DC-15X, E-5s): the gun is hidden, this is the view down the glass *@
+			<div class="scope">
+				<div class="lens"></div>
+				<div class="hair h"></div>
+				<div class="hair v"></div>
+			</div>
+		}
+
+		@if ( blaster?.Drawn == true && blaster?.ScopeView != true && vitals?.IsDead != true && !SwrpUiState.AnyOpen && Player?.InVehicle != true )
+		{
+			@* the gap follows the real spread cone (UpdateReticle); white, red over an enemy, blue over a friend *@
+			<div class="reticle @ReticleTone @(blaster.Sighted ? "sighted" : "")" @ref="_reticle">
+				<div class="tick t"></div>
+				<div class="tick b"></div>
+				<div class="tick l"></div>
+				<div class="tick r"></div>
+				<div class="dot"></div>
+			</div>
+		}
+
+		@if ( SwrpBlaster.SinceHitMarker < 0.3f )
+		{
+			<div class="hitmarker @(SwrpBlaster.HitMarkerKill ? "kill" : "") @(SwrpBlaster.HitMarkerHead ? "head" : "") @(SwrpBlaster.HitMarkerStun ? "stun" : "") @(SwrpBlaster.HitMarkerFriendly ? "friendly" : "")">
+				<div class="x a"></div>
+				<div class="x b"></div>
+				<div class="x c"></div>
+				<div class="x d"></div>
+			</div>
+		}
+
+		@if ( SwrpVitals.SinceHurt < 1.6f && vitals is not null )
+		{
+			<div class="dmgdir @(SwrpVitals.LastHurtWasStun ? "stun" : "")" style="transform: rotate(@(HurtAngle)deg); opacity: @((1f - SwrpVitals.SinceHurt / 1.6f).ToString( "0.00", System.Globalization.CultureInfo.InvariantCulture ));">
+				<div class="arc"></div>
+			</div>
+		}
+
+		<div class="feed">
+			@foreach ( var k in SwrpCombat.Feed.Where( k => k.Age < 7f ) )
+			{
+				<div class="entry">
+					@if ( !string.IsNullOrEmpty( k.Killer ) )
+					{
+						<label class="who">@k.Killer</label>
+						<label class="how">@($"[{k.Weapon}{(k.Head ? " · HEADSHOT" : "")}]")</label>
+					}
+					<label class="who victim">@k.Victim</label>
+				</div>
+			}
+		</div>
+
+		<div class="keys @(ShowIdentity ? "" : "faded")">
+			<div class="hint"><label class="key">I</label><label>INVENTORY</label></div>
+			<div class="hint"><label class="key">F4</label><label>TROOPERS</label></div>
+		</div>
+
+		@if ( vitals is { IsWounded: true } )
+		{
+			<div class="downed wounded">
+				<label class="big">DOWNED</label>
+				<label class="small">@($"BLEEDING OUT IN {Math.Max( 0, (int)Math.Ceiling( vitals.DownedSeconds - _sinceStunned ) )}")</label>
+				@if ( vitals.ReviveProgress > 0 )
+				{
+					<label class="small revive">@($"BEING REVIVED  {(int)( vitals.ReviveProgress * 100 )}%")</label>
+					<div class="bar"><div class="fill" style="width: @((int)( vitals.ReviveProgress * 100 ))%"></div></div>
+				}
+				else
+				{
+					<label class="small hint">@( ( vitals.MedicRequested ? "MEDIC CALLED · HOLD ON" : "[E] REQUEST MEDIC" ) + "   ·   HOLD [K] TO GIVE UP" )</label>
+					@if ( vitals.GiveUpHeld > 0.05f )
+					{
+						<div class="bar giveup"><div class="fill" style="width: @((int)( vitals.GiveUpHeld / 2f * 100 ))%"></div></div>
+					}
+				}
+			</div>
+		}
+
+		@if ( vitals is not null && vitals.Bleeding && !vitals.IsDead )
+		{
+			<div class="bleed"><label>● BLEEDING · USE BACTA</label></div>
+		}
+
+		@if ( vitals?.Treating is { } treating )
+		{
+			<div class="progress"><label>@treating.ToUpperInvariant()</label><div class="bar"><div class="fill" style="width: @((int)( vitals.TreatProgress * 100 ))%"></div></div></div>
+		}
+		else if ( vitals is { RevivingProgress: > 0 } )
+		{
+			<div class="progress"><label>@($"{( vitals.RevivingTreat ? "TREATING" : "REVIVING" )} {vitals.RevivingName?.ToUpperInvariant()}")</label><div class="bar"><div class="fill" style="width: @((int)( vitals.RevivingProgress * 100 ))%"></div></div></div>
+		}
+
+		@if ( vitals is { IsStunned: true } )
+		{
+			<div class="downed stunned">
+				<label class="big">STUNNED</label>
+				<label class="small">@($"RECOVERING IN {Math.Max( 1, (int)Math.Ceiling( vitals.DownedSeconds - _sinceStunned ) )}")</label>
+			</div>
+		}
+
+		@if ( vitals?.IsDead == true )
+		{
+			<div class="downed">
+				<label class="big">INCAPACITATED</label>
+				<label class="small">@($"REINFORCEMENTS DEPLOYING IN {Math.Max( 1, (int)Math.Ceiling( RespawnLeft ) )}")</label>
+			</div>
+		}
+
+		@if ( !string.IsNullOrEmpty( SwrpNet.LastMessage ) && SwrpNet.LastMessageTime < 6 && !SwrpUiState.CharacterMenuOpen )
+		{
+			<div class="toast-row">
+				<label class="toast @(SwrpNet.LastMessageIsError ? "error" : "")">@SwrpNet.LastMessage</label>
+			</div>
+		}
+	}
+</root>
+
+@code
+{
+	SwrpPlayer Player => SwrpPlayer.Local;
+
+	[ConVar( "swrp_hud_fade", Help = "Fade HUD parts you don't need right now: ammo shows when you fire, reload or run low, vitals when you're hurt (hold Tab to see everything)", Saved = true )]
+	public static bool Fade { get; set; } = true;
+
+	// what the fading HUD keeps up: Tab shows everything
+	bool Peek => Input.Down( "Score" ) && !SwrpUiState.ChatOpen;
+	RealTimeSince _sinceSpawned = 0;
+	RealTimeSince _sinceWeaponChange = 0;
+	RealTimeSince _sinceCredits = 0;
+	string _lastCharacter;
+	string _lastWeapon;
+	bool _lastDrawn;
+	int _lastCredits = -1;
+
+	bool ShowAmmo
+	{
+		get
+		{
+			if ( !Fade || Peek ) return true;
+			var b = Blaster;
+			if ( b?.Stats is not { } stats ) return _sinceWeaponChange < 3f;
+			return b.Reloading || b.SinceFired < 4f || _sinceWeaponChange < 3f || b.Drawn && b.Clip <= stats.MagazineSize / 5;
+		}
+	}
+
+	bool ShowVitals
+	{
+		get
+		{
+			if ( !Fade || Peek ) return true;
+			var v = Vitals;
+			if ( v is null ) return false;
+			return v.Health < SwrpVitals.MaxHealth - 0.5f || SwrpVitals.SinceHurt < 6f || v.Stamina < SwrpVitals.MaxStamina - 1f || v.Bleeding || v.IsDowned || v.IsDead;
+		}
+	}
+
+	bool ShowIdentity => !Fade || Peek || _sinceSpawned < 10f || _sinceCredits < 5f;
+	SwrpVitals Vitals => Player?.GetComponent<SwrpVitals>();
+	SwrpBlaster Blaster => Player?.GetComponent<SwrpBlaster>();
+
+	int _lastHits = -1;
+	RealTimeSince _sinceHit = 10;
+	bool _wasDead;
+	RealTimeSince _sinceDown;
+	bool _wasStunned;
+	int _lastDownReason;
+	RealTimeSince _sinceStunned;
+
+	/// <summary> Screen angle of the last hit's source: 0 = ahead, 90 = right. </summary>
+	int HurtAngle
+	{
+		get
+		{
+			var p = Player;
+			var cam = Scene.Camera;
+			if ( p is null || !cam.IsValid() ) return 0;
+			var dir = ( SwrpVitals.LastHurtFrom - p.WorldPosition ).WithZ( 0 );
+			if ( dir.Length < 1f ) return 0;
+			return (int)MathX.DeltaDegrees( Rotation.LookAt( dir.Normal ).Yaw(), cam.WorldRotation.Yaw() );
+		}
+	}
+
+	bool HitFlash => _sinceHit < 0.25f;
+	float RespawnLeft => SwrpVitals.RespawnDelay - _sinceDown;
+
+	static int Pct( float value, float max ) => max <= 0 ? 0 : (int)Math.Clamp( value / max * 100f, 0f, 100f );
+
+	bool _escChecked;
+
+	Panel _reticle;
+	float _reticleGap = 8f;
+	string ReticleTone = "";
+
+	/// <summary> Spreads the reticle to the edge of the current spread cone (plus a kick per shot) and colours it by what's under it. </summary>
+	void UpdateReticle( SwrpBlaster b )
+	{
+		var cam = Scene.Camera;
+		if ( b?.Stats is not { } stats || !b.Drawn || !cam.IsValid() ) { ReticleTone = ""; return; }
+
+		var scale = Panel?.ScaleFromScreen ?? 1f;
+		var halfFov = MathF.Tan( cam.FieldOfView.DegreeToRadian() * 0.5f );      // horizontal
+		var cone = MathF.Tan( b.Cone( stats, b.Sighted ).DegreeToRadian() ) / halfFov * Screen.Width * 0.5f * scale;
+		var kick = MathF.Max( 0f, 1f - b.SinceFired / 0.15f ) * 7f;
+		var target = Math.Clamp( cone, 3f, 90f ) + kick;
+		// opens fast, settles a little slower
+		_reticleGap = MathX.Lerp( _reticleGap, target, Math.Clamp( Time.Delta * ( target > _reticleGap ? 30f : 12f ), 0f, 1f ) );
+
+		if ( _reticle.IsValid() )
+		{
+			var size = Length.Pixels( _reticleGap * 2f + 14f );      // 7px ticks either side of the gap
+			var half = Length.Pixels( -( _reticleGap + 7f ) );
+			_reticle.Style.Width = size;
+			_reticle.Style.Height = size;
+			_reticle.Style.MarginLeft = half;
+			_reticle.Style.MarginTop = half;
+		}
+
+		var tr = Scene.Trace.Ray( cam.WorldPosition, cam.WorldPosition + cam.WorldRotation.Forward * stats.Range )
+			.IgnoreGameObjectHierarchy( Player.GameObject )
+			.WithoutTags( "trigger" )
+			.UseHitboxes()
+			.Run();
+		var side = tr.GameObject.IsValid() ? SwrpNpcDirector.AllegianceOf( tr.GameObject ) : null;
+		ReticleTone = side is null ? "" : AllegianceRegistry.AreHostile( Player.Allegiance, side ) ? "enemy" : AllegianceRegistry.AreFriendly( Player.Allegiance, side ) ? "friend" : "";
+	}
+
+	protected override void OnUpdate()
+	{
+		// scenes built before the Escape menu existed get it on the HUD object
+		if ( !_escChecked )
+		{
+			_escChecked = true;
+			if ( GameObject.Components.Get<EscapeMenu>() is null ) GameObject.Components.Create<EscapeMenu>();
+		}
+
+		var p = Player;
+		if ( p?.CharacterId != _lastCharacter ) { _lastCharacter = p?.CharacterId; _sinceSpawned = 0; }
+		var b = Blaster;
+		if ( b?.WeaponId != _lastWeapon || ( b?.Drawn ?? false ) != _lastDrawn ) { _lastWeapon = b?.WeaponId; _lastDrawn = b?.Drawn ?? false; _sinceWeaponChange = 0; }
+		var credits = p?.Credits ?? -1;
+		if ( credits != _lastCredits ) { if ( _lastCredits >= 0 ) _sinceCredits = 0; _lastCredits = credits; }
+		UpdateReticle( b );
+
+		var vitals = Vitals;
+		if ( vitals is null ) { _lastHits = -1; return; }
+
+		// HitCount is synced from the host; a change means we were just shot.
+		if ( _lastHits >= 0 && vitals.HitCount != _lastHits ) _sinceHit = 0;
+		_lastHits = vitals.HitCount;
+
+		if ( vitals.IsDead && !_wasDead ) _sinceDown = 0;
+		_wasDead = vitals.IsDead;
+
+		if ( vitals.IsDowned && !_wasStunned ) _sinceStunned = 0;
+		if ( vitals.IsDowned && _wasStunned && vitals.DownReason != _lastDownReason ) _sinceStunned = 0;
+		_lastDownReason = vitals.DownReason;
+		_wasStunned = vitals.IsDowned;
+	}
+
+	protected override int BuildHash()
+	{
+		var p = Player;
+		var v = Vitals;
+		var b = Blaster;
+		return HashCode.Combine(
+			HashCode.Combine( p?.CharacterId, p?.RankIndex, p?.Credits, p?.FactionId, SwrpNet.Version, SwrpNet.LastMessageTime < 6, SwrpUiState.CharacterMenuOpen, p?.InVehicle ),
+			HashCode.Combine( v?.Health.CeilToInt(), v?.Armor.CeilToInt(), v?.Stamina.FloorToInt(), v?.Exhausted, v?.IsDead, HitFlash, v?.IsDead == true ? (int)RespawnLeft : 0 ),
+			HashCode.Combine( b?.WeaponId, b?.Clip, b?.Drawn, b?.Reloading, b?.ReserveCells, SwrpUiState.AnyOpen, b?.Stunning, p?.InventoryJson ),
+			HashCode.Combine( SwrpBlaster.SinceHitMarker < 0.3f, SwrpVitals.SinceHurt < 1.6f ? (int)( SwrpVitals.SinceHurt * 20 ) : -1, HurtAngle / 4,
+				SwrpCombat.FeedVersion, SwrpCombat.Feed.Count( k => k.Age < 7f ), v?.IsDowned, v?.IsDowned == true ? (int)( v.DownedSeconds - _sinceStunned ) : 0 ),
+			HashCode.Combine( ShowAmmo, ShowVitals, ShowIdentity, p?.GetComponent<SwrpHands>()?.InHand, b?.ScopeView, b?.Sighted, ReticleTone ),
+			HashCode.Combine( v?.DownReason, v?.Bleeding, v?.MedicRequested, (int)( ( v?.ReviveProgress ?? 0 ) * 50 ), (int)( ( v?.RevivingProgress ?? 0 ) * 50 ),
+				v?.Treating, (int)( ( v?.TreatProgress ?? 0 ) * 50 ), (int)( ( v?.GiveUpHeld ?? 0 ) * 20 ) ) );
+	}
+}

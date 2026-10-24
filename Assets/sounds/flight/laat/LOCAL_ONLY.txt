@@ -1,0 +1,2 @@
+Star Wars Battlefront II LAAT sounds (EA/DICE), taken from the local Garry's Mod workshop addon 3238211247 (sound/laat_bf2).
+LOCAL ONLY: never publish or commit, like the BF2/TFA/GC assets.
