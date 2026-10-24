@@ -1,0 +1,58 @@
+{
+ "squad_prone_idle": {
+  "clip": "Rifle_ProneIdle201603",
+  "frames": 244,
+  "seconds": 8.1,
+  "grounded_cm": -5.5,
+  "speed_in_per_s": 0.1,
+  "loop": true
+ },
+ "squad_prone_fwd": {
+  "clip": "Generic_Prone_WalkFwdLoop201708",
+  "frames": 135,
+  "seconds": 4.467,
+  "grounded_cm": 16.8,
+  "speed_in_per_s": 44.9,
+  "loop": true
+ },
+ "squad_prone_bwd": {
+  "clip": "Generic_Prone_WalkBwdLoop201708",
+  "frames": 135,
+  "seconds": 4.467,
+  "grounded_cm": -0.1,
+  "speed_in_per_s": 8.6,
+  "loop": true
+ },
+ "squad_prone_left": {
+  "clip": "Prone_Strafe_Left",
+  "frames": 135,
+  "seconds": 4.467,
+  "grounded_cm": -2.6,
+  "speed_in_per_s": 24.9,
+  "loop": true
+ },
+ "squad_prone_right": {
+  "clip": "Prone_Strafe_Right",
+  "frames": 135,
+  "seconds": 4.467,
+  "grounded_cm": -6.8,
+  "speed_in_per_s": 13.9,
+  "loop": true
+ },
+ "squad_stand_to_prone": {
+  "clip": "rifle_stand2prone_nonadditive",
+  "frames": 55,
+  "seconds": 1.8,
+  "grounded_cm": -5.4,
+  "speed_in_per_s": 5.4,
+  "loop": false
+ },
+ "squad_prone_to_stand": {
+  "clip": "Prone_to_Stand_Nonadditive",
+  "frames": 64,
+  "seconds": 2.1,
+  "grounded_cm": -0.3,
+  "speed_in_per_s": 8.6,
+  "loop": false
+ }
+}

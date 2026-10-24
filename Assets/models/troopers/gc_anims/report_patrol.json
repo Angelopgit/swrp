@@ -1,0 +1,39 @@
+{
+ "WalkFast_N": {
+  "clip": "Patrol_Forward_Rifle_UsaPouch",
+  "frames": 111,
+  "seconds": 3.667,
+  "grounded_cm": 0.6,
+  "steps": [
+   [
+    9,
+    "R"
+   ],
+   [
+    28,
+    "L"
+   ],
+   [
+    47,
+    "R"
+   ],
+   [
+    66,
+    "L"
+   ],
+   [
+    84,
+    "R"
+   ],
+   [
+    102,
+    "L"
+   ]
+  ],
+  "speed_in_per_s": 39.9,
+  "dir": [
+   0.007,
+   -1.0
+  ]
+ }
+}

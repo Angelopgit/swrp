@@ -1,0 +1,727 @@
+{
+    "WalkFast_N":  {
+                       "clip":  "Rifle_WalkFwdLoop201707",
+                       "frames":  64,
+                       "seconds":  2.1,
+                       "grounded_cm":  88.4,
+                       "steps":  [
+                                     [
+                                         7,
+                                         "R"
+                                     ],
+                                     [
+                                         23,
+                                         "L"
+                                     ],
+                                     [
+                                         39,
+                                         "R"
+                                     ],
+                                     [
+                                         55,
+                                         "L"
+                                     ]
+                                 ],
+                       "speed_in_per_s":  51.1,
+                       "dir":  [
+                                   0.003,
+                                   -1.0
+                               ]
+                   },
+    "WalkFast_NE":  {
+                        "clip":  "Rifle_WalkFwdLoop201707_DiagonalRight",
+                        "frames":  64,
+                        "seconds":  2.1,
+                        "grounded_cm":  87.3,
+                        "steps":  [
+                                      [
+                                          7,
+                                          "R"
+                                      ],
+                                      [
+                                          24,
+                                          "L"
+                                      ],
+                                      [
+                                          38,
+                                          "R"
+                                      ],
+                                      [
+                                          55,
+                                          "L"
+                                      ]
+                                  ],
+                        "speed_in_per_s":  50.9,
+                        "dir":  [
+                                    -0.715,
+                                    -0.7
+                                ]
+                    },
+    "WalkFast_NW":  {
+                        "clip":  "Rifle_WalkFwdLoop201707_DiagonalLeft",
+                        "frames":  64,
+                        "seconds":  2.1,
+                        "grounded_cm":  88.5,
+                        "steps":  [
+                                      [
+                                          8,
+                                          "R"
+                                      ],
+                                      [
+                                          23,
+                                          "L"
+                                      ],
+                                      [
+                                          39,
+                                          "R"
+                                      ],
+                                      [
+                                          54,
+                                          "L"
+                                      ]
+                                  ],
+                        "speed_in_per_s":  51.6,
+                        "dir":  [
+                                    0.696,
+                                    -0.718
+                                ]
+                    },
+    "WalkFast_S":  {
+                       "clip":  "Rifle_WalkBwdLoop201707",
+                       "frames":  64,
+                       "seconds":  2.1,
+                       "grounded_cm":  96.3,
+                       "steps":  [
+                                     [
+                                         10,
+                                         "R"
+                                     ],
+                                     [
+                                         27,
+                                         "L"
+                                     ],
+                                     [
+                                         41,
+                                         "R"
+                                     ],
+                                     [
+                                         57,
+                                         "L"
+                                     ]
+                                 ],
+                       "speed_in_per_s":  42.1,
+                       "dir":  [
+                                   -0.024,
+                                   1.0
+                               ]
+                   },
+    "WalkFast_SE":  {
+                        "clip":  "Rifle_WalkBwdLoop201707_DiagonalRight",
+                        "frames":  64,
+                        "seconds":  2.1,
+                        "grounded_cm":  89.1,
+                        "steps":  [
+                                      [
+                                          12,
+                                          "R"
+                                      ],
+                                      [
+                                          26,
+                                          "L"
+                                      ],
+                                      [
+                                          44,
+                                          "R"
+                                      ],
+                                      [
+                                          56,
+                                          "L"
+                                      ]
+                                  ],
+                        "speed_in_per_s":  42.3,
+                        "dir":  [
+                                    -0.717,
+                                    0.697
+                                ]
+                    },
+    "WalkFast_SW":  {
+                        "clip":  "Rifle_WalkBwdLoop201707_DiagonalLeft",
+                        "frames":  64,
+                        "seconds":  2.1,
+                        "grounded_cm":  0.4,
+                        "steps":  [
+                                      [
+                                          10,
+                                          "R"
+                                      ],
+                                      [
+                                          27,
+                                          "L"
+                                      ],
+                                      [
+                                          41,
+                                          "R"
+                                      ],
+                                      [
+                                          59,
+                                          "L"
+                                      ]
+                                  ],
+                        "speed_in_per_s":  41.1,
+                        "dir":  [
+                                    0.702,
+                                    0.712
+                                ]
+                    },
+    "WalkFast_E":  {
+                       "clip":  "Walk_Strafe_Right2",
+                       "frames":  64,
+                       "seconds":  2.1,
+                       "grounded_cm":  88.2,
+                       "steps":  [
+                                     [
+                                         3,
+                                         "R"
+                                     ],
+                                     [
+                                         20,
+                                         "L"
+                                     ],
+                                     [
+                                         35,
+                                         "R"
+                                     ],
+                                     [
+                                         53,
+                                         "L"
+                                     ]
+                                 ],
+                       "speed_in_per_s":  49.5,
+                       "dir":  [
+                                   -1.0,
+                                   0.026
+                               ]
+                   },
+    "WalkFast_W":  {
+                       "clip":  "Walk_Strafe_Left2",
+                       "frames":  64,
+                       "seconds":  2.1,
+                       "grounded_cm":  89.6,
+                       "steps":  [
+                                     [
+                                         5,
+                                         "R"
+                                     ],
+                                     [
+                                         19,
+                                         "L"
+                                     ],
+                                     [
+                                         37,
+                                         "R"
+                                     ],
+                                     [
+                                         51,
+                                         "L"
+                                     ]
+                                 ],
+                       "speed_in_per_s":  44.0,
+                       "dir":  [
+                                   1.0,
+                                   -0.013
+                               ]
+                   },
+    "Run_N_m":  {
+                    "clip":  "Rifle_RunFwdLoop_201708",
+                    "frames":  43,
+                    "seconds":  1.4,
+                    "grounded_cm":  92.9,
+                    "steps":  [
+                                  [
+                                      3,
+                                      "R"
+                                  ],
+                                  [
+                                      13,
+                                      "L"
+                                  ],
+                                  [
+                                      24,
+                                      "R"
+                                  ],
+                                  [
+                                      34,
+                                      "L"
+                                  ]
+                              ],
+                    "speed_in_per_s":  99.1,
+                    "dir":  [
+                                0.005,
+                                -1.0
+                            ]
+                },
+    "Run_NE":  {
+                   "clip":  "Rifle_RunFwdLoop_201708_DiagonalRight",
+                   "frames":  43,
+                   "seconds":  1.4,
+                   "grounded_cm":  92.3,
+                   "steps":  [
+                                 [
+                                     3,
+                                     "R"
+                                 ],
+                                 [
+                                     14,
+                                     "L"
+                                 ],
+                                 [
+                                     24,
+                                     "R"
+                                 ],
+                                 [
+                                     35,
+                                     "L"
+                                 ]
+                             ],
+                   "speed_in_per_s":  96.8,
+                   "dir":  [
+                               -0.718,
+                               -0.696
+                           ]
+               },
+    "Run_NW":  {
+                   "clip":  "Rifle_RunFwdLoop_201708_DiagonalLeft",
+                   "frames":  43,
+                   "seconds":  1.4,
+                   "grounded_cm":  93.1,
+                   "steps":  [
+                                 [
+                                     3,
+                                     "R"
+                                 ],
+                                 [
+                                     13,
+                                     "L"
+                                 ],
+                                 [
+                                     24,
+                                     "R"
+                                 ],
+                                 [
+                                     34,
+                                     "L"
+                                 ]
+                             ],
+                   "speed_in_per_s":  99.2,
+                   "dir":  [
+                               0.704,
+                               -0.71
+                           ]
+               },
+    "Run_S":  {
+                  "clip":  "Rifle_RunBwdLoop_201708_v2",
+                  "frames":  43,
+                  "seconds":  1.4,
+                  "grounded_cm":  92.5,
+                  "steps":  [
+                                [
+                                    7,
+                                    "R"
+                                ],
+                                [
+                                    17,
+                                    "L"
+                                ],
+                                [
+                                    28,
+                                    "R"
+                                ],
+                                [
+                                    37,
+                                    "L"
+                                ]
+                            ],
+                  "speed_in_per_s":  76.8,
+                  "dir":  [
+                              -0.012,
+                              1.0
+                          ]
+              },
+    "Run_SE":  {
+                   "clip":  "Rifle_RunBwdLoop_201708_DiagonalRight_v2",
+                   "frames":  43,
+                   "seconds":  1.4,
+                   "grounded_cm":  93.4,
+                   "steps":  [
+                                 [
+                                     7,
+                                     "R"
+                                 ],
+                                 [
+                                     17,
+                                     "L"
+                                 ],
+                                 [
+                                     28,
+                                     "R"
+                                 ],
+                                 [
+                                     37,
+                                     "L"
+                                 ]
+                             ],
+                   "speed_in_per_s":  76.7,
+                   "dir":  [
+                               -0.623,
+                               0.782
+                           ]
+               },
+    "Run_SW":  {
+                   "clip":  "Rifle_RunBwdLoop_201708_DiagonalLeft_v2",
+                   "frames":  43,
+                   "seconds":  1.4,
+                   "grounded_cm":  92.6,
+                   "steps":  [
+                                 [
+                                     6,
+                                     "R"
+                                 ],
+                                 [
+                                     17,
+                                     "L"
+                                 ],
+                                 [
+                                     27,
+                                     "R"
+                                 ],
+                                 [
+                                     37,
+                                     "L"
+                                 ]
+                             ],
+                   "speed_in_per_s":  76.6,
+                   "dir":  [
+                               0.743,
+                               0.67
+                           ]
+               },
+    "Run_E":  {
+                  "clip":  "Rifle_RunLoop_201708_Strafe_Right",
+                  "frames":  43,
+                  "seconds":  1.4,
+                  "grounded_cm":  0.0,
+                  "steps":  [
+                                [
+                                    3,
+                                    "R"
+                                ],
+                                [
+                                    15,
+                                    "L"
+                                ],
+                                [
+                                    24,
+                                    "R"
+                                ],
+                                [
+                                    36,
+                                    "L"
+                                ]
+                            ],
+                  "speed_in_per_s":  53.3,
+                  "dir":  [
+                              -1.0,
+                              0.025
+                          ]
+              },
+    "Run_W":  {
+                  "clip":  "Rifle_RunLoop_201708_Strafe_Left",
+                  "frames":  43,
+                  "seconds":  1.4,
+                  "grounded_cm":  0.0,
+                  "steps":  [
+                                [
+                                    4,
+                                    "R"
+                                ],
+                                [
+                                    13,
+                                    "L"
+                                ],
+                                [
+                                    25,
+                                    "R"
+                                ],
+                                [
+                                    34,
+                                    "L"
+                                ]
+                            ],
+                  "speed_in_per_s":  55.5,
+                  "dir":  [
+                              0.999,
+                              -0.051
+                          ]
+              },
+    "CrouchWalk_N":  {
+                         "clip":  "Crouch_Forward",
+                         "frames":  59,
+                         "seconds":  1.933,
+                         "grounded_cm":  71.9,
+                         "steps":  [
+                                       [
+                                           5,
+                                           "R"
+                                       ],
+                                       [
+                                           19,
+                                           "L"
+                                       ],
+                                       [
+                                           33,
+                                           "R"
+                                       ],
+                                       [
+                                           49,
+                                           "L"
+                                       ]
+                                   ],
+                         "speed_in_per_s":  46.6,
+                         "dir":  [
+                                     0.008,
+                                     -1.0
+                                 ]
+                     },
+    "CrouchWalk_NE":  {
+                          "clip":  "Crouch_Forward_DiagonalRight",
+                          "frames":  59,
+                          "seconds":  1.933,
+                          "grounded_cm":  73.3,
+                          "steps":  [
+                                        [
+                                            5,
+                                            "R"
+                                        ],
+                                        [
+                                            19,
+                                            "L"
+                                        ],
+                                        [
+                                            32,
+                                            "R"
+                                        ],
+                                        [
+                                            49,
+                                            "L"
+                                        ]
+                                    ],
+                          "speed_in_per_s":  46.7,
+                          "dir":  [
+                                      -0.707,
+                                      -0.707
+                                  ]
+                      },
+    "CrouchWalk_NW":  {
+                          "clip":  "Crouch_Forward_DiagonalLeft",
+                          "frames":  59,
+                          "seconds":  1.933,
+                          "grounded_cm":  75.1,
+                          "steps":  [
+                                        [
+                                            5,
+                                            "R"
+                                        ],
+                                        [
+                                            16,
+                                            "L"
+                                        ],
+                                        [
+                                            33,
+                                            "R"
+                                        ],
+                                        [
+                                            48,
+                                            "L"
+                                        ]
+                                    ],
+                          "speed_in_per_s":  43.8,
+                          "dir":  [
+                                      0.681,
+                                      -0.732
+                                  ]
+                      },
+    "CrouchWalk_S":  {
+                         "clip":  "Crouch_Backward",
+                         "frames":  59,
+                         "seconds":  1.933,
+                         "grounded_cm":  74.4,
+                         "steps":  [
+                                       [
+                                           9,
+                                           "R"
+                                       ],
+                                       [
+                                           26,
+                                           "L"
+                                       ],
+                                       [
+                                           38,
+                                           "R"
+                                       ],
+                                       [
+                                           53,
+                                           "L"
+                                       ]
+                                   ],
+                         "speed_in_per_s":  36.2,
+                         "dir":  [
+                                     0.058,
+                                     0.998
+                                 ]
+                     },
+    "CrouchWalk_SE":  {
+                          "clip":  "Crouch_Backward_DiagonalRight",
+                          "frames":  59,
+                          "seconds":  1.933,
+                          "grounded_cm":  76.8,
+                          "steps":  [
+                                        [
+                                            11,
+                                            "R"
+                                        ],
+                                        [
+                                            25,
+                                            "L"
+                                        ],
+                                        [
+                                            40,
+                                            "R"
+                                        ],
+                                        [
+                                            52,
+                                            "L"
+                                        ]
+                                    ],
+                          "speed_in_per_s":  33.4,
+                          "dir":  [
+                                      -0.682,
+                                      0.731
+                                  ]
+                      },
+    "CrouchWalk_SW":  {
+                          "clip":  "Crouch_Backward_DiagonalLeft",
+                          "frames":  59,
+                          "seconds":  1.933,
+                          "grounded_cm":  74.7,
+                          "steps":  [
+                                        [
+                                            9,
+                                            "R"
+                                        ],
+                                        [
+                                            26,
+                                            "L"
+                                        ],
+                                        [
+                                            38,
+                                            "R"
+                                        ],
+                                        [
+                                            54,
+                                            "L"
+                                        ]
+                                    ],
+                          "speed_in_per_s":  35.4,
+                          "dir":  [
+                                      0.758,
+                                      0.653
+                                  ]
+                      },
+    "CrouchWalk_E":  {
+                         "clip":  "Crouch_Strafe_Right",
+                         "frames":  59,
+                         "seconds":  1.933,
+                         "grounded_cm":  77.6,
+                         "steps":  [
+                                       [
+                                           5,
+                                           "R"
+                                       ],
+                                       [
+                                           21,
+                                           "L"
+                                       ],
+                                       [
+                                           34,
+                                           "R"
+                                       ],
+                                       [
+                                           50,
+                                           "L"
+                                       ]
+                                   ],
+                         "speed_in_per_s":  46.9,
+                         "dir":  [
+                                     -1.0,
+                                     0.029
+                                 ]
+                     },
+    "CrouchWalk_W":  {
+                         "clip":  "Crouch_Strafe_Left",
+                         "frames":  59,
+                         "seconds":  1.933,
+                         "grounded_cm":  82.0,
+                         "steps":  [
+                                       [
+                                           4,
+                                           "R"
+                                       ],
+                                       [
+                                           17,
+                                           "L"
+                                       ],
+                                       [
+                                           32,
+                                           "R"
+                                       ],
+                                       [
+                                           46,
+                                           "L"
+                                       ]
+                                   ],
+                         "speed_in_per_s":  44.2,
+                         "dir":  [
+                                     1.0,
+                                     -0.027
+                                 ]
+                     },
+    "Sprint_N_m":  {
+                       "clip":  "A_Char_Rifle_Sprint_2017",
+                       "frames":  37,
+                       "seconds":  1.2,
+                       "grounded_cm":  92.7,
+                       "steps":  [
+                                     [
+                                         3,
+                                         "R"
+                                     ],
+                                     [
+                                         12,
+                                         "L"
+                                     ],
+                                     [
+                                         21,
+                                         "R"
+                                     ],
+                                     [
+                                         30,
+                                         "L"
+                                     ]
+                                 ],
+                       "speed_in_per_s":  137.8,
+                       "dir":  [
+                                   -0.028,
+                                   -1.0
+                               ]
+                   }
+}

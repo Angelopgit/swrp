@@ -1,0 +1,828 @@
+{
+ "IdlePose_Default": {
+  "clip": "idle_all_01",
+  "frames": 280,
+  "seconds": 9.3,
+  "grounded_cm": 0.4
+ },
+ "CrouchIdlePose_Default": {
+  "clip": "cidle_all",
+  "frames": 181,
+  "seconds": 6.0,
+  "grounded_cm": -1.2
+ },
+ "WalkFast_N": {
+  "clip": "a_WalkN",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.0,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 74.3,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Walk_N": {
+  "clip": "a_WalkN",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.0,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 74.3,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Run_N_m": {
+  "clip": "a_RunN",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "CrouchWalk_N": {
+  "clip": "a_CwalkN",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.6,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "WalkFast_NE": {
+  "clip": "a_WalkNE",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "Walk_NE": {
+  "clip": "a_WalkNE",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "Run_NE": {
+  "clip": "a_RunNE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.2,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "CrouchWalk_NE": {
+  "clip": "a_CwalkNE",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.6,
+  "phase_shift": 0,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "WalkFast_NW": {
+  "clip": "a_WalkNW",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.4,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "Walk_NW": {
+  "clip": "a_WalkNW",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.4,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "Run_NW": {
+  "clip": "a_RunNW",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.6,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "CrouchWalk_NW": {
+  "clip": "a_CwalkNW",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.5,
+  "phase_shift": 0,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "WalkFast_S": {
+  "clip": "a_WalkS",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 59.6,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "Walk_S": {
+  "clip": "a_WalkS",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 59.6,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "Run_S": {
+  "clip": "a_RunS",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.6,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    8,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 157.7,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "CrouchWalk_S": {
+  "clip": "a_CwalkS",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.3,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "WalkFast_SE": {
+  "clip": "a_WalkSE",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "Walk_SE": {
+  "clip": "a_WalkSE",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "Run_SE": {
+  "clip": "a_RunSE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.6,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    8,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "CrouchWalk_SE": {
+  "clip": "a_CwalkSE",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "WalkFast_SW": {
+  "clip": "a_WalkSW",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.5,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "Walk_SW": {
+  "clip": "a_WalkSW",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.5,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "Run_SW": {
+  "clip": "a_RunSW",
+  "frames": 18,
+  "seconds": 0.567,
+  "grounded_cm": 1.3,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    8,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "CrouchWalk_SW": {
+  "clip": "a_CwalkSW",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "WalkFast_E": {
+  "clip": "a_WalkE",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.6,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "Walk_E": {
+  "clip": "a_WalkE",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.6,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "Run_E": {
+  "clip": "a_RunE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.0,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    10,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "CrouchWalk_E": {
+  "clip": "a_CwalkE",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.7,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "WalkFast_W": {
+  "clip": "a_WalkW",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    11,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "Walk_W": {
+  "clip": "a_WalkW",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    11,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "Run_W": {
+  "clip": "a_RunW",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.0,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "CrouchWalk_W": {
+  "clip": "a_CwalkW",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.6,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    13,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "Run_N": {
+  "clip": "a_RunN",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Run_N_f": {
+  "clip": "a_RunN",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Sprint_N_m": {
+  "clip": "a_RunN",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Sprint_NE_m": {
+  "clip": "a_RunNE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.2,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "Sprint_NW_m": {
+  "clip": "a_RunNW",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.6,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ }
+}

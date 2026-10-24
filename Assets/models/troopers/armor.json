@@ -1,0 +1,137 @@
+{
+ "head": {
+  "fbx": "models/troopers/clone_armor_head_cd66e5.fbx",
+  "meshes": [
+   [
+    "head",
+    [
+     "mat_eyes",
+     "t_heads_jangofett_01_c",
+     "mat_teeth",
+     "t_hair_jangofett_c"
+    ]
+   ]
+  ]
+ },
+ "kama": {
+  "fbx": "models/troopers/clone_armor_kama_cd66e5.fbx",
+  "meshes": [
+   [
+    "kama",
+    [
+     "t_l_heavy_preq_01"
+    ]
+   ]
+  ]
+ },
+ "kama_arc": {
+  "fbx": "models/troopers/clone_armor_kama_arc_cd6707.fbx",
+  "meshes": [
+   [
+    "kama",
+    [
+     "t_l_assault_preq_01_arc_skirt"
+    ]
+   ]
+  ]
+ },
+ "pauldron": {
+  "fbx": "models/troopers/clone_armor_pauldron_cd66e5.fbx",
+  "meshes": [
+   [
+    "pauldron",
+    [
+     "t_l_heavy_preq_01"
+    ]
+   ]
+  ]
+ },
+ "gear_212": {
+  "fbx": "models/troopers/clone_armor_gear_212_cd6707.fbx",
+  "meshes": [
+   [
+    "gear",
+    [
+     "t_l_heavy_preq_01"
+    ]
+   ]
+  ]
+ },
+ "gear_91": {
+  "fbx": "models/troopers/clone_armor_gear_91_cd6707.fbx",
+  "meshes": [
+   [
+    "gear",
+    [
+     "t_l_heavy_preq_91"
+    ]
+   ]
+  ]
+ },
+ "rangefinder": {
+  "fbx": "models/troopers/clone_armor_rangefinder_cd66e5.fbx",
+  "meshes": [
+   [
+    "rangefinder",
+    [
+     "t_l_specialist_preq_01"
+    ]
+   ]
+  ]
+ },
+ "macrobinoculars": {
+  "fbx": "models/troopers/clone_armor_macrobinoculars_cd66e5.fbx",
+  "meshes": [
+   [
+    "visor",
+    [
+     "t_l_heavy_preq_01"
+    ]
+   ]
+  ]
+ },
+ "headgear": {
+  "fbx": "models/troopers/clone_armor_headgear_cd66e5.fbx",
+  "meshes": [
+   [
+    "headgear",
+    [
+     "t_officer_headgear_parts_preq_01"
+    ]
+   ]
+  ]
+ },
+ "antenna": {
+  "fbx": "models/troopers/clone_armor_antenna_cd6707.fbx",
+  "meshes": [
+   [
+    "antenna",
+    [
+     "t_officer_headgear_parts_preq_01"
+    ]
+   ]
+  ]
+ },
+ "holster": {
+  "fbx": "models/troopers/clone_armor_holster_cd6707.fbx",
+  "meshes": [
+   [
+    "holster",
+    [
+     "t_l_heavy_preq_01"
+    ]
+   ]
+  ]
+ },
+ "cape": {
+  "fbx": "models/troopers/clone_armor_cape_cf672e.fbx",
+  "meshes": [
+   [
+    "cape",
+    [
+     "t_cape_01"
+    ]
+   ]
+  ]
+ }
+}

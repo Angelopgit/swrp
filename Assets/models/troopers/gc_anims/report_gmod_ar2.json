@@ -1,0 +1,828 @@
+{
+ "IdlePose_Default": {
+  "clip": "idle_ar2",
+  "frames": 30,
+  "seconds": 0.967,
+  "grounded_cm": -0.0
+ },
+ "Run_N_m": {
+  "clip": "a_running_run_ar2_N",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "CrouchIdlePose_Default": {
+  "clip": "cidle_ar2",
+  "frames": 30,
+  "seconds": 0.967,
+  "grounded_cm": -1.2
+ },
+ "WalkFast_N": {
+  "clip": "a_walking_walk_ar2_N",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.0,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 74.3,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Walk_N": {
+  "clip": "a_walking_walk_ar2_N",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.0,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 74.3,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "CrouchWalk_N": {
+  "clip": "a_CrouchWalking_cwalk_ar2_N",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.6,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "WalkFast_NE": {
+  "clip": "a_walking_walk_ar2_NE",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "Walk_NE": {
+  "clip": "a_walking_walk_ar2_NE",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "Run_NE": {
+  "clip": "a_running_run_ar2_NE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.2,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "CrouchWalk_NE": {
+  "clip": "a_CrouchWalking_cwalk_ar2_NE",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.6,
+  "phase_shift": 0,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "WalkFast_NW": {
+  "clip": "a_walking_walk_ar2_NW",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.4,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "Walk_NW": {
+  "clip": "a_walking_walk_ar2_NW",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.4,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 64.3,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "Run_NW": {
+  "clip": "a_running_run_ar2_NW",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.6,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "CrouchWalk_NW": {
+  "clip": "a_CrouchWalking_cwalk_ar2_NW",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.5,
+  "phase_shift": 0,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ },
+ "WalkFast_S": {
+  "clip": "a_walking_walk_ar2_S",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 59.6,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "Walk_S": {
+  "clip": "a_walking_walk_ar2_S",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 59.6,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "Run_S": {
+  "clip": "a_running_run_ar2_S",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.6,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    8,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 157.7,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "CrouchWalk_S": {
+  "clip": "a_CrouchWalking_cwalk_ar2_S",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.3,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.056,
+   0.998
+  ]
+ },
+ "WalkFast_SE": {
+  "clip": "a_walking_walk_ar2_SE",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "Walk_SE": {
+  "clip": "a_walking_walk_ar2_SE",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "Run_SE": {
+  "clip": "a_running_run_ar2_SE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.6,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    8,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "CrouchWalk_SE": {
+  "clip": "a_CrouchWalking_cwalk_ar2_SE",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.667,
+   0.745
+  ]
+ },
+ "WalkFast_SW": {
+  "clip": "a_walking_walk_ar2_SW",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.5,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "Walk_SW": {
+  "clip": "a_walking_walk_ar2_SW",
+  "frames": 29,
+  "seconds": 0.933,
+  "grounded_cm": 0.5,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    14,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 49.7,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "Run_SW": {
+  "clip": "a_running_run_ar2_SW",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.0,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    8,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "CrouchWalk_SW": {
+  "clip": "a_CrouchWalking_cwalk_ar2_SW",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.4,
+  "phase_shift": 10,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.745,
+   0.667
+  ]
+ },
+ "WalkFast_E": {
+  "clip": "a_walking_walk_ar2_E",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.6,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "Walk_E": {
+  "clip": "a_walking_walk_ar2_E",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.6,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    12,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "Run_E": {
+  "clip": "a_running_run_ar2_E",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.0,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    10,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "CrouchWalk_E": {
+  "clip": "a_CrouchWalking_cwalk_ar2_E",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.7,
+  "phase_shift": 7,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    15,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   -0.998,
+   0.056
+  ]
+ },
+ "WalkFast_W": {
+  "clip": "a_walking_walk_ar2_W",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    11,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "Walk_W": {
+  "clip": "a_walking_walk_ar2_W",
+  "frames": 27,
+  "seconds": 0.867,
+  "grounded_cm": 0.5,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    11,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 48.2,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "Run_W": {
+  "clip": "a_running_run_ar2_W",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.0,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 139.1,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "CrouchWalk_W": {
+  "clip": "a_CrouchWalking_cwalk_ar2_W",
+  "frames": 31,
+  "seconds": 1.0,
+  "grounded_cm": 0.6,
+  "phase_shift": 8,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    13,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 55.7,
+  "dir": [
+   0.998,
+   -0.056
+  ]
+ },
+ "Run_N": {
+  "clip": "a_running_run_ar2_N",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Run_N_f": {
+  "clip": "a_running_run_ar2_N",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Sprint_N_m": {
+  "clip": "a_running_run_ar2_N",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 0.9,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.056,
+   -0.998
+  ]
+ },
+ "Sprint_NE_m": {
+  "clip": "a_running_run_ar2_NE",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.2,
+  "phase_shift": 2,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   -0.745,
+   -0.667
+  ]
+ },
+ "Sprint_NW_m": {
+  "clip": "a_running_run_ar2_NW",
+  "frames": 19,
+  "seconds": 0.6,
+  "grounded_cm": 1.6,
+  "phase_shift": 3,
+  "steps": [
+   [
+    0,
+    "L"
+   ],
+   [
+    9,
+    "R"
+   ]
+  ],
+  "speed_in_per_s": 194.8,
+  "dir": [
+   0.667,
+   -0.745
+  ]
+ }
+}

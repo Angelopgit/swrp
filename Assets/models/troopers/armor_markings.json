@@ -1,0 +1,31 @@
+{
+ "212th": {
+  "t_l_assault_preq_01_body": "models/troopers/materials/t_l_assault_preq_01_body_mark_212th.vmat",
+  "t_l_heavy_preq_01": "models/troopers/materials/t_l_heavy_preq_01_mark_212th.vmat",
+  "t_cape_01": "models/troopers/materials/t_cape_01_mark_212th.vmat"
+ },
+ "104th": {
+  "t_l_assault_preq_01_body": "models/troopers/materials/t_l_assault_preq_01_body_mark_104th.vmat",
+  "t_l_heavy_preq_01": "models/troopers/materials/t_l_heavy_preq_01_mark_104th.vmat",
+  "t_cape_01": "models/troopers/materials/t_cape_01_mark_104th.vmat"
+ },
+ "327th": {
+  "t_l_assault_preq_01_body": "models/troopers/materials/t_l_assault_preq_01_body_mark_327th.vmat",
+  "t_l_heavy_preq_01": "models/troopers/materials/t_l_heavy_preq_01_mark_327th.vmat",
+  "t_cape_01": "models/troopers/materials/t_cape_01_mark_327th.vmat"
+ },
+ "41st": {
+  "t_l_assault_preq_01_body": "models/troopers/materials/t_l_assault_preq_01_body_mark_41st.vmat",
+  "t_l_heavy_preq_01": "models/troopers/materials/t_l_heavy_preq_01_mark_41st.vmat",
+  "t_cape_01": "models/troopers/materials/t_cape_01_mark_41st.vmat"
+ },
+ "coruscant_guard": {
+  "t_l_assault_preq_01_body": "models/troopers/materials/t_l_assault_preq_01_body_mark_coruscant_guard.vmat",
+  "t_l_heavy_preq_01": "models/troopers/materials/t_l_heavy_preq_01_mark_coruscant_guard.vmat",
+  "t_cape_01": "models/troopers/materials/t_cape_01_mark_coruscant_guard.vmat"
+ },
+ "501st": {
+  "t_l_heavy_preq_01": "models/troopers/materials/t_l_heavy_preq_01_mark_501st.vmat",
+  "t_cape_01": "models/troopers/materials/t_cape_01_mark_501st.vmat"
+ }
+}
